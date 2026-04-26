@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ScentHive v3.4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#09090A;--black2:#111112;--black3:#1A1A1C;--black4:#222224;
+  --gold:#C8A951;--gold-light:#E2C97E;--gold-dim:#8A7235;--gold-pale:#1E1A0E;
+  --amber:#D4862A;--honey:#F0A830;
+  --white:#F4F1EA;--white2:#DDD9CF;--grey:#6A6760;--grey2:#3A3935;
+  --border:#28271F;--border2:#1C1C14;--danger:#C0554A;--success:#5A8A5A;
+  --card-bg:linear-gradient(135deg,#1A1A1C 0%,#141412 100%);
+}
+html,body{height:100%;background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::-webkit-scrollbar{width:0}
+img{max-width:100%;display:block}
+
+.screen{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto}
+.screen.active{display:flex}
+
+/* ═══ SPLASH ═══ */
+#screen-splash{
+  align-items:center;justify-content:center;min-height:100vh;padding:40px 32px;
+  background:radial-gradient(ellipse at 30% 20%,#201508 0%,var(--black) 65%);
+  position:relative;overflow:hidden;
+}
+#screen-splash::before{
+  content:'⬡ ⬡ ⬡ ⬡ ⬡\A⬡ ⬡ ⬡ ⬡ ⬡\A⬡ ⬡ ⬡ ⬡ ⬡\A⬡ ⬡ ⬡ ⬡ ⬡\A⬡ ⬡ ⬡ ⬡ ⬡';
+  white-space:pre;
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  font-size:48px;line-height:2.2;letter-spacing:8px;
+  color:rgba(200,169,81,0.04);
+  pointer-events:none;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:20px;
+}
+#screen-splash::after{content:'';position:absolute;bottom:-100px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(200,169,81,0.06) 0%,transparent 70%);pointer-events:none}
+
+.bee{margin-bottom:28px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 8px 24px rgba(200,169,81,0.2))}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+
+.splash-logo{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:300;letter-spacing:0.2em;text-transform:uppercase;color:var(--white);margin-bottom:6px;text-align:center}
+.splash-logo span{color:var(--gold)}
+.splash-tag{font-size:11px;color:var(--grey);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:52px;text-align:center}
+.splash-btn{width:100%;padding:16px;background:var(--gold);color:var(--black);border:none;border-radius:14px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0.04em;transition:all 0.2s;margin-bottom:12px}
+.splash-btn:active{transform:scale(0.98)}
+.splash-btn.ghost{background:transparent;color:var(--white2);border:1px solid var(--border2)}
+.splash-btn.ghost:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ═══ ONBOARDING ═══ */
+#screen-onboarding{background:var(--black);overflow:hidden}
+.ob-slides{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px 20px;text-align:center}
+.ob-icon{font-size:60px;margin-bottom:28px;animation:fadeUp 0.5s ease forwards}
+.ob-title{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;line-height:1.15;margin-bottom:14px;animation:fadeUp 0.5s ease 0.1s both}
+.ob-title em{font-style:italic;color:var(--gold)}
+.ob-body{font-size:14px;color:var(--grey);line-height:1.75;max-width:300px;animation:fadeUp 0.5s ease 0.2s both}
+.ob-dots{display:flex;gap:8px;justify-content:center;margin:28px 0 20px}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all 0.3s}
+.ob-dot.active{width:22px;border-radius:3px;background:var(--gold)}
+.ob-next{width:calc(100% - 64px);padding:15px;background:var(--gold);color:var(--black);border:none;border-radius:14px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.04em;margin-bottom:12px}
+.ob-skip{background:none;border:none;color:var(--grey);font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;margin-bottom:24px;padding:8px}
+
+/* ═══ PLANS ═══ */
+#screen-plans{background:radial-gradient(ellipse at top,#1A1508 0%,var(--black) 60%)}
+.plans-header{padding:40px 32px 20px;text-align:center}
+.plans-header h2{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;margin-bottom:8px}
+.plans-header h2 em{font-style:italic;color:var(--gold)}
+.plans-header p{font-size:13px;color:var(--grey);line-height:1.6}
+.plan-cards{padding:0 20px;display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.plan-card{background:var(--black3);border:1.5px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:all 0.2s;position:relative;text-align:left}
+.plan-card.selected{border-color:var(--gold);background:var(--gold-pale)}
+.plan-card.featured::before{content:'Most Popular';position:absolute;top:-11px;left:16px;background:var(--gold);color:var(--black);font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:3px 12px;border-radius:20px}
+.plan-name{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey);margin-bottom:4px}
+.plan-price{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--white);margin-bottom:10px}
+.plan-price span{font-family:'Outfit',sans-serif;font-size:13px;color:var(--grey);font-weight:300}
+.plan-features{font-size:12px;color:var(--grey);line-height:1.8}
+.plan-card.selected .plan-name,.plan-card.selected .plan-features{color:var(--white2)}
+.plans-cta{padding:0 20px 40px;display:flex;flex-direction:column;gap:10px}
+.plans-cta p{font-size:11px;color:var(--grey);text-align:center}
+
+/* ═══ AUTH ═══ */
+#screen-auth{align-items:center;justify-content:center;padding:40px 28px;min-height:100vh;background:radial-gradient(ellipse at top,#1A1508 0%,var(--black) 60%)}
+.auth-wrap{width:100%;display:flex;flex-direction:column;align-items:center}
+.auth-back{align-self:flex-start;background:none;border:none;color:var(--grey);font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;margin-bottom:32px;display:flex;align-items:center;gap:6px}
+.auth-logo{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;letter-spacing:0.18em;text-transform:uppercase;color:var(--white);margin-bottom:4px;text-align:center;width:100%}
+.auth-logo span{color:var(--gold)}
+.auth-sub{font-size:12px;color:var(--grey);letter-spacing:0.06em;margin-bottom:36px;text-align:center}
+.auth-tabs{display:flex;gap:0;margin-bottom:24px;background:var(--black3);border-radius:12px;padding:4px;width:100%}
+.auth-tab{flex:1;padding:11px;border-radius:9px;border:none;background:transparent;color:var(--grey);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s}
+.auth-tab.active{background:var(--gold);color:var(--black)}
+.auth-form{width:100%;display:flex;flex-direction:column;gap:12px}
+.auth-input{width:100%;padding:14px 16px;background:var(--black3);border:1px solid var(--border);border-radius:12px;font-family:'Outfit',sans-serif;font-size:15px;color:var(--white);outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+.auth-input:focus{border-color:var(--gold)}
+.auth-input::placeholder{color:var(--grey)}
+.auth-btn{width:100%;padding:15px;background:var(--gold);color:var(--black);border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;margin-top:4px}
+.auth-btn:active{transform:scale(0.98)}
+.auth-btn:disabled{opacity:0.6;cursor:not-allowed}
+.auth-msg{font-size:12px;text-align:center;min-height:16px;margin-top:4px}
+.auth-msg.error{color:var(--danger)}
+.auth-msg.success{color:var(--success)}
+
+/* ═══ TOPBAR ═══ */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;position:sticky;top:0;z-index:100;background:rgba(9,9,10,0.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);position:relative}
+.topbar::after{content:'⬡';position:absolute;right:60px;top:50%;transform:translateY(-50%);font-size:32px;color:rgba(200,169,81,0.06);pointer-events:none;z-index:0}
+.logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:0.16em;text-transform:uppercase;color:var(--white)}
+.logo span{color:var(--gold)}
+.topbar-actions{display:flex;gap:8px}
+.tb-btn{width:34px;height:34px;border-radius:50%;background:var(--black3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--white2);transition:all 0.2s}
+.tb-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ═══ BOTTOM NAV ═══ */
+.bottom-nav{position:sticky;bottom:0;background:rgba(9,9,10,0.96);backdrop-filter:blur(20px);border-top:1px solid var(--border2);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--grey);font-family:'Outfit',sans-serif;font-size:9px;font-weight:400;letter-spacing:0.06em;text-transform:uppercase;padding:6px 0;transition:color 0.2s}
+.nav-btn.active{color:var(--gold)}
+
+/* ═══ DISCOVER / SEARCH ═══ */
+.search-wrap{padding:14px 20px;border-bottom:1px solid var(--border2);background:var(--black)}
+.search-box{display:flex;align-items:center;gap:10px;background:var(--black3);border:1px solid var(--border);border-radius:14px;padding:12px 16px;transition:border-color 0.2s}
+.search-box:focus-within{border-color:var(--gold)}
+.search-box input{flex:1;background:none;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:14px;color:var(--white)}
+.search-box input::placeholder{color:var(--grey)}
+
+.search-results{flex:1;overflow-y:auto}
+.sec-title{padding:16px 20px 10px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey)}
+
+/* FRAGRANCE CARD */
+.frag-card{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--border2);cursor:pointer;transition:background 0.15s}
+.frag-card:active{background:var(--black3)}
+.frag-img{width:48px;height:48px;border-radius:12px;background:var(--black3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden;object-fit:cover}
+.frag-img img{width:100%;height:100%;object-fit:contain;padding:4px}
+.frag-info{flex:1;min-width:0}
+.frag-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frag-house{font-size:12px;color:var(--grey);margin-top:1px}
+.frag-chips{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.frag-chip{font-size:10px;padding:2px 7px;background:var(--black4);border:1px solid var(--border2);border-radius:20px;color:var(--white2)}
+.frag-arrow{color:var(--grey);flex-shrink:0;font-size:16px}
+
+/* LOADING STATE */
+.loading-card{padding:20px;text-align:center}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--grey);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+
+/* AI BANNER */
+.ai-banner{margin:16px 20px;background:linear-gradient(135deg,#1E1608,#16130A);border:1px solid var(--gold-dim);border-radius:20px;padding:20px;position:relative;overflow:hidden;cursor:pointer;transition:border-color 0.2s}
+.ai-banner:hover{border-color:var(--gold)}
+.ai-banner::before{content:'⬡';position:absolute;top:-20px;right:-10px;font-size:120px;color:rgba(200,169,81,0.06);pointer-events:none;line-height:1}
+.ai-banner::after{content:'⬡';position:absolute;bottom:-30px;right:40px;font-size:80px;color:rgba(200,169,81,0.04);pointer-events:none;line-height:1}
+.ai-banner-label{font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.ai-banner-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;margin-bottom:8px}
+.ai-banner-title em{font-style:italic;color:var(--gold-light)}
+.ai-banner-body{font-size:12px;color:var(--grey);line-height:1.6;margin-bottom:14px}
+.ai-banner-btn{display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:var(--black);border:none;padding:10px 18px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.04em}
+
+/* ═══ FRAGRANCE DETAIL ═══ */
+#screen-fragrance{overflow-y:auto}
+.frag-hero{padding:20px;border-bottom:1px solid var(--border2);position:relative;overflow:hidden;background:linear-gradient(135deg,#141210 0%,var(--black) 100%)}
+.frag-hero::after{content:'⬡ ⬡\A⬡ ⬡';white-space:pre;position:absolute;top:-10px;right:-10px;font-size:60px;line-height:1.4;color:rgba(200,169,81,0.05);pointer-events:none}
+.frag-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(200,169,81,0.07) 0%,transparent 70%)}
+.frag-hero-bottle{width:80px;height:80px;border-radius:16px;background:var(--black3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;margin-bottom:16px}
+.frag-hero-bottle img{width:100%;height:100%;object-fit:contain;padding:6px}
+.frag-eyebrow{font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.frag-hero-name{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;letter-spacing:-0.5px;line-height:1.1;margin-bottom:4px}
+.frag-hero-house{font-size:14px;color:var(--grey);margin-bottom:18px}
+.frag-hero-actions{display:flex;gap:8px}
+.frag-btn{flex:1;padding:11px;border-radius:12px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;border:none}
+.frag-btn-primary{background:var(--gold);color:var(--black)}
+.frag-btn-secondary{background:var(--black3);color:var(--white2);border:1px solid var(--border)}
+.frag-btn-secondary:active{border-color:var(--gold);color:var(--gold)}
+
+.detail-sec{padding:20px;border-bottom:1px solid var(--border2)}
+.detail-label{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey);margin-bottom:14px}
+.notes-grid{display:flex;gap:8px;flex-wrap:wrap}
+.note-chip{padding:7px 14px;background:var(--black3);border:1px solid var(--border);border-radius:20px;font-size:13px;color:var(--white2)}
+
+/* HONEYCOMB NOTES */
+.hex-grid{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0}
+.hex{
+  position:relative;width:80px;height:46px;
+  background:var(--black3);border:1px solid var(--border);
+  clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);
+  display:flex;align-items:center;justify-content:center;
+  cursor:default;transition:all 0.2s;font-size:11px;color:var(--white2);
+  text-align:center;padding:0 12px;
+}
+.hex.gold{background:var(--gold-pale);border-color:var(--gold-dim);color:var(--gold-light)}
+.hex.amber{background:rgba(212,134,42,0.15);border-color:rgba(212,134,42,0.4);color:var(--amber)}
+.hex:hover{background:var(--gold-pale);border-color:var(--gold);color:var(--gold-light)}
+.accord-row{margin-bottom:10px}
+/* NOTE PYRAMID - Fragrantica style */
+.note-pyramid{display:flex;flex-direction:column;gap:16px}
+.pyramid-layer{}
+.pyramid-label{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey);margin-bottom:10px}
+.pyramid-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0}
+.pyramid-dot.gold-dot{background:var(--gold)}
+.pyramid-dot.amber-dot{background:var(--amber)}
+.note-pills{display:flex;flex-wrap:wrap;gap:8px}
+.note-pill{display:flex;align-items:center;gap:6px;padding:7px 13px;background:var(--black3);border:1px solid var(--border);border-radius:20px;transition:all 0.2s;cursor:default}
+.note-pill:hover{border-color:var(--gold-dim)}
+.note-pill-icon{font-size:14px;line-height:1}
+.note-pill-name{font-size:12px;color:var(--white2);font-family:'Outfit',sans-serif;font-weight:400}
+.accord-top{display:flex;justify-content:space-between;font-size:12px;color:var(--white2);margin-bottom:5px}
+.accord-track{height:4px;background:var(--black4);border-radius:2px;overflow:hidden}
+.accord-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;transition:width 1.2s ease}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border2)}
+.stat-row:last-child{border-bottom:none}
+.stat-key{font-size:13px;color:var(--grey)}
+.stat-val{font-size:13px;font-weight:500;color:var(--white);text-align:right;max-width:200px}
+
+.price-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--black3);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:border-color 0.2s}
+.price-row:hover{border-color:var(--gold)}
+.price-retailer{font-size:13px;font-weight:500;color:var(--white)}
+.price-amount{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold)}
+
+.dupe-card{background:var(--black3);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color 0.2s}
+.dupe-card:hover{border-color:var(--gold)}
+.dupe-match{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.dupe-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:2px}
+.dupe-house{font-size:12px;color:var(--grey);margin-bottom:8px}
+.dupe-why{font-size:13px;color:var(--white2);line-height:1.65}
+
+/* ═══ AI SCREEN ═══ */
+.ai-screen{flex:1;overflow-y:auto}
+.ai-hero{padding:24px 20px 20px;border-bottom:1px solid var(--border2);position:relative;overflow:hidden}
+.ai-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(200,169,81,0.1) 0%,transparent 70%)}
+.ai-eyebrow{font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.ai-hero h2{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;line-height:1.15;margin-bottom:6px}
+.ai-hero h2 em{font-style:italic;color:var(--gold-light)}
+.ai-hero p{font-size:13px;color:var(--grey);line-height:1.65}
+.ai-input-area{padding:18px 20px;border-bottom:1px solid var(--border2)}
+.ai-textarea{width:100%;min-height:90px;background:var(--black3);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--white);resize:none;outline:none;transition:border-color 0.2s;line-height:1.65}
+.ai-textarea:focus{border-color:var(--gold)}
+.ai-textarea::placeholder{color:var(--grey)}
+.ai-chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.ai-chip{font-size:12px;padding:7px 13px;background:var(--black3);border:1px solid var(--border);border-radius:20px;color:var(--white2);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.ai-chip:hover{border-color:var(--gold);color:var(--gold)}
+.ai-submit{width:100%;padding:14px;background:var(--gold);color:var(--black);border:none;border-radius:14px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.04em;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.ai-submit:active{transform:scale(0.98)}
+.ai-response-area{padding:20px;display:none}
+.ai-response-area.visible{display:block}
+.thinking{display:flex;align-items:center;gap:10px;padding:16px;background:var(--black3);border:1px solid var(--border);border-radius:14px;margin-bottom:16px}
+.dots span{display:inline-block;width:6px;height:6px;background:var(--gold);border-radius:50%;animation:bounce 1.2s ease-in-out infinite;margin:0 2px}
+.dots span:nth-child(2){animation-delay:0.2s}
+.dots span:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.rec-card{background:var(--black3);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer;transition:border-color 0.2s;animation:fadeUp 0.4s ease forwards}
+.rec-card:hover{border-color:var(--gold)}
+.rec-num{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.rec-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--white);margin-bottom:2px}
+.rec-house{font-size:12px;color:var(--grey);margin-bottom:10px}
+.rec-why{font-size:13px;color:var(--white2);line-height:1.65;margin-bottom:12px}
+.rec-actions{display:flex;gap:8px}
+.rec-btn{flex:1;padding:10px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;text-align:center;border:none;display:flex;align-items:center;justify-content:center;gap:6px}
+.rec-btn-gold{background:var(--gold);color:var(--black)}
+.rec-btn-ghost{background:transparent;color:var(--white2);border:1px solid var(--border)}
+.rec-btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ═══ COLLECTION ═══ */
+.collection-screen{flex:1;overflow-y:auto}
+.col-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border2);border-bottom:1px solid var(--border2)}
+.stat-box{background:var(--black);padding:16px;text-align:center;position:relative;overflow:hidden}
+.stat-box::before{content:'⬡';position:absolute;top:-8px;right:-4px;font-size:40px;color:var(--gold);opacity:0.04;pointer-events:none}
+
+/* HIVE COLLECTION GRID */
+.hive-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:16px 20px}
+.hive-cell{background:var(--black3);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden}
+.hive-cell::before{content:'⬡';position:absolute;bottom:-10px;right:-6px;font-size:50px;color:var(--gold);opacity:0.04;pointer-events:none}
+.hive-cell:active{border-color:var(--gold);background:var(--gold-pale)}
+.hive-cell-img{width:56px;height:56px;border-radius:12px;background:var(--black4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;margin-bottom:12px}
+.hive-cell-img img{width:100%;height:100%;object-fit:contain;padding:4px}
+.hive-cell-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--white);line-height:1.2;margin-bottom:3px}
+.hive-cell-house{font-size:11px;color:var(--grey);margin-bottom:8px}
+.hive-cell-tags{display:flex;gap:4px;flex-wrap:wrap}
+.hive-cell-tag{font-size:9px;padding:2px 6px;background:var(--black4);border:1px solid var(--border2);border-radius:20px;color:var(--grey)}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--gold);line-height:1}
+.stat-label{font-size:10px;color:var(--grey);margin-top:4px;letter-spacing:0.04em;text-transform:uppercase}
+.col-list{padding:0 20px 20px}
+.col-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border2);cursor:pointer}
+.col-item:last-child{border-bottom:none}
+.col-bottle{width:44px;height:44px;border-radius:12px;background:var(--black3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;transition:border-color 0.2s}
+.col-item:hover .col-bottle{border-color:var(--gold)}
+.col-bottle img{width:100%;height:100%;object-fit:contain;padding:4px}
+.col-info{flex:1;min-width:0}
+.col-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.col-house{font-size:11px;color:var(--grey);margin-top:1px}
+.col-tags{display:flex;gap:5px;margin-top:5px}
+.col-tag{font-size:10px;padding:2px 7px;background:var(--black4);border:1px solid var(--border2);border-radius:20px;color:var(--grey)}
+.col-ml{font-size:12px;color:var(--gold);font-weight:500;flex-shrink:0}
+.empty-state{padding:48px 24px;text-align:center;color:var(--grey);font-size:14px;line-height:1.7}
+.empty-state span{display:block;font-size:40px;margin-bottom:14px}
+.add-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 20px 20px;padding:14px;background:transparent;border:1.5px dashed var(--border);border-radius:14px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--grey);cursor:pointer;transition:all 0.2s;width:calc(100% - 40px)}
+.add-row:hover{border-color:var(--gold);color:var(--gold)}
+/* ═══ SWIPE DISCOVERY ═══ */
+.swipe-screen{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--black)}
+.swipe-hero{padding:20px 20px 12px;border-bottom:1px solid var(--border2)}
+.swipe-hero h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;margin-bottom:4px}
+.swipe-hero h2 em{font-style:italic;color:var(--gold)}
+.swipe-hero p{font-size:12px;color:var(--grey)}
+.swipe-stats{display:flex;gap:16px;margin-top:10px}
+.swipe-stat{font-size:11px;color:var(--grey)}
+.swipe-stat span{color:var(--gold);font-weight:600}
+.swipe-area{flex:1;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;overflow:hidden;min-height:420px}
+.swipe-card{width:100%;max-width:340px;background:var(--black3);border:1px solid var(--border);border-radius:24px;overflow:hidden;position:absolute;cursor:grab;user-select:none;transition:box-shadow 0.2s;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.swipe-card:active{cursor:grabbing}
+.swipe-card.swiping{transition:none}
+.swipe-card.fly-right{transition:transform 0.4s ease,opacity 0.4s ease;transform:translateX(120%) rotate(20deg)!important;opacity:0}
+.swipe-card.fly-left{transition:transform 0.4s ease,opacity 0.4s ease;transform:translateX(-120%) rotate(-20deg)!important;opacity:0}
+.swipe-card.fly-up{transition:transform 0.4s ease,opacity 0.4s ease;transform:translateY(-120%)!important;opacity:0}
+.swipe-card-img{width:100%;height:200px;background:linear-gradient(135deg,#1A1510,#0E0C08);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.swipe-card-img img{width:100%;height:100%;object-fit:contain;padding:20px}
+.swipe-card-img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to top,var(--black3),transparent)}
+.swipe-card-body{padding:18px}
+.swipe-card-house{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.swipe-card-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--white);margin-bottom:4px;line-height:1.1}
+.swipe-card-family{font-size:12px;color:var(--grey);margin-bottom:12px}
+.swipe-card-desc{font-size:13px;color:var(--white2);line-height:1.65;margin-bottom:12px;font-style:italic}
+.swipe-card-notes{display:flex;gap:6px;flex-wrap:wrap}
+.swipe-card-note{font-size:11px;padding:4px 10px;background:var(--black4);border:1px solid var(--border2);border-radius:20px;color:var(--white2)}
+.swipe-indicator{position:absolute;top:20px;padding:8px 16px;border-radius:20px;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;opacity:0;transition:opacity 0.15s;pointer-events:none;z-index:10}
+.swipe-indicator.love{right:20px;background:rgba(90,138,90,0.95);color:white;border:2px solid #7BC47B}
+.swipe-indicator.nope{left:20px;background:rgba(192,85,74,0.95);color:white;border:2px solid #E07070}
+.swipe-indicator.own{top:50%;transform:translateY(-50%);right:20px;background:rgba(200,169,81,0.95);color:var(--black);border:2px solid var(--gold)}
+.swipe-actions{display:flex;justify-content:center;align-items:center;gap:16px;padding:12px 20px 4px}
+.swipe-btn{width:56px;height:56px;border-radius:50%;border:2px solid var(--border);background:var(--black3);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all 0.2s;flex-shrink:0}
+.swipe-btn:active{transform:scale(0.88)}
+.swipe-btn.nope{border-color:var(--danger);color:var(--danger)}
+.swipe-btn.love{border-color:var(--success);color:var(--success);width:64px;height:64px;font-size:26px}
+.swipe-btn.own{border-color:var(--gold);color:var(--gold)}
+.swipe-btn.skip{border-color:var(--grey2);color:var(--grey)}
+.swipe-legend{display:flex;justify-content:center;gap:20px;padding:8px 20px 12px}
+.swipe-legend-item{font-size:10px;color:var(--grey);display:flex;align-items:center;gap:5px;letter-spacing:0.04em}
+.swipe-empty{padding:40px 24px;text-align:center}
+.match-toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);padding:10px 20px;border-radius:20px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;z-index:500;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+.match-toast.show{opacity:1}
+.swipe-progress{height:3px;background:var(--border2);margin:0 20px}
+.swipe-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;transition:width 0.5s ease}
+
+.photo-import-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:calc(100% - 40px);margin:16px 20px 0;padding:16px;background:linear-gradient(135deg,var(--gold-pale),#16130A);border:1.5px solid var(--gold-dim);border-radius:16px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;color:var(--gold-light);cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden}
+.photo-import-btn:active{transform:scale(0.98)}
+.photo-confirm-overlay{display:none;position:fixed;inset:0;background:var(--black);z-index:250;flex-direction:column;overflow-y:auto}
+.photo-confirm-overlay.open{display:flex}
+.photo-confirm-header{padding:20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:14px;position:sticky;top:0;background:var(--black);z-index:10}
+.photo-confirm-card{margin:0 20px 12px;background:var(--black3);border:1px solid var(--border);border-radius:16px;padding:16px;animation:fadeUp 0.4s ease forwards}
+.photo-confirm-card.uncertain{border-color:var(--amber)}
+.photo-confirm-name-input{width:100%;padding:8px 12px;background:var(--black4);border:1px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--white);outline:none;margin-bottom:6px;-webkit-appearance:none}
+.photo-confirm-name-input:focus{border-color:var(--gold)}
+.photo-confirm-house-input{width:100%;padding:8px 12px;background:var(--black4);border:1px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--white);outline:none;margin-bottom:10px;-webkit-appearance:none}
+.photo-confirm-actions{display:flex;gap:8px}
+.pca-btn{flex:1;padding:10px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s}
+.pca-add{background:var(--gold);color:var(--black)}
+.pca-skip{background:var(--black4);color:var(--grey);border:1px solid var(--border)}
+.pca-added{background:var(--success);color:var(--white)}
+.confidence-badge{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:10px}
+.confidence-high{background:rgba(90,138,90,0.2);color:#7BC47B}
+.confidence-low{background:rgba(212,134,42,0.2);color:var(--amber)}
+.analyse-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:300;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.analyse-overlay.open{display:flex}
+.analyse-bee{font-size:52px;animation:float 1.5s ease-in-out infinite}
+.analyse-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--white);text-align:center}
+.analyse-sub{font-size:13px;color:var(--grey);text-align:center}
+
+/* ═══ JOURNAL ═══ */
+.journal-screen{flex:1;overflow-y:auto}
+.journal-entry{padding:16px 20px;border-bottom:1px solid var(--border2);cursor:pointer;transition:background 0.15s}
+.journal-entry:active{background:var(--black3)}
+.journal-date{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.journal-frag{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--white);margin-bottom:2px}
+.journal-house{font-size:12px;color:var(--grey);margin-bottom:8px}
+.journal-meta{display:flex;gap:8px;flex-wrap:wrap}
+.journal-tag{font-size:11px;padding:3px 9px;background:var(--black3);border:1px solid var(--border);border-radius:20px;color:var(--white2)}
+
+/* ═══ CALCULATOR ═══ */
+.calc-screen{flex:1;overflow-y:auto;padding:20px}
+.calc-hero{margin-bottom:24px}
+.calc-hero h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;margin-bottom:6px}
+.calc-hero h2 em{font-style:italic;color:var(--gold)}
+.calc-hero p{font-size:13px;color:var(--grey);line-height:1.65}
+.calc-card{background:var(--black3);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.calc-card-hd{padding:14px 18px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:8px}
+.calc-card-hd h3{font-size:13px;font-weight:500;color:var(--white)}
+.calc-card-body{padding:18px}
+.calc-field{margin-bottom:14px}
+.calc-field:last-child{margin-bottom:0}
+.calc-label{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey);margin-bottom:8px;display:block}
+.calc-input{width:100%;padding:12px 14px;background:var(--black4);border:1px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:15px;color:var(--white);outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+.calc-input:focus{border-color:var(--gold)}
+.calc-input::placeholder{color:var(--grey)}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.calc-submit{width:100%;padding:14px;background:var(--gold);color:var(--black);border:none;border-radius:14px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;margin-bottom:16px}
+.calc-submit:active{transform:scale(0.98)}
+.calc-result{background:var(--black3);border:1.5px solid var(--gold);border-radius:16px;padding:24px;text-align:center;display:none;margin-bottom:16px;animation:fadeUp 0.4s ease forwards}
+.calc-result.visible{display:block}
+.ring-wrap{position:relative;width:120px;height:120px;margin:0 auto 14px}
+.ring{transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:var(--black4);stroke-width:8}
+.ring-fill{fill:none;stroke:var(--gold);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s ease}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.ring-pct{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--white);line-height:1}
+.ring-label{font-size:10px;color:var(--grey)}
+.result-ml{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--gold);line-height:1;margin-bottom:4px}
+.result-ml-label{font-size:13px;color:var(--grey);margin-bottom:14px}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border-radius:10px;overflow:hidden;margin-top:12px}
+.result-cell{background:var(--black4);padding:14px;text-align:center}
+.result-cell-num{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--white)}
+.result-cell-label{font-size:10px;color:var(--grey);margin-top:3px;text-transform:uppercase;letter-spacing:0.06em}
+
+/* BATCH CODE CHECKER */
+.batch-result{background:var(--black3);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:16px;display:none;animation:fadeUp 0.4s ease forwards}
+.batch-result.visible{display:block}
+.batch-year{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--gold);margin-bottom:4px}
+.batch-info{font-size:13px;color:var(--white2);line-height:1.65}
+
+/* ═══ PROFILE ═══ */
+.profile-screen{flex:1;overflow-y:auto}
+.profile-header{padding:24px 20px 20px;text-align:center;border-bottom:1px solid var(--border2);position:relative}
+.profile-header::before{content:'';position:absolute;top:0;left:0;right:0;height:80px;background:linear-gradient(180deg,rgba(200,169,81,0.06) 0%,transparent 100%)}
+.profile-ring{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--amber));padding:2px;margin:0 auto 12px;position:relative}
+.profile-avatar{width:100%;height:100%;border-radius:50%;background:var(--black3);display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--black)}
+.profile-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;letter-spacing:0.04em;margin-bottom:4px}
+.profile-email{font-size:12px;color:var(--grey);margin-bottom:18px}
+.profile-stats{display:flex;justify-content:center;gap:36px}
+.profile-stat{text-align:center}
+.profile-stat-num{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--white)}
+.profile-stat-label{font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:0.06em}
+.profile-sec{padding:20px;border-bottom:1px solid var(--border2)}
+.profile-sec-title{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey);margin-bottom:14px}
+.scent-tags{display:flex;gap:8px;flex-wrap:wrap}
+.scent-tag{font-size:12px;padding:6px 14px;background:var(--black3);border:1px solid var(--border);border-radius:20px;color:var(--white2)}
+.scent-tag.gold{background:var(--gold-pale);border-color:var(--gold-dim);color:var(--gold-light)}
+.settings-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border2);cursor:pointer;transition:opacity 0.2s}
+.settings-item:last-child{border-bottom:none}
+.settings-item:active{opacity:0.7}
+.settings-item-left{display:flex;align-items:center;gap:12px}
+.settings-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.settings-icon.gold{background:var(--gold-pale)}
+.settings-icon.grey{background:var(--black3)}
+.settings-icon.red{background:rgba(192,85,74,0.15)}
+.settings-label{font-size:14px;color:var(--white)}
+.settings-label.danger{color:var(--danger)}
+.settings-value{font-size:12px;color:var(--grey)}
+.premium-badge{font-size:10px;padding:3px 9px;background:var(--gold-pale);border:1px solid var(--gold-dim);border-radius:20px;color:var(--gold);font-weight:500;letter-spacing:0.06em;text-transform:uppercase}
+
+/* ═══ UPGRADE MODAL ═══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--black2);border-top:1px solid var(--border);border-radius:22px 22px 0 0;padding:20px;width:100%;max-width:480px;animation:slideUp 0.3s ease forwards;max-height:90vh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;margin-bottom:6px;letter-spacing:0.02em}
+.modal-sub{font-size:13px;color:var(--grey);margin-bottom:20px;line-height:1.6}
+.modal-field{margin-bottom:14px}
+.modal-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey);display:block;margin-bottom:8px}
+.modal-input,.modal-select{width:100%;padding:12px 14px;background:var(--black3);border:1px solid var(--border);border-radius:12px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--white);outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+.modal-input:focus,.modal-select:focus{border-color:var(--gold)}
+.modal-input::placeholder{color:var(--grey)}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-submit{width:100%;padding:14px;background:var(--gold);color:var(--black);border:none;border-radius:14px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;letter-spacing:0.04em;transition:background 0.2s}
+.modal-submit:hover{background:var(--gold-light)}
+.modal-cancel{width:100%;padding:12px;background:transparent;color:var(--grey);border:none;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;margin-top:8px}
+.occ-chips{display:flex;gap:8px;flex-wrap:wrap}
+.occ-chip{font-size:12px;padding:7px 14px;background:var(--black3);border:1.5px solid var(--border);border-radius:20px;color:var(--white2);cursor:pointer;transition:all 0.2s}
+.occ-chip.selected{background:var(--gold-pale);border-color:var(--gold);color:var(--gold-light)}
+
+/* UPGRADE MODAL SPECIAL */
+.upgrade-feature{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border2)}
+.upgrade-feature:last-child{border-bottom:none}
+.upgrade-check{color:var(--gold);font-size:16px;flex-shrink:0}
+.upgrade-feature-text{font-size:13px;color:var(--white2);line-height:1.5}
+.upgrade-price{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:var(--gold);text-align:center;margin:20px 0 4px}
+.upgrade-price-sub{font-size:13px;color:var(--grey);text-align:center;margin-bottom:20px}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- ══════════ SPLASH ══════════ -->
+<div class="screen active" id="screen-splash">
+  <div class="bee">
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+      <ellipse cx="40" cy="48" rx="13" ry="18" fill="#C8A951"/>
+      <rect x="27" y="43" width="26" height="5" rx="2.5" fill="#09090A" opacity="0.45"/>
+      <rect x="27" y="52" width="26" height="5" rx="2.5" fill="#09090A" opacity="0.45"/>
+      <circle cx="40" cy="27" r="10" fill="#C8A951"/>
+      <circle cx="36" cy="25" r="2.2" fill="#09090A"/>
+      <circle cx="44" cy="25" r="2.2" fill="#09090A"/>
+      <line x1="35" y1="18" x2="30" y2="11" stroke="#C8A951" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="45" y1="18" x2="50" y2="11" stroke="#C8A951" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="30" cy="10" r="2.2" fill="#C8A951"/>
+      <circle cx="50" cy="10" r="2.2" fill="#C8A951"/>
+      <ellipse cx="22" cy="38" rx="11" ry="7" fill="#F4F1EA" opacity="0.12" transform="rotate(-18 22 38)"/>
+      <ellipse cx="58" cy="38" rx="11" ry="7" fill="#F4F1EA" opacity="0.12" transform="rotate(18 58 38)"/>
+      <ellipse cx="22" cy="38" rx="11" ry="7" fill="none" stroke="#C8A951" stroke-width="1.2" opacity="0.35" transform="rotate(-18 22 38)"/>
+      <ellipse cx="58" cy="38" rx="11" ry="7" fill="none" stroke="#C8A951" stroke-width="1.2" opacity="0.35" transform="rotate(18 58 38)"/>
+      <path d="M40 65 L37 72 L40 70 L43 72 Z" fill="#C8A951" opacity="0.75"/>
+      <path d="M40 40 L44.3 42.5 L44.3 47.5 L40 50 L35.7 47.5 L35.7 42.5 Z" fill="none" stroke="#09090A" stroke-width="0.8" opacity="0.25"/>
+    </svg>
+  </div>
+  <div class="splash-logo">Scent<span>Hive</span></div>
+  <div class="splash-tag">Your fragrance intelligence platform</div>
+  <button class="splash-btn" onclick="startOnboarding()">Discover ScentHive</button>
+  <button class="splash-btn ghost" onclick="showScreen('auth')">Sign in</button>
+</div>
+
+<!-- ══════════ ONBOARDING ══════════ -->
+<div class="screen" id="screen-onboarding">
+  <div class="ob-slides" id="ob-content"></div>
+  <div class="ob-dots" id="ob-dots"></div>
+  <button class="ob-next" id="ob-next" onclick="nextSlide()">Continue</button>
+  <button class="ob-skip" onclick="showPlanSelect()">Skip intro</button>
+</div>
+
+<!-- ══════════ PLANS ══════════ -->
+<div class="screen" id="screen-plans">
+  <div class="plans-header">
+    <div class="bee" style="margin-bottom:12px;animation:float 3s ease-in-out infinite">
+      <svg width="48" height="48" viewBox="0 0 80 80" fill="none"><ellipse cx="40" cy="48" rx="13" ry="18" fill="#C8A951"/><rect x="27" y="43" width="26" height="5" rx="2.5" fill="#09090A" opacity="0.45"/><rect x="27" y="52" width="26" height="5" rx="2.5" fill="#09090A" opacity="0.45"/><circle cx="40" cy="27" r="10" fill="#C8A951"/><circle cx="36" cy="25" r="2.2" fill="#09090A"/><circle cx="44" cy="25" r="2.2" fill="#09090A"/></svg>
+    </div>
+    <h2>Choose your <em>hive</em></h2>
+    <p>Start free. Every bottle. Every scent. Upgrade when you're ready.</p>
+  </div>
+  <div class="plan-cards">
+    <div class="plan-card" id="plan-free" onclick="selectPlan('free')">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">€0 <span>/ forever</span></div>
+      <div class="plan-features">✓ Search 74,000+ fragrances<br>✓ Collection tracker (up to 20 bottles)<br>✓ Bottle calculator<br>✓ 3 AI recommendations / month<br>✓ Basic scent journal</div>
+    </div>
+    <div class="plan-card featured selected" id="plan-premium" onclick="selectPlan('premium')">
+      <div class="plan-name">Premium</div>
+      <div class="plan-price">€8 <span>/ month</span></div>
+      <div class="plan-features">✓ Everything in Free<br>✓ Unlimited collection<br>✓ Unlimited AI recommendations<br>✓ Dupe finder<br>✓ Occasion picker<br>✓ Reformulation alerts<br>✓ Batch code checker<br>✓ Full scent journal & analytics</div>
+    </div>
+  </div>
+  <div class="plans-cta">
+    <button class="splash-btn" id="plan-cta" onclick="goToAuth()">Start with Premium</button>
+    <p>No credit card required. Cancel anytime.</p>
+  </div>
+</div>
+
+<!-- ══════════ AUTH ══════════ -->
+<div class="screen" id="screen-auth">
+  <div class="auth-wrap" style="padding:40px 28px;min-height:100vh;justify-content:center;display:flex;flex-direction:column;align-items:center">
+    <button class="auth-back" onclick="showScreen('splash')">← Back</button>
+    <div class="auth-logo">Scent<span>Hive</span></div>
+    <div class="auth-sub">Your fragrance intelligence platform</div>
+    <div class="auth-tabs" style="width:100%">
+      <button class="auth-tab active" onclick="setAuthTab('login',this)">Sign in</button>
+      <button class="auth-tab" onclick="setAuthTab('signup',this)">Create account</button>
+    </div>
+    <div class="auth-form" style="width:100%">
+      <input class="auth-input" id="auth-email" type="email" placeholder="Email address" autocomplete="email">
+      <input class="auth-input" id="auth-password" type="password" placeholder="Password" autocomplete="current-password">
+      <div id="auth-name-wrap" style="display:none"><input class="auth-input" id="auth-name" type="text" placeholder="Your name" autocomplete="name"></div>
+      <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Sign in</button>
+      <div class="auth-msg" id="auth-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DISCOVER ══════════ -->
+<div class="screen" id="screen-discover">
+  <div class="topbar">
+    <div class="logo">Scent<span>Hive</span></div>
+    <div class="topbar-actions">
+      <button class="tb-btn" onclick="openModal('modal-occasion')" title="What to wear?">🎯</button>
+      <button class="tb-btn" onclick="showScreen('profile')">👤</button>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="color:var(--grey)"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="search-input" placeholder="Search any fragrance…" oninput="handleSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div id="search-spinner" style="display:none"><div class="spinner" style="width:16px;height:16px;border-width:1.5px"></div></div>
+    </div>
+  </div>
+  <div class="search-results" id="search-results">
+    <div class="ai-banner" onclick="showTab('ai',null)">
+      <div class="ai-banner-label">✦ AI Powered</div>
+      <div class="ai-banner-title">Find your next <em>obsession.</em></div>
+      <div class="ai-banner-body">Describe yourself, your mood, what you own — get expert recommendations from 74,000+ fragrances.</div>
+      <button class="ai-banner-btn">Get recommendations →</button>
+    </div>
+
+    <!-- HIVE SECTION HEADER -->
+    <div style="padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px">⬡ The Hive</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--white)">Popular <em style="font-style:italic;color:var(--gold-light)">right now</em></div>
+      </div>
+    </div>
+    <div id="trending-list"></div>
+  </div>
+  <div class="bottom-nav" id="nav-discover">
+    <button class="nav-btn active" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
+    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
+</div>
+
+<!-- ══════════ FRAGRANCE DETAIL ══════════ -->
+<div class="screen" id="screen-fragrance">
+  <div class="topbar">
+    <button class="tb-btn" onclick="goBack()" style="border:none;background:none"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L5 9l6-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="logo">Scent<span>Hive</span></div>
+    <div style="width:34px"></div>
+  </div>
+  <div id="frag-detail-content" style="flex:1;overflow-y:auto"></div>
+</div>
+
+<!-- ══════════ AI ══════════ -->
+<div class="screen" id="screen-ai">
+  <div class="topbar"><div class="logo">Scent<span>Hive</span></div><button class="tb-btn" onclick="showScreen('profile')">👤</button></div>
+  <div class="ai-screen">
+    <div class="ai-hero">
+      <div class="ai-eyebrow">✦ AI Recommendations</div>
+      <h2>Find your<br><em>next obsession.</em></h2>
+      <p>Describe yourself, your mood, what you already own — get expert picks instantly.</p>
+    </div>
+    <div class="ai-input-area">
+      <textarea class="ai-textarea" id="ai-input" placeholder="I love dark woody scents but want something lighter for summer. I own Naxos and Aventus. Budget €150…" rows="4"></textarea>
+      <div class="ai-chips">
+        <div class="ai-chip" onclick="setPrompt('I want a seductive date night fragrance, long-lasting, under €200')">🌙 Date night</div>
+        <div class="ai-chip" onclick="setPrompt('I need a fresh memorable office scent, professional but interesting')">💼 Office</div>
+        <div class="ai-chip" onclick="setPrompt('What should I wear in summer? Light, fresh, works in heat')">☀️ Summer</div>
+        <div class="ai-chip" onclick="setPrompt('I want my first niche fragrance. I usually wear Sauvage and Bleu de Chanel')">✨ Go niche</div>
+        <div class="ai-chip" onclick="setPrompt('Find me the best cheap dupe for Creed Aventus')">💰 Dupe finder</div>
+        <div class="ai-chip" onclick="setPrompt('I want something completely unique that nobody else will be wearing')">🔮 Be unique</div>
+      </div>
+      <button class="ai-submit" onclick="getAIRec()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Get Recommendations
+      </button>
+    </div>
+    <div class="ai-response-area" id="ai-response-area">
+      <div class="thinking" id="ai-thinking" style="display:none">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <span style="font-size:13px;color:var(--grey)" id="thinking-text">Analysing your preferences…</span>
+      </div>
+      <div id="ai-recs"></div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn active" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
+    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
+</div>
+
+<!-- ══════════ COLLECTION ══════════ -->
+<div class="screen" id="screen-collection">
+  <div class="topbar">
+    <div class="logo">Scent<span>Hive</span></div>
+    <button onclick="openModal('modal-add')" style="background:none;border:1px solid var(--border);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:20px;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">+</button>
+  </div>
+  <div class="collection-screen">
+    <div class="col-stats">
+      <div class="stat-box"><div class="stat-num" id="col-count">0</div><div class="stat-label">Bottles</div></div>
+      <div class="stat-box"><div class="stat-num" id="col-value">€0</div><div class="stat-label">Value</div></div>
+      <div class="stat-box"><div class="stat-num" id="col-houses">0</div><div class="stat-label">Houses</div></div>
+    </div>
+    <div style="padding:18px 20px 0"><div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey)">My Collection</div></div>
+    <div class="col-list" id="col-list"></div>
+    <button class="photo-import-btn" onclick="triggerPhotoImport()">
+      <span>📸</span> Import from photo — AI identifies your bottles
+    </button>
+    <button class="add-row" onclick="openModal('modal-add')">＋ Add manually</button>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoImport(event)">
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn active" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
+    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
+</div>
+
+<!-- ══════════ JOURNAL ══════════ -->
+<div class="screen" id="screen-journal">
+  <div class="topbar">
+    <div class="logo">Scent<span>Hive</span></div>
+    <button onclick="openModal('modal-wear')" style="background:none;border:1px solid var(--border);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:20px;cursor:pointer">+</button>
+  </div>
+  <div class="journal-screen">
+    <div style="padding:18px 20px 14px">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;margin-bottom:5px">Scent <em style="font-style:italic;color:var(--gold)">Journal</em></h2>
+      <p style="font-size:13px;color:var(--grey)">Every fragrance you've worn, remembered forever.</p>
+    </div>
+    <div id="journal-list"></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
+    <button class="nav-btn active" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
+</div>
+
+<!-- ══════════ CALCULATOR / TOOLS ══════════ -->
+<!-- ══════════ SWIPE / DISCOVER ══════════ -->
+<div class="screen" id="screen-swipe">
+  <div class="topbar">
+    <div class="logo">Scent<span>Hive</span></div>
+    <button class="tb-btn" onclick="showScreen('profile')">👤</button>
+  </div>
+  <div class="swipe-screen">
+    <div class="swipe-hero">
+      <h2>Discover your <em>taste</em></h2>
+      <p>Swipe to teach the AI your nose. The more you swipe, the smarter it gets.</p>
+      <div class="swipe-stats">
+        <div class="swipe-stat">Swiped <span id="swipe-count">0</span></div>
+        <div class="swipe-stat">Loved <span id="swipe-loved">0</span></div>
+        <div class="swipe-stat">Match score improving ✦</div>
+      </div>
+    </div>
+    <div class="swipe-progress"><div class="swipe-progress-fill" id="swipe-progress-fill" style="width:0%"></div></div>
+    <div class="swipe-area" id="swipe-area">
+      <div style="text-align:center;color:var(--grey)">
+        <div style="font-size:36px;margin-bottom:12px">🐝</div>
+        <div style="font-size:14px">Loading fragrances…</div>
+      </div>
+    </div>
+    <div class="swipe-actions">
+      <button class="swipe-btn nope" onclick="doSwipe('left')" title="Not for me">✕</button>
+      <button class="swipe-btn skip" onclick="doSwipe('skip')" title="Skip">⟳</button>
+      <button class="swipe-btn love" onclick="doSwipe('right')" title="Want to try">♥</button>
+      <button class="swipe-btn own" onclick="doSwipe('up')" title="Own & love it">★</button>
+    </div>
+    <div class="swipe-legend">
+      <div class="swipe-legend-item">✕ Not for me</div>
+      <div class="swipe-legend-item">⟳ Skip</div>
+      <div class="swipe-legend-item">♥ Want to try</div>
+      <div class="swipe-legend-item">★ Own & love</div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn active" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 6.5 4 10s3 6 6 6 6-2.5 6-6-2.5-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
+</div>
+
+<!-- match toast -->
+<div class="match-toast" id="match-toast"></div>
+
+<div class="screen" id="screen-calculator">
+  <div class="topbar"><div class="logo">Scent<span>Hive</span></div><div style="width:34px"></div></div>
+  <div class="calc-screen">
+
+    <!-- BOTTLE CALCULATOR -->
+    <div class="calc-hero">
+      <h2>Bottle <em>Calculator</em></h2>
+      <p>Weigh your bottle to know exactly how much fragrance remains and how long it will last.</p>
+    </div>
+    <div class="calc-result" id="calc-result">
+      <div class="ring-wrap">
+        <svg class="ring" width="120" height="120" viewBox="0 0 120 120"><circle class="ring-track" cx="60" cy="60" r="50"/><circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="314"/></svg>
+        <div class="ring-center"><div class="ring-pct" id="ring-pct">0%</div><div class="ring-label">remaining</div></div>
+      </div>
+      <div class="result-ml" id="result-ml">—</div>
+      <div class="result-ml-label" id="result-ml-label">millilitres remaining</div>
+      <div class="result-grid">
+        <div class="result-cell"><div class="result-cell-num" id="result-sprays">—</div><div class="result-cell-label">Sprays left</div></div>
+        <div class="result-cell"><div class="result-cell-num" id="result-days">—</div><div class="result-cell-label">Days remaining</div></div>
+      </div>
+    </div>
+    <div class="calc-card">
+      <div class="calc-card-hd"><span>⚖️</span><h3>Bottle Weight</h3></div>
+      <div class="calc-card-body">
+        <div class="calc-field"><label class="calc-label">Fragrance name <span style="color:var(--grey);font-size:10px">optional</span></label><input class="calc-input" id="calc-frag-name" type="text" placeholder="e.g. Sauvage EDP" autocomplete="off"></div>
+        <div class="calc-grid">
+          <div class="calc-field"><label class="calc-label">Current (g)</label><input class="calc-input" id="c-weight" type="number" placeholder="e.g. 187" inputmode="decimal"></div>
+          <div class="calc-field"><label class="calc-label">Full (g)</label><input class="calc-input" id="f-weight" type="number" placeholder="e.g. 245" inputmode="decimal"></div>
+        </div>
+        <div class="calc-field"><label class="calc-label">Empty bottle (g) <span style="color:var(--gold);font-size:10px">optional</span></label><input class="calc-input" id="e-weight" type="number" placeholder="Leave blank to estimate" inputmode="decimal"></div>
+        <div class="calc-field"><label class="calc-label">Bottle size (ml)</label><input class="calc-input" id="b-size" type="number" placeholder="e.g. 100" inputmode="decimal"></div>
+      </div>
+    </div>
+    <div class="calc-card">
+      <div class="calc-card-hd"><span>💨</span><h3>Your Usage</h3></div>
+      <div class="calc-card-body">
+        <div class="calc-grid">
+          <div class="calc-field"><label class="calc-label">Sprays per wear</label><input class="calc-input" id="s-use" type="number" placeholder="4" value="4" inputmode="decimal"></div>
+          <div class="calc-field"><label class="calc-label">Wears per week</label><input class="calc-input" id="w-week" type="number" placeholder="5" value="5" inputmode="decimal"></div>
+        </div>
+      </div>
+    </div>
+    <button class="calc-submit" onclick="calculate()">Calculate remaining</button>
+
+    <!-- BATCH CODE CHECKER -->
+    <div style="margin-top:8px;margin-bottom:16px;border-top:1px solid var(--border2);padding-top:24px">
+      <div class="calc-hero" style="margin-bottom:16px">
+        <h2>Batch Code <em>Checker</em></h2>
+        <p>Enter a fragrance batch code to find out when it was manufactured.</p>
+      </div>
+      <div class="calc-card">
+        <div class="calc-card-hd"><span>🔍</span><h3>Batch Code</h3></div>
+        <div class="calc-card-body">
+          <div class="calc-field"><label class="calc-label">Brand / House</label>
+            <select class="calc-input" id="batch-brand" style="background:var(--black4)">
+              <option value="">Select brand…</option>
+              <option value="dior">Dior</option>
+              <option value="chanel">Chanel</option>
+              <option value="creed">Creed</option>
+              <option value="ysl">Yves Saint Laurent</option>
+              <option value="givenchy">Givenchy</option>
+              <option value="guerlain">Guerlain</option>
+              <option value="hermes">Hermès</option>
+              <option value="tomford">Tom Ford</option>
+              <option value="armani">Giorgio Armani</option>
+              <option value="versace">Versace</option>
+              <option value="paco">Paco Rabanne</option>
+              <option value="thierry">Thierry Mugler</option>
+              <option value="lancome">Lancôme</option>
+              <option value="mk">Maison Francis Kurkdjian</option>
+              <option value="mm">Maison Margiela</option>
+              <option value="xerjoff">Xerjoff</option>
+              <option value="amouage">Amouage</option>
+              <option value="bvlgari">Bvlgari</option>
+              <option value="dolce">Dolce & Gabbana</option>
+              <option value="burberry">Burberry</option>
+              <option value="coach">Coach</option>
+              <option value="davidoff">Davidoff</option>
+              <option value="other">Other (AI will interpret)</option>
+            </select>
+          </div>
+          <div class="calc-field"><label class="calc-label">Batch code</label><input class="calc-input" id="batch-code" type="text" placeholder="e.g. 3C01 or A4B123" autocomplete="off" autocorrect="off" autocapitalize="characters"></div>
+        </div>
+      </div>
+      <button class="calc-submit" onclick="checkBatchCode()" style="margin-bottom:0">Check batch code</button>
+      <div class="batch-result" id="batch-result">
+        <div class="batch-year" id="batch-year">—</div>
+        <div class="batch-info" id="batch-info">—</div>
+      </div>
+    </div>
+
+    <div style="height:24px"></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
+    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
+    <button class="nav-btn active" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
+</div>
+
+<!-- ══════════ PROFILE ══════════ -->
+<div class="screen" id="screen-profile">
+  <div class="topbar">
+    <button class="tb-btn" onclick="goBack()" style="border:none;background:none"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L5 9l6-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="logo">Scent<span>Hive</span></div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="profile-screen">
+    <div class="profile-header">
+      <div class="profile-ring"><div class="profile-avatar" id="p-avatar">🧑</div></div>
+      <div class="profile-name" id="p-name">—</div>
+      <div class="profile-email" id="p-email">—</div>
+      <div class="profile-stats">
+        <div class="profile-stat"><div class="profile-stat-num" id="p-bottles">0</div><div class="profile-stat-label">Bottles</div></div>
+        <div class="profile-stat"><div class="profile-stat-num" id="p-wears">0</div><div class="profile-stat-label">Wears</div></div>
+        <div class="profile-stat"><div class="profile-stat-num" id="p-houses">0</div><div class="profile-stat-label">Houses</div></div>
+      </div>
+    </div>
+
+    <div class="profile-sec">
+      <div class="profile-sec-title">Your Scent Profile</div>
+      <div class="scent-tags" id="p-scent-tags">
+        <span class="scent-tag gold">Woody</span>
+        <span class="scent-tag gold">Oriental</span>
+        <span class="scent-tag">Tobacco</span>
+        <span class="scent-tag">Amber</span>
+        <span class="scent-tag">Oud</span>
+      </div>
+    </div>
+
+    <div class="profile-sec">
+      <div class="profile-sec-title">Membership</div>
+      <div class="settings-item" onclick="openModal('modal-upgrade')">
+        <div class="settings-item-left">
+          <div class="settings-icon gold">⭐</div>
+          <div>
+            <div class="settings-label">Current plan</div>
+            <div class="settings-value">Free tier</div>
+          </div>
+        </div>
+        <span class="premium-badge">Upgrade</span>
+      </div>
+    </div>
+
+    <div class="profile-sec">
+      <div class="profile-sec-title">Settings</div>
+      <div class="settings-item" onclick="showPrivacy()">
+        <div class="settings-item-left">
+          <div class="settings-icon grey">🔒</div>
+          <div><div class="settings-label">Privacy & Data</div><div class="settings-value">Manage your data</div></div>
+        </div>
+        <span style="color:var(--grey)">›</span>
+      </div>
+      <div class="settings-item" onclick="showNotifications()">
+        <div class="settings-item-left">
+          <div class="settings-icon grey">🔔</div>
+          <div><div class="settings-label">Notifications</div><div class="settings-value">Reformulation alerts, updates</div></div>
+        </div>
+        <span style="color:var(--grey)">›</span>
+      </div>
+      <div class="settings-item" onclick="showAbout()">
+        <div class="settings-item-left">
+          <div class="settings-icon grey">ℹ️</div>
+          <div><div class="settings-label">About ScentHive</div><div class="settings-value">Version 1.0 · scenthive.app</div></div>
+        </div>
+        <span style="color:var(--grey)">›</span>
+      </div>
+      <div class="settings-item" onclick="signOut()">
+        <div class="settings-item-left">
+          <div class="settings-icon red">🚪</div>
+          <div><div class="settings-label danger">Sign out</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Add to Collection -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add to collection</div>
+    <div class="modal-sub">Search for a fragrance or enter manually.</div>
+    <div class="modal-field"><label class="modal-label">Fragrance name</label><input class="modal-input" id="add-name" type="text" placeholder="e.g. Naxos"></div>
+    <div class="modal-field"><label class="modal-label">House / Brand</label><input class="modal-input" id="add-house" type="text" placeholder="e.g. Xerjoff"></div>
+    <div class="modal-grid">
+      <div class="modal-field"><label class="modal-label">Size (ml)</label><input class="modal-input" id="add-size" type="number" placeholder="100" inputmode="decimal"></div>
+      <div class="modal-field"><label class="modal-label">Price paid (€)</label><input class="modal-input" id="add-price" type="number" placeholder="180" inputmode="decimal"></div>
+    </div>
+    <div class="modal-field"><label class="modal-label">Family</label>
+      <select class="modal-select" id="add-family"><option value="">Select…</option><option>Woody</option><option>Oriental</option><option>Fresh</option><option>Floral</option><option>Gourmand</option><option>Aquatic</option><option>Fougère</option><option>Chypre</option><option>Aromatic</option></select>
+    </div>
+    <div class="modal-field"><label class="modal-label">Occasion</label>
+      <select class="modal-select" id="add-occasion"><option value="">Select…</option><option>Daily</option><option>Evening</option><option>Work</option><option>Date</option><option>Formal</option><option>Sport</option><option>Summer</option><option>Winter</option></select>
+    </div>
+    <button class="modal-submit" onclick="addToCollection()">Add to my hive</button>
+    <button class="modal-cancel" onclick="closeModal('modal-add')">Cancel</button>
+  </div>
+</div>
+
+<!-- Wear Log -->
+<div class="modal-overlay" id="modal-wear">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Log today's scent</div>
+    <div class="modal-field"><label class="modal-label">Fragrance</label><input class="modal-input" id="w-name" type="text" placeholder="e.g. Naxos"></div>
+    <div class="modal-field"><label class="modal-label">House</label><input class="modal-input" id="w-house" type="text" placeholder="e.g. Xerjoff"></div>
+    <div class="modal-field"><label class="modal-label">Occasion</label>
+      <div class="occ-chips">
+        <div class="occ-chip" onclick="selOcc(this)">🌅 Morning</div>
+        <div class="occ-chip" onclick="selOcc(this)">💼 Work</div>
+        <div class="occ-chip" onclick="selOcc(this)">☀️ Daytime</div>
+        <div class="occ-chip" onclick="selOcc(this)">🌙 Evening</div>
+        <div class="occ-chip" onclick="selOcc(this)">🌹 Date</div>
+        <div class="occ-chip" onclick="selOcc(this)">🎉 Formal</div>
+        <div class="occ-chip" onclick="selOcc(this)">😌 Casual</div>
+      </div>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-field"><label class="modal-label">Sprays</label><input class="modal-input" id="w-sprays" type="number" placeholder="4" inputmode="decimal"></div>
+      <div class="modal-field"><label class="modal-label">Longevity (hrs)</label><input class="modal-input" id="w-longevity" type="number" placeholder="8" inputmode="decimal"></div>
+    </div>
+    <div class="modal-field"><label class="modal-label">Notes <span style="color:var(--grey);font-size:10px">optional</span></label><input class="modal-input" id="w-notes" type="text" placeholder="How did it wear today?"></div>
+    <button class="modal-submit" onclick="logWear()">Save to journal</button>
+    <button class="modal-cancel" onclick="closeModal('modal-wear')">Cancel</button>
+  </div>
+</div>
+
+<!-- Occasion Picker -->
+<div class="modal-overlay" id="modal-occasion">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">What's the occasion?</div>
+    <div class="modal-sub">I'll pick the perfect fragrance from your collection.</div>
+    <div class="modal-field"><label class="modal-label">Occasion</label>
+      <div class="occ-chips" id="occ-type-chips">
+        <div class="occ-chip" onclick="selChip(this,'occ-type-chips')">💼 Work meeting</div>
+        <div class="occ-chip" onclick="selChip(this,'occ-type-chips')">🌹 Date night</div>
+        <div class="occ-chip" onclick="selChip(this,'occ-type-chips')">🎉 Black tie</div>
+        <div class="occ-chip" onclick="selChip(this,'occ-type-chips')">😌 Casual day</div>
+        <div class="occ-chip" onclick="selChip(this,'occ-type-chips')">🏋️ Gym</div>
+        <div class="occ-chip" onclick="selChip(this,'occ-type-chips')">✈️ Travel</div>
+      </div>
+    </div>
+    <div class="modal-field"><label class="modal-label">Weather</label>
+      <div class="occ-chips" id="occ-weather-chips">
+        <div class="occ-chip" onclick="selChip(this,'occ-weather-chips')">☀️ Hot</div>
+        <div class="occ-chip" onclick="selChip(this,'occ-weather-chips')">🌤 Warm</div>
+        <div class="occ-chip" onclick="selChip(this,'occ-weather-chips')">🌧 Cool</div>
+        <div class="occ-chip" onclick="selChip(this,'occ-weather-chips')">❄️ Cold</div>
+      </div>
+    </div>
+    <button class="modal-submit" onclick="getOccasionPick()">Pick from my collection</button>
+    <button class="modal-cancel" onclick="closeModal('modal-occasion')">Cancel</button>
+  </div>
+</div>
+
+<!-- Upgrade -->
+<div class="modal-overlay" id="modal-upgrade">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Upgrade to Premium</div>
+    <div class="modal-sub">Unlock everything ScentHive has to offer.</div>
+    <div style="margin-bottom:16px">
+      <div class="upgrade-feature"><span class="upgrade-check">✦</span><div class="upgrade-feature-text"><strong>Unlimited AI recommendations</strong> — no monthly limits, ask anything anytime</div></div>
+      <div class="upgrade-feature"><span class="upgrade-check">✦</span><div class="upgrade-feature-text"><strong>Unlimited collection</strong> — track every bottle you own, no cap</div></div>
+      <div class="upgrade-feature"><span class="upgrade-check">✦</span><div class="upgrade-feature-text"><strong>Dupe finder</strong> — find cheaper alternatives to any fragrance</div></div>
+      <div class="upgrade-feature"><span class="upgrade-check">✦</span><div class="upgrade-feature-text"><strong>Reformulation alerts</strong> — know when your fragrances change</div></div>
+      <div class="upgrade-feature"><span class="upgrade-check">✦</span><div class="upgrade-feature-text"><strong>Batch code checker</strong> — verify production year for any bottle</div></div>
+      <div class="upgrade-feature"><span class="upgrade-check">✦</span><div class="upgrade-feature-text"><strong>Occasion picker</strong> — AI picks from your collection daily</div></div>
+      <div class="upgrade-feature"><span class="upgrade-check">✦</span><div class="upgrade-feature-text"><strong>Full scent journal</strong> — unlimited wear logging and analytics</div></div>
+    </div>
+    <div class="upgrade-price">€8</div>
+    <div class="upgrade-price-sub">per month · cancel anytime</div>
+    <button class="modal-submit" onclick="handleUpgrade()">Start Premium</button>
+    <button class="modal-cancel" onclick="closeModal('modal-upgrade')">Maybe later</button>
+  </div>
+</div>
+
+<!-- Privacy -->
+<div class="modal-overlay" id="modal-privacy">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Privacy & Data</div>
+    <div style="font-size:13px;color:var(--grey);line-height:1.8;margin-bottom:20px">
+      <p style="margin-bottom:12px">ScentHive collects only the data you provide — your collection, journal entries, and account information.</p>
+      <p style="margin-bottom:12px">We never sell your data. We never share your personal information with third parties without your consent.</p>
+      <p style="margin-bottom:12px">Your data is stored securely in the EU on Supabase infrastructure.</p>
+      <p>You can request deletion of all your data at any time by contacting hello@scenthive.app.</p>
+    </div>
+    <button class="modal-submit" onclick="closeModal('modal-privacy')">Got it</button>
+  </div>
+</div>
+
+<!-- Notifications -->
+<div class="modal-overlay" id="modal-notifications">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Notifications</div>
+    <div style="font-size:13px;color:var(--grey);line-height:1.8;margin-bottom:20px">
+      <p style="margin-bottom:12px">Reformulation alerts — get notified when a fragrance you own or wishlist is reformulated.</p>
+      <p>These features are coming soon for Premium members. We'll notify you when they launch.</p>
+    </div>
+    <button class="modal-submit" onclick="closeModal('modal-notifications')">Got it</button>
+  </div>
+</div>
+
+<!-- Analyse overlay -->
+<div class="analyse-overlay" id="analyse-overlay">
+  <div class="analyse-bee">🐝</div>
+  <div class="analyse-title">Identifying your fragrances…</div>
+  <div class="analyse-sub">The hive is working its magic</div>
+</div>
+
+<!-- Photo confirm overlay -->
+<div class="photo-confirm-overlay" id="photo-confirm-overlay">
+  <div class="photo-confirm-header">
+    <button onclick="closePhotoConfirm()" style="background:none;border:none;color:var(--grey);font-size:20px;cursor:pointer">←</button>
+    <div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400">Found in photo</div>
+      <div style="font-size:12px;color:var(--grey)" id="photo-confirm-subtitle">Review and confirm each fragrance</div>
+    </div>
+  </div>
+  <div id="photo-confirm-list" style="padding:20px 0 20px"></div>
+  <div style="padding:0 20px 40px">
+    <button onclick="addAllConfirmed()" style="width:100%;padding:14px;background:var(--gold);color:var(--black);border:none;border-radius:14px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer" id="add-all-btn">Add all to collection</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════
+const SB_URL = 'https://razsffndadhxlqvvmjrr.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhenNmZm5kYWRoeGxxdnZtanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NTI2ODIsImV4cCI6MjA5MjAyODY4Mn0.2B73ncLA5iPPZTvCZ4k-fv85p2dgwi4-JwFJjS0ZU7s';
+const AI_FUNCTION_URL = '/.netlify/functions/ai';
+const SEARCH_FUNCTION_URL = '/.netlify/functions/search';
+
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let user = null;
+let collection = [];
+let journal = [];
+let prevScreen = null;
+let curScreen = 'splash';
+let authMode = 'login';
+let selectedPlan = 'premium';
+let searchTimer = null;
+
+// ═══════════════════════════════════
+// ONBOARDING DATA
+// ═══════════════════════════════════
+const SLIDES = [
+  {icon:'🍯', title:'Welcome to <em>ScentHive</em>', body:'Your personal fragrance intelligence platform. 74,000+ fragrances, AI-powered recommendations, and tools built for serious collectors.'},
+  {icon:'🔍', title:'Search any <em>fragrance</em>', body:'Real data on every fragrance — notes, accords, longevity, sillage, prices. From mainstream to the deepest niche houses.'},
+  {icon:'✦', title:'AI that <em>knows</em> perfume', body:'Describe yourself in plain language. Get expert picks instantly. Our AI knows your collection and avoids what you already own.'},
+  {icon:'🏺', title:'Track your <em>collection</em>', body:'Log every bottle. Know your collection value. Log every wear to build your personal scent diary.'},
+  {icon:'⚖️', title:'Know what\'s <em>left</em>', body:'Weigh your bottle and find out exactly how many sprays remain. Plus our batch code checker tells you exactly when your bottle was made.'},
+];
+let slideIdx = 0;
+
+function startOnboarding() { slideIdx = 0; renderSlide(); showScreen('onboarding'); }
+function renderSlide() {
+  const s = SLIDES[slideIdx];
+  document.getElementById('ob-content').innerHTML = `<div class="ob-icon" style="animation:fadeUp 0.4s ease forwards">${s.icon}</div><div class="ob-title" style="animation:fadeUp 0.4s ease 0.1s both">${s.title}</div><div class="ob-body" style="animation:fadeUp 0.4s ease 0.2s both">${s.body}</div>`;
+  document.getElementById('ob-dots').innerHTML = SLIDES.map((_,i) => `<div class="ob-dot ${i===slideIdx?'active':''}"></div>`).join('');
+  document.getElementById('ob-next').textContent = slideIdx === SLIDES.length-1 ? 'Choose your plan' : 'Continue';
+}
+function nextSlide() { if(slideIdx < SLIDES.length-1) { slideIdx++; renderSlide(); } else showPlanSelect(); }
+function showPlanSelect() { showScreen('plans'); }
+function selectPlan(p) {
+  selectedPlan = p;
+  document.getElementById('plan-free').classList.toggle('selected', p==='free');
+  document.getElementById('plan-premium').classList.toggle('selected', p==='premium');
+  document.getElementById('plan-cta').textContent = p==='premium' ? 'Start with Premium' : 'Start for Free';
+}
+function goToAuth() { showScreen('auth'); }
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function showScreen(id) {
+  prevScreen = curScreen; curScreen = id;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function showTab(id, btn) {
+  showScreen(id);
+  document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll(`.nav-btn[onclick*="'${id}'"]`).forEach(b => b.classList.add('active'));
+  if(id === 'collection') renderCollection();
+  if(id === 'journal') renderJournal();
+  if(id === 'profile') renderProfile();
+  if(id === 'swipe') { if(swipeQueue.length === 0) initSwipe(); }
+}
+function goBack() { showScreen(prevScreen || 'discover'); }
+
+// ═══════════════════════════════════
+// AUTH
+// ═══════════════════════════════════
+function setAuthTab(mode, btn) {
+  authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('auth-name-wrap').style.display = mode==='signup' ? 'block' : 'none';
+  document.getElementById('auth-btn').textContent = mode==='signup' ? 'Create account' : 'Sign in';
+  document.getElementById('auth-msg').textContent = '';
+}
+
+async function handleAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
+  const btn = document.getElementById('auth-btn');
+  const msg = document.getElementById('auth-msg');
+  if(!email || !password) { setMsg('Please fill in all fields.','error'); return; }
+  btn.disabled = true; btn.textContent = 'Please wait…';
+  try {
+    if(authMode === 'signup') {
+      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name: name || email.split('@')[0] } } });
+      if(error) throw error;
+      const { data: d2, error: e2 } = await sb.auth.signInWithPassword({ email, password });
+      if(!e2 && d2.user) { user = d2.user; await initApp(); }
+      else setMsg('Account created! Check your email if not logged in.','success');
+    } else {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      user = data.user; await initApp();
+    }
+  } catch(e) { setMsg(e.message || 'Something went wrong.','error'); }
+  finally { btn.disabled=false; btn.textContent=authMode==='signup'?'Create account':'Sign in'; }
+}
+function setMsg(t,c) { const el=document.getElementById('auth-msg'); el.textContent=t; el.className='auth-msg '+c; }
+
+async function signOut() { await sb.auth.signOut(); user=null; collection=[]; journal=[]; showScreen('splash'); }
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+async function initApp() {
+  if(!user) return;
+  await Promise.all([loadCollection(), loadJournal()]);
+  renderProfile();
+  renderTrending();
+  showTab('discover', null);
+}
+
+// ═══════════════════════════════════
+// FRAGELLA API + SUPABASE CACHING
+// ═══════════════════════════════════
+async function searchFragella(query) {
+  // First check Supabase cache
+  try {
+    const { data } = await sb.from('fragrances_cache').select('*').ilike('name', `%${query}%`).limit(10);
+    if(data && data.length > 0) return data;
+  } catch(e) {}
+
+  // Call via Supabase Edge Function (solves CORS)
+  try {
+    const res = await fetch(SEARCH_FUNCTION_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    if(!res.ok) throw new Error('Search function error: ' + res.status);
+    const data = await res.json();
+    const fragrances = data.fragrances || [];
+
+    // Cache results in Supabase
+    if(fragrances.length > 0) {
+      const toCache = fragrances.map(f => ({
+        fragella_id: String(f.id || f._id || Math.random()),
+        name: f.name || f.title || '',
+        house: f.brand || f.house || f.designer || '',
+        family: f.family || f.main_accord || '',
+        notes_top: f.notes?.top || f.top_notes || [],
+        notes_heart: f.notes?.middle || f.heart_notes || [],
+        notes_base: f.notes?.base || f.base_notes || [],
+        accords: f.accords || [],
+        longevity: f.longevity || '',
+        sillage: f.sillage || '',
+        gender: f.gender || '',
+        image_url: f.image || f.image_url || f.bottle_image || '',
+        launch_year: f.year || f.launch_year || null,
+        price_range: f.price || '',
+      }));
+      try {
+        await sb.from('fragrances_cache').upsert(toCache, { onConflict: 'fragella_id', ignoreDuplicates: true });
+      } catch(e) {}
+      return toCache;
+    }
+    return [];
+  } catch(e) {
+    console.log('Search error:', e.message);
+    return [];
+  }
+}
+
+async function getFragellaById(id) {
+  // Check cache first
+  try {
+    const { data } = await sb.from('fragrances_cache').select('*').eq('fragella_id', String(id)).single();
+    if(data) return data;
+  } catch(e) {}
+
+  // Fetch from API
+  try {
+    const res = await fetch(`https://api.fragella.com/v1/fragrances/${id}`, {
+      headers: { 'Authorization': `Bearer ${FRAGELLA_KEY}` }
+    });
+    if(!res.ok) throw new Error('Not found');
+    const f = await res.json();
+    const cached = {
+      fragella_id: String(f.id || id),
+      name: f.name || '', house: f.brand || f.house || '',
+      family: f.family || '', notes_top: f.notes?.top || [],
+      notes_heart: f.notes?.middle || [], notes_base: f.notes?.base || [],
+      accords: f.accords || [], longevity: f.longevity || '',
+      sillage: f.sillage || '', gender: f.gender || '',
+      image_url: f.image || f.image_url || '',
+      launch_year: f.year || null, price_range: f.price || '',
+    };
+    try { await sb.from('fragrances_cache').upsert([cached], { onConflict: 'fragella_id' }); } catch(e) {}
+    return cached;
+  } catch(e) { return null; }
+}
+
+// ═══════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════
+function handleSearch(query) {
+  clearTimeout(searchTimer);
+  if(!query.trim()) { renderTrending(); return; }
+  document.getElementById('search-spinner').style.display = 'flex';
+  searchTimer = setTimeout(() => doSearch(query), 400);
+}
+
+async function doSearch(query) {
+  const results = document.getElementById('search-results');
+  results.innerHTML = '<div class="loading-card"><div class="spinner"></div><div class="loading-text">Searching 74,000+ fragrances…</div></div>';
+  document.getElementById('search-spinner').style.display = 'none';
+
+  const frags = await searchFragella(query);
+  if(frags.length === 0) {
+    results.innerHTML = `<div style="padding:32px 20px;text-align:center"><div style="font-size:36px;margin-bottom:12px">🔍</div><div style="font-size:14px;color:var(--grey)">No results for "${query}"</div><div style="font-size:12px;color:var(--grey2);margin-top:6px">Try a different spelling or the house name</div></div>`;
+    return;
+  }
+  results.innerHTML = `<div class="sec-title">Results for "${query}"</div>` + frags.map(f => fragCard(f)).join('');
+}
+
+var fragStore = {};
+var fragStoreCounter = 0;
+
+function storeFrag(f) {
+  const key = 'frag_' + (++fragStoreCounter);
+  fragStore[key] = f;
+  return key;
+}
+
+function fragCard(f) {
+  const key = storeFrag(f);
+  const imgHtml = f.image_url ? `<img src="${f.image_url}" alt="${f.name}" onerror="this.parentElement.textContent='🏺'">` : '🏺';
+  const notes = [...(f.notes_top||[]), ...(f.notes_heart||[]), ...(f.notes_base||[])].slice(0,3);
+  return `
+    <div class="frag-card" onclick="showFragDetail('${key}')">
+      <div class="frag-img">${imgHtml}</div>
+      <div class="frag-info">
+        <div class="frag-name">${f.name}</div>
+        <div class="frag-house">${f.house || ''}${f.launch_year ? ' · ' + f.launch_year : ''}</div>
+        <div class="frag-chips">
+          ${f.family ? `<span class="frag-chip">${f.family}</span>` : ''}
+          ${notes.slice(0,2).map(n => `<span class="frag-chip">${typeof n === 'string' ? n : n.name||''}</span>`).join('')}
+        </div>
+      </div>
+      <span class="frag-arrow">›</span>
+    </div>`;
+}
+
+async function renderTrending() {
+  const list = document.getElementById('trending-list');
+  // Seed with popular fragrances via API
+  const popular = ['Sauvage', 'Aventus', 'Black Orchid', 'Baccarat Rouge 540', 'Oud Wood'];
+  const results = [];
+  for(const name of popular.slice(0,5)) {
+    const res = await searchFragella(name);
+    if(res[0]) results.push(res[0]);
+  }
+  if(results.length > 0) {
+    list.innerHTML = results.map(f => fragCard(f)).join('');
+  } else {
+    // Fallback static list
+    const fallback = [
+      {name:'Sauvage EDP',house:'Dior',family:'Aromatic Fougère',image_url:'',fragella_id:'f-sauvage'},
+      {name:'Aventus',house:'Creed',family:'Chypre Fruity',image_url:'',fragella_id:'f-aventus'},
+      {name:'Black Orchid',house:'Tom Ford',family:'Floral Oriental',image_url:'',fragella_id:'f-blackorchid'},
+      {name:'Baccarat Rouge 540',house:'MFK',family:'Amber Floral',image_url:'',fragella_id:'f-br540'},
+      {name:'Oud Wood',house:'Tom Ford',family:'Woody Oriental',image_url:'',fragella_id:'f-oudwood'},
+    ];
+    fallback.forEach(f => { fragStore[storeFrag(f)] = f; });
+    list.innerHTML = fallback.map(f => fragCard(f)).join('');
+  }
+}
+
+async function searchAndShow(name, house) {
+  const res = await searchFragella(name);
+  if(res[0]) showFragDetail(storeFrag(res[0]));
+}
+
+async function searchThenShow(name, house, fallbackKey) {
+  const res = await searchFragella(name);
+  if(res[0]) showFragDetail(storeFrag(res[0]));
+  else if(fragStore[fallbackKey]) showFragDetail(fallbackKey);
+}
+
+// ═══════════════════════════════════
+// FRAGRANCE DETAIL
+// ═══════════════════════════════════
+function getRetailers(fragName, house) {
+  // Detect user location from browser language/timezone
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  const lang = navigator.language || '';
+  const isNordic = tz.includes('Oslo') || tz.includes('Stockholm') || tz.includes('Helsinki') || tz.includes('Copenhagen') || lang.startsWith('no') || lang.startsWith('sv') || lang.startsWith('da') || lang.startsWith('fi');
+  const isUK = tz.includes('London') || lang.startsWith('en-GB');
+  const isUS = tz.includes('America') || lang.startsWith('en-US');
+  const isDE = tz.includes('Berlin') || tz.includes('Vienna') || lang.startsWith('de');
+  const isFR = tz.includes('Paris') || lang.startsWith('fr');
+
+  const q = encodeURIComponent(fragName + ' ' + house);
+
+  if(isNordic) return [
+    {name:'Notino', flag:'🇳🇴', url:`https://www.notino.no/search/?phrase=${q}`, note:'Free shipping over 299 kr'},
+    {name:'Kicks', flag:'🇳🇴', url:`https://www.kicks.no/search?q=${q}`, note:'Same day delivery available'},
+    {name:'Parfyme.no', flag:'🇳🇴', url:`https://www.parfyme.no/?s=${q}`, note:'Norwegian fragrance specialist'},
+  ];
+  if(isUK) return [
+    {name:'Selfridges', flag:'🇬🇧', url:`https://www.selfridges.com/search?q=${q}`, note:'Click & collect available'},
+    {name:'Harrods', flag:'🇬🇧', url:`https://www.harrods.com/en-gb/search#q=${q}`, note:'Luxury department store'},
+    {name:'Notino UK', flag:'🇬🇧', url:`https://www.notino.co.uk/search/?phrase=${q}`, note:'Free UK delivery over £25'},
+  ];
+  if(isUS) return [
+    {name:'Sephora', flag:'🇺🇸', url:`https://www.sephora.com/search?keyword=${q}`, note:'Free samples with orders'},
+    {name:'LuckScent', flag:'🇺🇸', url:`https://www.luckyscent.com/search?q=${q}`, note:'Niche fragrance specialist'},
+    {name:'Bloomingdales', flag:'🇺🇸', url:`https://www.bloomingdales.com/shop/search?keyword=${q}`, note:'Free shipping on $150+'},
+  ];
+  if(isDE) return [
+    {name:'Notino DE', flag:'🇩🇪', url:`https://www.notino.de/search/?phrase=${q}`, note:'Kostenloser Versand ab 25€'},
+    {name:'Douglas', flag:'🇩🇪', url:`https://www.douglas.de/de/search?q=${q}`, note:'Click & Collect verfügbar'},
+    {name:'Flaconi', flag:'🇩🇪', url:`https://www.flaconi.de/search/?q=${q}`, note:'Parfüm Spezialist'},
+  ];
+  if(isFR) return [
+    {name:'Sephora FR', flag:'🇫🇷', url:`https://www.sephora.fr/search/?q=${q}`, note:'Livraison gratuite dès 50€'},
+    {name:'Notino FR', flag:'🇫🇷', url:`https://www.notino.fr/search/?phrase=${q}`, note:'Livraison express disponible'},
+    {name:'Marionnaud', flag:'🇫🇷', url:`https://www.marionnaud.fr/search?q=${q}`, note:'Spécialiste beauté'},
+  ];
+  // Default international
+  return [
+    {name:'Notino', flag:'🌍', url:`https://www.notino.com/search/?phrase=${q}`, note:'Ships worldwide'},
+    {name:'Selfridges', flag:'🌍', url:`https://www.selfridges.com/search?q=${q}`, note:'International shipping'},
+    {name:'Compare prices', flag:'🔍', url:`https://www.google.com/search?q=${q}+buy`, note:'Google Shopping'},
+  ];
+}
+
+function noteIcon(note) {
+  const n = note.toLowerCase();
+  if(n.includes('rose')) return '🌹';
+  if(n.includes('jasmine') || n.includes('jasmin')) return '🌸';
+  if(n.includes('lavender') || n.includes('lavande')) return '💜';
+  if(n.includes('vanilla') || n.includes('vanille')) return '🍦';
+  if(n.includes('oud') || n.includes('wood') || n.includes('cedar') || n.includes('sandalwood')) return '🪵';
+  if(n.includes('musk') || n.includes('musc')) return '🌫️';
+  if(n.includes('citrus') || n.includes('bergamot') || n.includes('lemon') || n.includes('orange')) return '🍋';
+  if(n.includes('amber') || n.includes('ambre')) return '🟡';
+  if(n.includes('tobacco') || n.includes('tabac')) return '🍂';
+  if(n.includes('pepper') || n.includes('poivre')) return '🌶️';
+  if(n.includes('iris')) return '🪻';
+  if(n.includes('patchouli')) return '🌿';
+  if(n.includes('vetiver')) return '🌾';
+  if(n.includes('leather') || n.includes('cuir')) return '🟤';
+  if(n.includes('honey') || n.includes('miel')) return '🍯';
+  if(n.includes('coconut') || n.includes('noix')) return '🥥';
+  if(n.includes('apple') || n.includes('pomme')) return '🍎';
+  if(n.includes('pineapple') || n.includes('ananas')) return '🍍';
+  if(n.includes('cherry') || n.includes('cerise')) return '🍒';
+  if(n.includes('sea') || n.includes('aqua') || n.includes('ocean')) return '🌊';
+  if(n.includes('smoke') || n.includes('incense') || n.includes('encens')) return '🕯️';
+  return '✦';
+}
+
+function notePyramid(top, heart, base) {
+  const renderNotes = (notes, color) => notes.map(n => {
+    const noteName = typeof n === 'string' ? n : (n.name || String(n));
+    return `<div class="note-pill" style="background:${color === 'gold' ? 'var(--gold-pale)' : color === 'amber' ? 'rgba(212,134,42,0.12)' : 'var(--black3)'};border-color:${color === 'gold' ? 'var(--gold-dim)' : color === 'amber' ? 'rgba(212,134,42,0.4)' : 'var(--border)'}">
+      <span class="note-pill-icon">${noteIcon(noteName)}</span>
+      <span class="note-pill-name">${noteName}</span>
+    </div>`;
+  }).join('');
+
+  let html = '<div class="note-pyramid">';
+  if(top && top.length > 0) {
+    html += `<div class="pyramid-layer">
+      <div class="pyramid-label"><span class="pyramid-dot gold-dot"></span>Top Notes</div>
+      <div class="note-pills">${renderNotes(top, 'gold')}</div>
+    </div>`;
+  }
+  if(heart && heart.length > 0) {
+    html += `<div class="pyramid-layer">
+      <div class="pyramid-label"><span class="pyramid-dot"></span>Heart Notes</div>
+      <div class="note-pills">${renderNotes(heart, 'default')}</div>
+    </div>`;
+  }
+  if(base && base.length > 0) {
+    html += `<div class="pyramid-layer">
+      <div class="pyramid-label"><span class="pyramid-dot amber-dot"></span>Base Notes</div>
+      <div class="note-pills">${renderNotes(base, 'amber')}</div>
+    </div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function showFragDetail(keyOrId, fData) {
+  const f = fData ? (typeof fData === 'string' ? JSON.parse(fData) : fData) : fragStore[keyOrId];
+  if(!f) return;
+  const inCol = collection.some(b => b.fragella_id === keyOrId || b.name?.toLowerCase() === f.name?.toLowerCase());
+
+  // Handle both Fragella capitalised and normalised field names
+  const topNotes = f.notes_top || f['Top Notes'] || [];
+  const heartNotes = f.notes_heart || f['Middle Notes'] || [];
+  const baseNotes = f.notes_base || f['Base Notes'] || [];
+  const generalNotes = f['General Notes'] || [];
+
+  // If no pyramid notes, use general notes as top notes
+  const hasNotes = topNotes.length > 0 || heartNotes.length > 0 || baseNotes.length > 0 || generalNotes.length > 0;
+  const top = topNotes.length > 0 ? topNotes : (generalNotes.length > 0 ? generalNotes : []);
+  const heart = heartNotes;
+  const base = baseNotes;
+
+  // Handle accords — Fragella returns array of strings or objects
+  const accords = f.accords || f['Main Accords'] || [];
+  const accordData = accords.map(a => {
+    if(typeof a === 'string') return {name: a, pct: null};
+    return {name: a.name || a.accord || String(a), pct: a.percentage || a.pct || null};
+  });
+
+  const imgHtml = f.image_url ? `<img src="${f.image_url}" alt="${f.name}" style="width:100%;height:100%;object-fit:contain;padding:8px" onerror="this.style.display='none'">` : '';
+  const retailers = getRetailers(f.name, f.house || '');
+
+  document.getElementById('frag-detail-content').innerHTML = `
+    <div class="frag-hero">
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+        ${f.image_url ? `<div class="frag-hero-bottle" style="flex-shrink:0">${imgHtml}</div>` : ''}
+        <div style="flex:1">
+          <div class="frag-eyebrow">${f.house || ''}</div>
+          <div class="frag-hero-name">${f.name}</div>
+          <div class="frag-hero-house">${[f.family,f.oil_type,f.launch_year,f.gender].filter(Boolean).join(' · ')}</div>
+          ${f.rating ? `<div style="margin-top:8px;display:flex;align-items:center;gap:4px"><span style="color:var(--gold);font-size:14px">★</span><span style="font-size:13px;color:var(--white2)">${f.rating}/5</span></div>` : ''}
+        </div>
+      </div>
+      <div class="frag-hero-actions">
+        <button class="frag-btn frag-btn-primary" id="add-col-btn" onclick="quickAddToCollection('${keyOrId}','${f.name.replace(/'/g,"\\'")}','${(f.house||'').replace(/'/g,"\\'")}','${(f.family||'').replace(/'/g,"\\'")}')">
+          ${inCol ? '✓ In Collection' : '+ Add to Hive'}
+        </button>
+        <button class="frag-btn frag-btn-secondary" onclick="prefillWear('${f.name.replace(/'/g,"\\'")}','${(f.house||'').replace(/'/g,"\\'")}')">Log wear</button>
+      </div>
+    </div>
+
+    ${hasNotes ? `
+    <div class="detail-sec">
+      <div class="detail-label">✦ Fragrance Notes</div>
+      ${notePyramid(top, heart, base)}
+    </div>` : ''}
+
+    ${accordData.length > 0 ? `
+    <div class="detail-sec">
+      <div class="detail-label">Scent Character</div>
+      ${accordData.map(a => `
+        <div class="accord-row">
+          <div class="accord-top"><span>${a.name}</span>${a.pct ? `<span style="color:var(--grey)">${a.pct}%</span>` : ''}</div>
+          <div class="accord-track"><div class="accord-fill" style="width:${a.pct || 70}%"></div></div>
+        </div>`).join('')}
+    </div>` : ''}
+
+    <div class="detail-sec">
+      <div class="detail-label">At a Glance</div>
+      ${f.longevity ? `<div class="stat-row"><span class="stat-key">Longevity</span><span class="stat-val">${f.longevity}</span></div>` : ''}
+      ${f.sillage ? `<div class="stat-row"><span class="stat-key">Sillage</span><span class="stat-val">${f.sillage}</span></div>` : ''}
+      ${f.gender ? `<div class="stat-row"><span class="stat-key">Gender</span><span class="stat-val">${f.gender}</span></div>` : ''}
+      ${f.launch_year ? `<div class="stat-row"><span class="stat-key">Launch year</span><span class="stat-val">${f.launch_year}</span></div>` : ''}
+      ${f.price_range ? `<div class="stat-row"><span class="stat-key">Price</span><span class="stat-val">${f.price_range}</span></div>` : ''}
+      ${f.oil_type ? `<div class="stat-row"><span class="stat-key">Type</span><span class="stat-val">${f.oil_type}</span></div>` : ''}
+    </div>
+
+    <div class="detail-sec">
+      <div class="detail-label">🛒 Buy Near You</div>
+      ${retailers.map(r => `
+        <div class="price-row" onclick="window.open('${r.url}','_blank')">
+          <div><div class="price-retailer">${r.flag} ${r.name}</div><div style="font-size:11px;color:var(--grey)">${r.note}</div></div>
+          <span style="color:var(--grey)">›</span>
+        </div>`).join('')}
+    </div>
+
+    <div class="detail-sec">
+      <div class="detail-label">💰 Find a cheaper alternative</div>
+      <button onclick="findDupe('${f.name.replace(/'/g,"\\'")}','${(f.house||'').replace(/'/g,"\\'")}'')" style="width:100%;padding:13px;background:var(--black3);border:1px solid var(--border);border-radius:12px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--gold);cursor:pointer;letter-spacing:0.02em">Find dupes for ${f.name} →</button>
+      <div id="dupe-results" style="margin-top:12px"></div>
+    </div>
+    <div style="height:32px"></div>
+  `;
+
+  showScreen('fragrance');
+}
+
+async function findDupe(name, house) {
+  const container = document.getElementById('dupe-results');
+  container.innerHTML = '<div class="loading-card"><div class="spinner"></div><div class="loading-text">Finding alternatives…</div></div>';
+
+  try {
+    const res = await fetch(AI_FUNCTION_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body:JSON.stringify({ prompt: `Find 2 cheaper dupe alternatives for ${name} by ${house}. Respond ONLY with valid JSON: {"dupes":[{"name":"Name","house":"House","match":"85%","price":"€20-40","why":"2 sentences"}]}`, system: 'You are a fragrance expert. Find cheaper alternatives. Respond ONLY with valid JSON.' })
+    });
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    const text = data.content ? data.content.map(b=>b.text||'').join('') : JSON.stringify(data);
+    const parsed = data.dupes ? data : JSON.parse(text.replace(/```json|```/g,'').trim());
+    container.innerHTML = parsed.dupes.map(d => `
+      <div class="dupe-card">
+        <div class="dupe-match">${d.match} match · ${d.price}</div>
+        <div class="dupe-name">${d.name}</div>
+        <div class="dupe-house">${d.house}</div>
+        <div class="dupe-why">${d.why}</div>
+      </div>`).join('');
+  } catch(e) {
+    container.innerHTML = '<div style="font-size:13px;color:var(--grey);padding:12px">Could not find dupes right now.</div>';
+  }
+}
+
+// ═══════════════════════════════════
+// AI RECOMMENDATIONS
+// ═══════════════════════════════════
+function setPrompt(t) { document.getElementById('ai-input').value = t; }
+
+async function getAIRec() {
+  const input = document.getElementById('ai-input').value.trim();
+  if(!input) { document.getElementById('ai-input').style.borderColor='var(--gold)'; setTimeout(()=>document.getElementById('ai-input').style.borderColor='',1500); return; }
+
+  const area = document.getElementById('ai-response-area');
+  const thinking = document.getElementById('ai-thinking');
+  const recs = document.getElementById('ai-recs');
+  area.classList.add('visible');
+  thinking.style.display = 'flex';
+  recs.innerHTML = '';
+  const msgs = ['Analysing your preferences…','Searching fragrance database…','Crafting your recommendation…'];
+  let i = 0;
+  const iv = setInterval(() => { if(++i<msgs.length) document.getElementById('thinking-text').textContent=msgs[i]; }, 1200);
+  setTimeout(() => area.scrollIntoView({behavior:'smooth',block:'start'}),100);
+
+  const colContext = collection.length > 0 ? `\n\nUser's collection: ${collection.map(b=>b.name+' by '+b.house).join(', ')}` : '';
+
+  try {
+    const body = JSON.stringify({ prompt: input, collection: collection || [] });
+    const res = await fetch(AI_FUNCTION_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: body
+    });
+    clearInterval(iv);
+    if(!res.ok) {
+      const errText = await res.text();
+      throw new Error('AI error: ' + errText);
+    }
+    const parsed = await res.json();
+    if(parsed.error) throw new Error(parsed.error);
+    thinking.style.display = 'none';
+
+    const intro = document.createElement('div');
+    intro.style.cssText='background:var(--black3);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;animation:fadeUp 0.4s ease forwards';
+    intro.innerHTML=`<div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">✦ ScentHive AI</div><p style="font-size:13px;color:var(--white2);line-height:1.7">${parsed.intro}</p>`;
+    recs.appendChild(intro);
+
+    parsed.recommendations.forEach((r,i) => {
+      const card = document.createElement('div');
+      card.className = 'rec-card';
+      card.innerHTML=`
+        <div class="rec-num">Recommendation ${i+1}${r.is_dupe?' · Dupe':''}</div>
+        <div class="rec-name">${r.name}</div>
+        <div class="rec-house">${r.house} · ${r.occasion}</div>
+        <div class="rec-why">${r.why}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${r.notes.map(n=>`<span style="font-size:10px;padding:3px 8px;background:var(--black4);border:1px solid var(--border2);border-radius:20px;color:var(--white2)">${n}</span>`).join('')}</div>
+        <div style="font-size:12px;color:var(--grey);margin-bottom:12px">${r.price}</div>
+        <div class="rec-actions">
+          <button class="rec-btn rec-btn-gold" onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(r.name+' '+r.house+' buy')}')">Find it →</button>
+          <button class="rec-btn rec-btn-ghost" onclick="document.getElementById('add-name').value='${r.name}';document.getElementById('add-house').value='${r.house}';openModal('modal-add')">+ Add to Hive</button>
+        </div>`;
+      recs.appendChild(card);
+    });
+  } catch(err) {
+    clearInterval(iv);
+    thinking.style.display = 'none';
+    recs.innerHTML = `<div style="padding:16px;background:var(--black3);border:1px solid var(--border);border-radius:12px;color:var(--grey);font-size:13px">Could not get recommendations right now. Please try again.</div>`;
+    console.error('AI error:', err);
+  }
+}
+
+// ═══════════════════════════════════
+// COLLECTION
+// ═══════════════════════════════════
+async function loadCollection() {
+  if(!user) return;
+  try {
+    const { data, error } = await sb.from('collection').select('*').eq('user_id', user.id).order('created_at',{ascending:false});
+    if(!error && data) { collection = data; }
+  } catch(e) {}
+}
+
+function renderCollection() {
+  const list = document.getElementById('col-list');
+  const houses = [...new Set(collection.map(b=>b.house).filter(Boolean))];
+  const val = collection.reduce((s,b)=>s+(parseFloat(b.price_paid)||0),0);
+  document.getElementById('col-count').textContent = collection.length;
+  document.getElementById('col-value').textContent = '€'+Math.round(val).toLocaleString();
+  document.getElementById('col-houses').textContent = houses.length;
+
+  if(collection.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span>🍯</span>Your hive is empty.<br>Add your first fragrance to get started.</div>';
+    return;
+  }
+  // Switch to hive grid layout
+  list.className = 'hive-grid';
+  list.innerHTML = collection.map(b => {
+    const imgHtml = b.image_url ? `<img src="${b.image_url}" alt="${b.name}" onerror="this.parentElement.textContent='🏺'">` : '🏺';
+    return `<div class="hive-cell">
+      <div class="hive-cell-img">${imgHtml}</div>
+      <div class="hive-cell-name">${b.name}</div>
+      <div class="hive-cell-house">${b.house||''}</div>
+      <div class="hive-cell-tags">
+        ${b.size_ml?`<span class="hive-cell-tag">${b.size_ml}ml</span>`:''}
+        ${b.family?`<span class="hive-cell-tag">${b.family}</span>`:''}
+        ${b.occasion?`<span class="hive-cell-tag">${b.occasion}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function addToCollection() {
+  if(!user) return;
+  const name = document.getElementById('add-name').value.trim();
+  const house = document.getElementById('add-house').value.trim();
+  const size = document.getElementById('add-size').value;
+  const price = document.getElementById('add-price').value;
+  const family = document.getElementById('add-family').value;
+  const occasion = document.getElementById('add-occasion').value;
+  if(!name) { alert('Please enter the fragrance name.'); return; }
+
+  try {
+    const { data, error } = await sb.from('collection').insert([{
+      user_id:user.id, name, house, size_ml:size||null,
+      price_paid:price||null, family, occasion
+    }]).select();
+    if(error) throw error;
+    collection.unshift(data[0]);
+    renderCollection();
+    closeModal('modal-add');
+    ['add-name','add-house','add-size','add-price'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('add-family').value='';
+    document.getElementById('add-occasion').value='';
+  } catch(e) { alert('Could not add: '+e.message); }
+}
+
+async function quickAddToCollection(id, name, house, family) {
+  if(!user) return;
+  const btn = document.getElementById('add-col-btn');
+  if(btn.textContent.includes('✓')) return;
+  try {
+    await sb.from('collection').insert([{ user_id:user.id, name, house, family, fragella_id:id }]);
+    collection.unshift({ name, house, family, fragella_id:id });
+    btn.style.background = 'var(--success)';
+    btn.textContent = '✓ In Collection';
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════
+// JOURNAL
+// ═══════════════════════════════════
+async function loadJournal() {
+  if(!user) return;
+  try {
+    const { data, error } = await sb.from('journal_entries').select('*').eq('user_id',user.id).order('worn_at',{ascending:false}).limit(50);
+    if(!error && data) { journal = data; }
+  } catch(e) {}
+}
+
+function renderJournal() {
+  const list = document.getElementById('journal-list');
+  if(journal.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span>📔</span>Your journal is empty.<br>Tap + to log what you\'re wearing today.</div>';
+    return;
+  }
+  list.innerHTML = journal.map(e => {
+    const d = new Date(e.worn_at);
+    const dateStr = d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+    return `<div class="journal-entry">
+      <div class="journal-date">${dateStr}</div>
+      <div class="journal-frag">${e.fragrance_name}</div>
+      <div class="journal-house">${e.house||''}</div>
+      <div class="journal-meta">
+        ${e.occasion?`<span class="journal-tag">${e.occasion}</span>`:''}
+        ${e.sprays?`<span class="journal-tag">${e.sprays} sprays</span>`:''}
+        ${e.longevity_hours?`<span class="journal-tag">${e.longevity_hours}h longevity</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function logWear() {
+  if(!user) return;
+  const name = document.getElementById('w-name').value.trim();
+  const house = document.getElementById('w-house').value.trim();
+  const occ = document.querySelector('#modal-wear .occ-chip.selected')?.textContent?.replace(/^\S+\s/,'') || '';
+  const sprays = document.getElementById('w-sprays').value;
+  const lon = document.getElementById('w-longevity').value;
+  const notes = document.getElementById('w-notes').value.trim();
+  if(!name) { alert('Please enter the fragrance name.'); return; }
+  try {
+    const { data, error } = await sb.from('journal_entries').insert([{
+      user_id:user.id, fragrance_name:name, house,
+      occasion:occ, sprays:sprays||null, longevity_hours:lon||null,
+      notes:notes||null, worn_at:new Date().toISOString()
+    }]).select();
+    if(error) throw error;
+    journal.unshift(data[0]);
+    renderJournal();
+    closeModal('modal-wear');
+    ['w-name','w-house','w-sprays','w-longevity','w-notes'].forEach(id=>document.getElementById(id).value='');
+    document.querySelectorAll('#modal-wear .occ-chip').forEach(c=>c.classList.remove('selected'));
+  } catch(e) { alert('Could not log: '+e.message); }
+}
+
+function prefillWear(name, house) {
+  document.getElementById('w-name').value = name;
+  document.getElementById('w-house').value = house;
+  openModal('modal-wear');
+}
+
+// ═══════════════════════════════════
+// CALCULATOR
+// ═══════════════════════════════════
+function calculate() {
+  const cur = parseFloat(document.getElementById('c-weight').value);
+  const full = parseFloat(document.getElementById('f-weight').value);
+  const empty = parseFloat(document.getElementById('e-weight').value)||null;
+  const size = parseFloat(document.getElementById('b-size').value);
+  const spu = parseFloat(document.getElementById('s-use').value)||4;
+  const wpw = parseFloat(document.getElementById('w-week').value)||5;
+  if(!cur||!full||!size) { alert('Please fill in current weight, full weight and bottle size.'); return; }
+  const DENSITY = 0.855;
+  let ml = empty ? (cur-empty)/DENSITY : size-((full-cur)/DENSITY);
+  ml = Math.max(0, Math.round(ml*10)/10);
+  const pct = Math.min(100, Math.round((ml/size)*100));
+  const sprays = Math.round(ml*14.7);
+  const spd = (spu*wpw)/7;
+  const days = spd>0 ? Math.round(sprays/spd) : '∞';
+  const fragName = document.getElementById('calc-frag-name').value.trim();
+  document.getElementById('result-ml').textContent = ml;
+  document.getElementById('result-ml-label').textContent = fragName ? fragName + ' · ' + ml + 'ml remaining' : 'millilitres remaining';
+  document.getElementById('ring-pct').textContent = pct+'%';
+  document.getElementById('result-sprays').textContent = sprays.toLocaleString();
+  document.getElementById('result-days').textContent = days;
+  const circumference = 314;
+  document.getElementById('ring-fill').style.strokeDashoffset = circumference-(pct/100)*circumference;
+  const colour = pct>50?'var(--gold)':pct>20?'var(--amber)':'var(--danger)';
+  document.getElementById('ring-fill').style.stroke = colour;
+  document.getElementById('result-ml').style.color = colour;
+  const res = document.getElementById('calc-result');
+  res.classList.add('visible');
+  res.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ═══════════════════════════════════
+// BATCH CODE CHECKER
+// ═══════════════════════════════════
+async function checkBatchCode() {
+  const brand = document.getElementById('batch-brand').value;
+  const code = document.getElementById('batch-code').value.trim();
+  if(!code) { alert('Please enter a batch code.'); return; }
+  if(!brand) { alert('Please select a brand.'); return; }
+
+  const result = document.getElementById('batch-result');
+  const yearEl = document.getElementById('batch-year');
+  const infoEl = document.getElementById('batch-info');
+  yearEl.textContent = '…';
+  infoEl.textContent = 'Checking…';
+  result.classList.add('visible');
+
+  const brandName = document.getElementById('batch-brand').options[document.getElementById('batch-brand').selectedIndex]?.text || brand;
+
+  try {
+    const res = await fetch(AI_FUNCTION_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body:JSON.stringify({
+        prompt: `Brand: ${brandName}\nBatch code: ${code}\n\nDetermine the manufacturing year from this batch code.`,
+        system: 'You are an expert in fragrance batch codes and manufacturing dates. You know the encoding systems for all major fragrance houses. Respond ONLY with valid JSON, no other text: {"year":"2019","quarter":"Q3 2019","info":"Clear explanation of what this batch code means and when it was made.","confidence":"high"}'
+      })
+    });
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    // Data comes back already parsed from our AI function
+    const parsed = (data.year || data.quarter) ? data : null;
+    if(!parsed) throw new Error('Could not parse response');
+    yearEl.textContent = parsed.quarter || parsed.year || '?';
+    infoEl.innerHTML = `${parsed.info}<br><br><span style="font-size:11px;color:var(--grey)">Confidence: ${parsed.confidence}</span>`;
+  } catch(e) {
+    yearEl.textContent = '?';
+    infoEl.textContent = 'Could not interpret this batch code. Try a different format or check with the brand directly.';
+  }
+}
+
+// ═══════════════════════════════════
+// SWIPE / DISCOVERY ENGINE
+// ═══════════════════════════════════
+var swipeQueue = [];
+var swipeIndex = 0;
+var swipeTotal = 0;
+var swipeLoved = 0;
+var swipeSwiped = 0;
+var isDragging = false;
+var startX = 0, startY = 0, currentX = 0, currentY = 0;
+var currentCard = null;
+
+const SWIPE_FRAGRANCES = [
+  {name:'Sauvage EDP',house:'Dior',family:'Aromatic Fougère',notes:['Bergamot','Ambroxan','Lavender'],desc:'The ubiquitous powerhouse. Dark, fresh, and magnetic — you either love it or hate it.',image_url:''},
+  {name:'Aventus',house:'Creed',family:'Chypre Fruity',notes:['Pineapple','Birch','Ambergris'],desc:'The benchmark of masculine luxury. Smoky, fruity, and impossibly confident.',image_url:''},
+  {name:'Baccarat Rouge 540',house:'Maison Francis Kurkdjian',family:'Amber Floral',notes:['Jasmine','Saffron','Amberwood'],desc:'The most complimented fragrance alive. Sweet, metallic, and hauntingly unique.',image_url:''},
+  {name:'Naxos',house:'Xerjoff',family:'Oriental Woody',notes:['Tobacco','Vanilla','Honey'],desc:'Dark, sweet, and addictive. Like a Sicilian summer night wrapped in silk.',image_url:''},
+  {name:'Oud Wood',house:'Tom Ford',family:'Woody Oriental',notes:['Oud','Sandalwood','Vetiver'],desc:'Smooth, sophisticated oud for those who find most oud too aggressive.',image_url:''},
+  {name:'Bleu de Chanel EDP',house:'Chanel',family:'Aromatic Woody',notes:['Citrus','Frankincense','Cedar'],desc:'Polished, clean, and effortlessly elegant. The gentleman\'s choice.',image_url:''},
+  {name:'Black Orchid',house:'Tom Ford',family:'Floral Oriental',notes:['Black Orchid','Patchouli','Vanilla'],desc:'Dark, seductive, and androgynous. A fragrance that commands attention.',image_url:''},
+  {name:'Lost Cherry',house:'Tom Ford',family:'Fruity Gourmand',notes:['Cherry','Almond','Tonka Bean'],desc:'Boozy cherry liqueur with a dark twist. Indulgent and impossible to ignore.',image_url:''},
+  {name:'Tobacco Vanille',house:'Tom Ford',family:'Oriental Spicy',notes:['Tobacco','Vanilla','Cacao'],desc:'Rich, warm, and enveloping. A fireplace in a glass bottle.',image_url:''},
+  {name:'Acqua di Giò Profumo',house:'Giorgio Armani',family:'Aquatic Woody',notes:['Marine','Incense','Patchouli'],desc:'The aquatic elevated to high art. Fresh, smoky, and impossibly wearable.',image_url:''},
+  {name:'Y EDP',house:'Yves Saint Laurent',family:'Aromatic Fougère',notes:['Apple','Sage','Cedarwood'],desc:'Fresh, modern, and versatile. The all-rounder that never fails.',image_url:''},
+  {name:'Erba Pura',house:'Xerjoff',family:'Citrus Musk',notes:['Sicilian Orange','Musk','Sandalwood'],desc:'Pure joy in a bottle. Bright, uplifting, and universally loved.',image_url:''},
+  {name:'Molecule 01',house:'Escentric Molecules',family:'Woody Musk',notes:['Iso E Super'],desc:'Not a fragrance — a skin enhancer. You either smell incredible or nothing at all.',image_url:''},
+  {name:'Encre Noire',house:'Lalique',family:'Woody Earthy',notes:['Vetiver','Cypress','Cashmere Wood'],desc:'Smoky, dark vetiver at its most brooding. The introverts\' signature.',image_url:''},
+  {name:'Interlude Man',house:'Amouage',family:'Oriental Spicy',notes:['Incense','Labdanum','Oregano'],desc:'Complex, challenging, and unforgettable. For those who want to be different.',image_url:''},
+  {name:'Reflection Man',house:'Amouage',family:'Aromatic Floral',notes:['Neroli','Jasmine','Musks'],desc:'Clean elegance taken to the extreme. Pristine white linen in summer.',image_url:''},
+  {name:'Viking',house:'Creed',family:'Fresh Aromatic',notes:['Bergamot','Pink Pepper','Violet'],desc:'Bold and adventurous. Creed\'s most modern interpretation of masculinity.',image_url:''},
+  {name:'Dior Homme Intense',house:'Dior',family:'Floral Woody Musk',notes:['Iris','Ambrette','Vetiver'],desc:'Powdery iris done with surgical precision. Quiet luxury at its finest.',image_url:''},
+  {name:'Terre d\'Hermès',house:'Hermès',family:'Woody Citrus',notes:['Orange','Flint','Vetiver'],desc:'Earth, stone, and citrus. A philosophical fragrance for the thinking man.',image_url:''},
+  {name:'Aventus for Her',house:'Creed',family:'Fruity Floral',notes:['Grapefruit','Pineapple','Rose'],desc:'Feminine power dressed in fruit and flowers. Confident and radiant.',image_url:''},
+];
+
+async function initSwipe() {
+  // Search Fragella for real data first, fall back to local
+  swipeQueue = [...SWIPE_FRAGRANCES].sort(() => Math.random() - 0.5);
+  swipeIndex = 0;
+  swipeTotal = swipeQueue.length;
+  loadSwipeStats();
+  renderSwipeCard();
+}
+
+function loadSwipeStats() {
+  // Load from localStorage for now
+  try {
+    swipeSwiped = parseInt(localStorage.getItem('sh_swiped') || '0');
+    swipeLoved = parseInt(localStorage.getItem('sh_loved') || '0');
+  } catch(e) {}
+  updateSwipeStats();
+}
+
+function updateSwipeStats() {
+  const countEl = document.getElementById('swipe-count');
+  const lovedEl = document.getElementById('swipe-loved');
+  const progressEl = document.getElementById('swipe-progress-fill');
+  if(countEl) countEl.textContent = swipeSwiped;
+  if(lovedEl) lovedEl.textContent = swipeLoved;
+  if(progressEl) progressEl.style.width = Math.min(100, (swipeSwiped / 50) * 100) + '%';
+}
+
+function renderSwipeCard() {
+  const area = document.getElementById('swipe-area');
+  if(!area) return;
+
+  if(swipeIndex >= swipeQueue.length) {
+    area.innerHTML = `<div class="swipe-empty">
+      <div style="font-size:48px;margin-bottom:16px">🍯</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;margin-bottom:8px">You\'ve seen them all</div>
+      <div style="font-size:13px;color:var(--grey);line-height:1.65;margin-bottom:20px">The hive is learning your taste. Check your AI recommendations for personalised picks.</div>
+      <button onclick="showTab('ai',null)" style="padding:12px 24px;background:var(--gold);color:var(--black);border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer">See my recommendations →</button>
+    </div>`;
+    return;
+  }
+
+  const f = swipeQueue[swipeIndex];
+  const imgHtml = f.image_url ? `<img src="${f.image_url}" alt="${f.name}" onerror="this.style.display='none'">` : `<div class="swipe-card-img-placeholder">🏺</div>`;
+
+  area.innerHTML = `
+    <div class="swipe-card" id="current-swipe-card">
+      <div class="swipe-indicator love" id="ind-love">❤ LOVE</div>
+      <div class="swipe-indicator nope" id="ind-nope">✕ NOPE</div>
+      <div class="swipe-indicator own" id="ind-own">★ OWN IT</div>
+      <div class="swipe-card-img">${imgHtml}</div>
+      <div class="swipe-card-body">
+        <div class="swipe-card-house">${f.house}</div>
+        <div class="swipe-card-name">${f.name}</div>
+        <div class="swipe-card-family">${f.family}</div>
+        <div class="swipe-card-desc">"${f.desc}"</div>
+        <div class="swipe-card-notes">${(f.notes||[]).map(n=>`<span class="swipe-card-note">${n}</span>`).join('')}</div>
+      </div>
+    </div>`;
+
+  currentCard = document.getElementById('current-swipe-card');
+  addSwipeListeners(currentCard);
+}
+
+function addSwipeListeners(card) {
+  // Touch
+  card.addEventListener('touchstart', onDragStart, {passive:true});
+  card.addEventListener('touchmove', onDragMove, {passive:true});
+  card.addEventListener('touchend', onDragEnd);
+  // Mouse
+  card.addEventListener('mousedown', onDragStart);
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+}
+
+function onDragStart(e) {
+  isDragging = true;
+  const point = e.touches ? e.touches[0] : e;
+  startX = point.clientX;
+  startY = point.clientY;
+  currentX = 0;
+  currentY = 0;
+  if(currentCard) currentCard.classList.add('swiping');
+}
+
+function onDragMove(e) {
+  if(!isDragging || !currentCard) return;
+  const point = e.touches ? e.touches[0] : e;
+  currentX = point.clientX - startX;
+  currentY = point.clientY - startY;
+  const rotate = currentX * 0.08;
+  currentCard.style.transform = `translateX(${currentX}px) translateY(${currentY}px) rotate(${rotate}deg)`;
+
+  // Show indicators
+  const loveInd = document.getElementById('ind-love');
+  const nopeInd = document.getElementById('ind-nope');
+  const ownInd = document.getElementById('ind-own');
+  if(loveInd) loveInd.style.opacity = Math.max(0, Math.min(1, currentX / 60));
+  if(nopeInd) nopeInd.style.opacity = Math.max(0, Math.min(1, -currentX / 60));
+  if(ownInd) ownInd.style.opacity = Math.max(0, Math.min(1, -currentY / 60));
+}
+
+function onDragEnd(e) {
+  if(!isDragging) return;
+  isDragging = false;
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+  if(!currentCard) return;
+  currentCard.classList.remove('swiping');
+
+  if(currentX > 80) doSwipe('right');
+  else if(currentX < -80) doSwipe('left');
+  else if(currentY < -80) doSwipe('up');
+  else {
+    // Snap back
+    currentCard.style.transform = '';
+  }
+}
+
+async function doSwipe(direction) {
+  if(!currentCard && direction !== 'skip') return;
+  const f = swipeQueue[swipeIndex];
+
+  if(direction === 'skip') {
+    swipeIndex++;
+    renderSwipeCard();
+    return;
+  }
+
+  // Animate out
+  if(direction === 'right') {
+    currentCard.classList.add('fly-right');
+    swipeLoved++;
+    showToast('❤ Added to your taste profile');
+  } else if(direction === 'left') {
+    currentCard.classList.add('fly-left');
+  } else if(direction === 'up') {
+    currentCard.classList.add('fly-up');
+    swipeLoved++;
+    showToast('★ Noted — you own and love this!');
+  }
+
+  swipeSwiped++;
+  updateSwipeStats();
+
+  // Save to Supabase
+  if(user) {
+    try {
+      await sb.from('swipes').insert([{
+        user_id: user.id,
+        fragrance_name: f.name,
+        house: f.house,
+        fragella_id: f.fragella_id || null,
+        direction: direction
+      }]);
+    } catch(e) {}
+  }
+
+  // Save stats locally too
+  try {
+    localStorage.setItem('sh_swiped', swipeSwiped);
+    localStorage.setItem('sh_loved', swipeLoved);
+  } catch(e) {}
+
+  // Milestone messages
+  if(swipeSwiped === 10) showToast('✦ 10 swipes — AI is learning your taste!');
+  if(swipeSwiped === 25) showToast('🍯 25 swipes — your profile is taking shape');
+  if(swipeSwiped === 50) showToast('⭐ 50 swipes — you\'re a ScentHive power user!');
+
+  setTimeout(() => {
+    swipeIndex++;
+    renderSwipeCard();
+  }, 350);
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('match-toast');
+  if(!toast) return;
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+function selChip(el, groupId) {
+  document.querySelectorAll(`#${groupId} .occ-chip`).forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function getOccasionPick() {
+  const occ = document.querySelector('#occ-type-chips .occ-chip.selected')?.textContent || '';
+  const weather = document.querySelector('#occ-weather-chips .occ-chip.selected')?.textContent || '';
+  closeModal('modal-occasion');
+  if(collection.length === 0) { showTab('ai',null); document.getElementById('ai-input').value=`What should I wear for ${occ} ${weather} weather?`; return; }
+  const colList = collection.map(b=>`${b.name} by ${b.house}`).join(', ');
+  showTab('ai',null);
+  document.getElementById('ai-input').value = `From my collection (${colList}), what should I wear for ${occ||'today'} in ${weather||'current'} weather? Pick the best one and explain why.`;
+  await getAIRec();
+}
+
+// ═══════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════
+function renderProfile() {
+  if(!user) return;
+  const name = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+  document.getElementById('p-name').textContent = name;
+  document.getElementById('p-email').textContent = user.email || '';
+  document.getElementById('p-avatar').textContent = name[0]?.toUpperCase() || '🧑';
+  const houses = [...new Set(collection.map(b=>b.house).filter(Boolean))];
+  document.getElementById('p-bottles').textContent = collection.length;
+  document.getElementById('p-wears').textContent = journal.length;
+  document.getElementById('p-houses').textContent = houses.length;
+}
+
+function showPrivacy() { openModal('modal-privacy'); }
+function showNotifications() { openModal('modal-notifications'); }
+function showAbout() { alert('ScentHive v1.0\nscenthive.app\nBuilt for fragrance lovers worldwide.\n\nContact: hello@scenthive.app'); }
+function handleUpgrade() { alert('Premium coming soon! We\'ll notify you when payment is ready. Thank you for your interest 🍯'); closeModal('modal-upgrade'); }
+
+// ═══════════════════════════════════
+// MODALS
+// ═══════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ═══════════════════════════════════
+// PHOTO IMPORT
+// ═══════════════════════════════════
+var photoFragrances = [];
+
+function triggerPhotoImport() {
+  document.getElementById('photo-input').click();
+}
+
+async function handlePhotoImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Show analysing overlay
+  document.getElementById('analyse-overlay').classList.add('open');
+
+  try {
+    // Convert image to base64
+    const base64 = await new Promise(function(resolve, reject) {
+      const reader = new FileReader();
+      reader.onload = function() { resolve(reader.result.split(',')[1]); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const imageType = file.type || 'image/jpeg';
+
+    // Call AI to identify fragrances
+    const res = await fetch(AI_FUNCTION_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: 'Identify all fragrance bottles visible in this image. For each bottle provide the name and brand. Be as accurate as possible. If unsure about something set confidence to "low". Respond ONLY with valid JSON: {"fragrances":[{"name":"Fragrance Name","house":"Brand Name","confidence":"high","notes":"any observations"}]}',
+        image_base64: base64,
+        image_type: imageType
+      })
+    });
+
+    const data = await res.json();
+    document.getElementById('analyse-overlay').classList.remove('open');
+
+    if (data.error) throw new Error(data.error);
+
+    const found = data.fragrances || [];
+    if (found.length === 0) {
+      alert('No fragrances detected. Try a clearer photo with better lighting.');
+      return;
+    }
+
+    photoFragrances = found.map(function(f, i) {
+      return { id: i, name: f.name, house: f.house, confidence: f.confidence || 'high', notes: f.notes || '', added: false, skipped: false };
+    });
+
+    renderPhotoConfirm();
+    document.getElementById('photo-confirm-overlay').classList.add('open');
+    document.getElementById('photo-confirm-subtitle').textContent = 'Found ' + found.length + ' fragrance' + (found.length !== 1 ? 's' : '') + ' — confirm each one';
+
+  } catch(err) {
+    document.getElementById('analyse-overlay').classList.remove('open');
+    alert('Could not analyse photo: ' + err.message + '. Try again with a clearer photo.');
+  }
+
+  // Reset file input
+  event.target.value = '';
+}
+
+function renderPhotoConfirm() {
+  const list = document.getElementById('photo-confirm-list');
+  list.innerHTML = photoFragrances.map(function(f) {
+    const isUncertain = f.confidence === 'low' || f.confidence === 'medium';
+    return '<div class="photo-confirm-card ' + (isUncertain ? 'uncertain' : '') + '" id="photo-card-' + f.id + '">' +
+      '<div class="confidence-badge ' + (isUncertain ? 'confidence-low' : 'confidence-high') + '">' + (isUncertain ? '⚠ Needs confirmation' : '✓ High confidence') + '</div>' +
+      '<input class="photo-confirm-name-input" id="photo-name-' + f.id + '" value="' + f.name + '" placeholder="Fragrance name">' +
+      '<input class="photo-confirm-house-input" id="photo-house-' + f.id + '" value="' + f.house + '" placeholder="Brand / House">' +
+      (f.notes ? '<div style="font-size:11px;color:var(--grey);margin-bottom:10px">' + f.notes + '</div>' : '') +
+      '<div class="photo-confirm-actions">' +
+      '<button class="pca-btn pca-add" id="photo-add-' + f.id + '" onclick="confirmPhotoItem(' + f.id + ')">+ Add to hive</button>' +
+      '<button class="pca-btn pca-skip" onclick="skipPhotoItem(' + f.id + ')">Skip</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function confirmPhotoItem(id) {
+  const f = photoFragrances[id];
+  const name = document.getElementById('photo-name-' + id).value.trim();
+  const house = document.getElementById('photo-house-' + id).value.trim();
+  if (!name) { alert('Please enter the fragrance name.'); return; }
+  if (!user) return;
+
+  const btn = document.getElementById('photo-add-' + id);
+  btn.textContent = 'Adding…';
+  btn.disabled = true;
+
+  try {
+    await sb.from('collection').insert([{ user_id: user.id, name: name, house: house }]);
+    collection.unshift({ name: name, house: house });
+    f.added = true;
+    btn.textContent = '✓ Added';
+    btn.className = 'pca-btn pca-added';
+    btn.disabled = true;
+    document.getElementById('photo-card-' + id).style.opacity = '0.6';
+    updateAddAllBtn();
+  } catch(err) {
+    btn.textContent = '+ Add to hive';
+    btn.disabled = false;
+    alert('Could not add: ' + err.message);
+  }
+}
+
+function skipPhotoItem(id) {
+  photoFragrances[id].skipped = true;
+  const card = document.getElementById('photo-card-' + id);
+  card.style.opacity = '0.3';
+  card.style.pointerEvents = 'none';
+  updateAddAllBtn();
+}
+
+function updateAddAllBtn() {
+  const remaining = photoFragrances.filter(function(f) { return !f.added && !f.skipped; });
+  const btn = document.getElementById('add-all-btn');
+  if (remaining.length === 0) {
+    btn.textContent = 'Done — view collection';
+    btn.onclick = function() { closePhotoConfirm(); showTab('collection', null); };
+  } else {
+    btn.textContent = 'Add all remaining (' + remaining.length + ')';
+  }
+}
+
+async function addAllConfirmed() {
+  const remaining = photoFragrances.filter(function(f) { return !f.added && !f.skipped; });
+  if (remaining.length === 0) { closePhotoConfirm(); showTab('collection', null); return; }
+
+  for (var i = 0; i < remaining.length; i++) {
+    await confirmPhotoItem(remaining[i].id);
+  }
+}
+
+function closePhotoConfirm() {
+  document.getElementById('photo-confirm-overlay').classList.remove('open');
+  renderCollection();
+}
+function selOcc(el) { document.querySelectorAll('#modal-wear .occ-chip').forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); }));
+
+// ═══════════════════════════════════
+// STARTUP
+// ═══════════════════════════════════
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if(session?.user) { user = session.user; await initApp(); }
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if(event==='SIGNED_IN' && session?.user) { user=session.user; await initApp(); }
+    if(event==='SIGNED_OUT') { user=null; collection=[]; journal=[]; showScreen('splash'); }
+  });
+})();
+</script>
+</body>
+</html>

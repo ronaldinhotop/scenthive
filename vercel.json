@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/.netlify/functions/ai", "destination": "/api/ai" },
+    { "source": "/.netlify/functions/search", "destination": "/api/search" }
+  ]
+}
