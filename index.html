@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ScentHive v3.8</title>
+<title>ScentHive v4.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1096,8 +1096,8 @@ img{max-width:100%;display:block}
 // ═══════════════════════════════════
 const SB_URL = 'https://razsffndadhxlqvvmjrr.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhenNmZm5kYWRoeGxxdnZtanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NTI2ODIsImV4cCI6MjA5MjAyODY4Mn0.2B73ncLA5iPPZTvCZ4k-fv85p2dgwi4-JwFJjS0ZU7s';
-const AI_FUNCTION_URL = '/.netlify/functions/ai';
-const SEARCH_FUNCTION_URL = '/.netlify/functions/search';
+const AI_FUNCTION_URL = '/api/ai';
+const SEARCH_FUNCTION_URL = '/api/search';
 
 const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_KEY);
@@ -1921,12 +1921,34 @@ const SWIPE_FRAGRANCES = [
 ];
 
 async function initSwipe() {
-  // Search Fragella for real data first, fall back to local
   swipeQueue = [...SWIPE_FRAGRANCES].sort(() => Math.random() - 0.5);
   swipeIndex = 0;
   swipeTotal = swipeQueue.length;
   loadSwipeStats();
   renderSwipeCard();
+  // Fetch real images in background
+  fetchSwipeImages();
+}
+
+async function fetchSwipeImages() {
+  for(let i = 0; i < Math.min(5, swipeQueue.length); i++) {
+    const f = swipeQueue[i];
+    if(f.image_url) continue;
+    try {
+      const res = await fetch(SEARCH_FUNCTION_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({query: f.name + ' ' + f.house})
+      });
+      const data = await res.json();
+      const match = (data.fragrances||[])[0];
+      if(match && match.image_url) {
+        swipeQueue[i].image_url = match.image_url;
+        // Re-render current card if it's this one
+        if(i === swipeIndex) renderSwipeCard();
+      }
+    } catch(e) {}
+  }
 }
 
 function loadSwipeStats() {
