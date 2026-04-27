@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ScentHive v3.7</title>
+<title>ScentHive v3.8</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -597,7 +597,13 @@ img{max-width:100%;display:block}
     </div>
     <div id="trending-list"></div>
   </div>
-  <div class="bottom-nav" data-tab="discover"></div>
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 6.5 4 10s3 6 6 6 6-2.5 6-6-2.5-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Hive</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
 </div>
 
 <!-- ══════════ FRAGRANCE DETAIL ══════════ -->
@@ -642,7 +648,13 @@ img{max-width:100%;display:block}
       <div id="ai-recs"></div>
     </div>
   </div>
-  <div class="bottom-nav" data-tab="ai"></div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 6.5 4 10s3 6 6 6 6-2.5 6-6-2.5-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn active" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Hive</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
 </div>
 
 <!-- ══════════ COLLECTION ══════════ -->
@@ -665,7 +677,13 @@ img{max-width:100%;display:block}
     <button class="add-row" onclick="openModal('modal-add')">＋ Add manually</button>
     <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoImport(event)">
   </div>
-  <div class="bottom-nav" data-tab="collection"></div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 6.5 4 10s3 6 6 6 6-2.5 6-6-2.5-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn active" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Hive</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
 </div>
 
 <!-- ══════════ JOURNAL ══════════ -->
@@ -681,7 +699,13 @@ img{max-width:100%;display:block}
     </div>
     <div id="journal-list"></div>
   </div>
-  <div class="bottom-nav" data-tab="journal"></div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 6.5 4 10s3 6 6 6 6-2.5 6-6-2.5-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Hive</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
 </div>
 
 <!-- ══════════ CALCULATOR / TOOLS ══════════ -->
@@ -721,7 +745,13 @@ img{max-width:100%;display:block}
       <div class="swipe-legend-item">★ Own & love</div>
     </div>
   </div>
-  <div class="bottom-nav" data-tab="swipe"></div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn active" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 6.5 4 10s3 6 6 6 6-2.5 6-6-2.5-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Hive</button>
+    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
 </div>
 
 <!-- match toast -->
@@ -820,7 +850,13 @@ img{max-width:100%;display:block}
 
     <div style="height:24px"></div>
   </div>
-  <div class="bottom-nav" data-tab="calculator"></div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 6.5 4 10s3 6 6 6 6-2.5 6-6-2.5-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
+    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Hive</button>
+    <button class="nav-btn active" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+  </div>
 </div>
 
 <!-- ══════════ PROFILE ══════════ -->
@@ -2282,7 +2318,7 @@ function injectNavs() {
     if(event==='SIGNED_IN' && session?.user) { user=session.user; await initApp(); }
     if(event==='SIGNED_OUT') { user=null; collection=[]; journal=[]; showScreen('splash'); }
   });
-document.addEventListener('DOMContentLoaded', injectNavs);
+
 })();
 </script>
 </body>
