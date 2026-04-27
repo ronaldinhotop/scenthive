@@ -1,6 +1,14 @@
 {
-  "rewrites": [
-    { "source": "/.netlify/functions/ai", "destination": "/api/ai" },
-    { "source": "/.netlify/functions/search", "destination": "/api/search" }
+  "version": 2,
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "api/*.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/.netlify/functions/ai", "dest": "/api/ai" },
+    { "src": "/.netlify/functions/search", "dest": "/api/search" },
+    { "src": "/api/ai", "dest": "/api/ai.js" },
+    { "src": "/api/search", "dest": "/api/search.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
