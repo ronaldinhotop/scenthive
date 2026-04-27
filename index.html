@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ScentHive v3.6</title>
+<title>ScentHive v3.7</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2282,7 +2282,7 @@ function injectNavs() {
     if(event==='SIGNED_IN' && session?.user) { user=session.user; await initApp(); }
     if(event==='SIGNED_OUT') { user=null; collection=[]; journal=[]; showScreen('splash'); }
   });
-  injectNavs();
+document.addEventListener('DOMContentLoaded', injectNavs);
 })();
 </script>
 </body>
