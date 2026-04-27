@@ -9,11 +9,12 @@ export default async function handler(req, res) {
       ? '\n\nUser collection: ' + collection.map(b => b.name + ' by ' + b.house).join(', ')
       : '';
     const systemPrompt = system || 'You are the AI engine for ScentHive, a premium fragrance platform. Deep expertise across all fragrance houses. Give genuine expert recommendations. Factor in the collection. For dupe requests find cheaper alternatives. Respond ONLY with valid JSON: {"intro":"one sentence","recommendations":[{"name":"Name","house":"House","why":"2-3 sentences","notes":["Note1","Note2","Note3"],"occasion":"when","price":"price range","is_dupe":false}]} Give exactly 3 recommendations.';
+    const apiKey = process.env.ANTHROPIC_KEY || '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';
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_KEY,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
