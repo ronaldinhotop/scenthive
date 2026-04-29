@@ -1573,50 +1573,10 @@ async function quickAdd(name, house) {
 }
 
 // ═══════ LOG MODAL ═══════
-function openLog(prefilled) {
-  if (!prefilled) {
-    document.getElementById('log-name').value = '';
-    document.getElementById('log-house').value = '';
-  }
-  document.getElementById('log-review').value = '';
-  document.querySelectorAll('#star-picker .star-pick').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('#log-occ .occ-chip').forEach(c => c.classList.remove('selected'));
-  logRating = 0;
-  openModal('modal-log');
-}
+// openLog defined in new block above
 
-async function saveLog() {
-  const name = document.getElementById('log-name').value.trim();
-  const house = document.getElementById('log-house').value.trim();
-  const review = document.getElementById('log-review').value.trim();
-  const occChip = document.querySelector('#log-occ .occ-chip.selected');
-  const occ = occChip ? occChip.getAttribute('data-v') : '';
-  if (!name) { alert('Please enter the fragrance name.'); return; }
-  const entry = {
-    fragrance_name: name,
-    house,
-    notes: review,
-    rating: logRating,
-    occasion: occ,
-    worn_at: new Date().toISOString()
-  };
-  if (user) {
-    try {
-      const { data, error } = await sb.from('journal_entries').insert([{ user_id: user.id, ...entry }]).select();
-      if (error) throw error;
-      if (data) diary.unshift(data[0]);
-    } catch (e) {
-      diary.unshift({ ...entry, id: 'local_' + Date.now() });
-    }
-  } else {
-    diary.unshift({ ...entry, id: 'local_' + Date.now() });
-    saveLocal();
-  }
-  closeModal('modal-log');
-  toast('✓ Logged to diary');
-  renderDiary();
-  updateRightSidebar();
-}
+// saveLog defined in new block above
+
 
 // ═══════ ADD COLLECTION ═══════
 function openAdd() {
