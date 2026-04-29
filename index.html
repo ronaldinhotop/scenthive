@@ -1618,15 +1618,20 @@ function fragCard(f) {
     </div>`;
 }
 
-async function buildPosterCard(f) {
-  const img = f.image_url ? `<img src="${f.image_url}" alt="${f.name}" onerror="this.parentElement.innerHTML='<div class=\'poster-card-emoji\'>🏺</div>'">` : `<div class="poster-card-emoji">🏺</div>`;
-  const rating = f.rating ? `<div class="poster-card-rating">★ ${f.rating}</div>` : '';
-  return `<div class="poster-card" onclick="showFragDetailFromCache('${(f.fragella_id||f.name||'').replace(/'/g,"\\'")}','${(f.name||'').replace(/'/g,"\\'")}','${(f.house||'').replace(/'/g,"\\'")}')">
-    <div class="poster-card-img">${img}</div>
-    <div class="poster-card-name">${f.name}</div>
-    <div class="poster-card-house">${f.house||''}${f.launch_year?' · '+f.launch_year:''}</div>
-    ${rating}
-  </div>`;
+function buildPosterCard(f) {
+  const safeId = String(f.fragella_id || f.name || '').replace(/'/g, "");
+  const safeName = String(f.name || '').replace(/'/g, "");
+  const safeHouse = String(f.house || '').replace(/'/g, "");
+  const img = f.image_url 
+    ? '<img src="' + f.image_url + '" alt="' + safeName + '" style="max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:screen" onerror="this.style.display=\'none\'">' 
+    : '<div class="poster-card-emoji">🏺</div>';
+  const rating = f.rating ? '<div class="poster-card-rating">★ ' + f.rating + '</div>' : '';
+  return '<div class="poster-card" onclick="showFragDetailFromCache(\'' + safeId + '\',\'' + safeName + '\',\'' + safeHouse + '\')">' +
+    '<div class="poster-card-img">' + img + '</div>' +
+    '<div class="poster-card-name">' + safeName + '</div>' +
+    '<div class="poster-card-house">' + safeHouse + (f.launch_year ? ' · ' + f.launch_year : '') + '</div>' +
+    rating +
+  '</div>';
 }
 
 async function showFragDetailFromCache(id, name, house) {
