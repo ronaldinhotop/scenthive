@@ -2007,3 +2007,122 @@ async function seedArticles() {
 }
 
 
+
+// Keep openArticle for backwards compat
+function openArticle(slug) { openArticleFromDb(slug); }
+
+// ═══════ EVENT WIRING ═══════
+function wireEvents() {
+  // Modal close on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+  });
+
+  // Modal cancel buttons
+  document.querySelectorAll('[data-close]').forEach(b => {
+    b.addEventListener('click', () => closeModal(b.getAttribute('data-close')));
+  });
+
+  // Main search
+  const si = document.getElementById('search-input');
+  if (si) si.addEventListener('input', e => onSearch(e.target.value));
+
+  // Log search
+  const ls = document.getElementById('log-search');
+  if (ls) ls.addEventListener('input', e => onLogSearch(e.target.value));
+
+  // Star picker
+  document.querySelectorAll('#star-picker .star-pick').forEach(s => {
+    s.addEventListener('click', () => {
+      logRating = parseInt(s.getAttribute('data-r'));
+      document.querySelectorAll('#star-picker .star-pick').forEach((x, i) => x.classList.toggle('active', i < logRating));
+    });
+  });
+
+  // Occasion chips
+  document.querySelectorAll('#log-occ .occ-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#log-occ .occ-chip').forEach(x => x.classList.remove('selected'));
+      chip.classList.add('selected');
+    });
+  });
+
+  // Save buttons
+  const logSave = document.getElementById('log-save-btn');
+  if (logSave) logSave.addEventListener('click', saveLog);
+  const addSave = document.getElementById('add-save-btn');
+  if (addSave) addSave.addEventListener('click', saveCollection);
+
+  // Collection add button
+  const colAdd = document.getElementById('col-add-btn');
+  if (colAdd) colAdd.addEventListener('click', openAdd);
+
+  // Auth tabs
+  const tabSignin = document.getElementById('tab-signin');
+  const tabSignup = document.getElementById('tab-signup');
+  if (tabSignin) tabSignin.addEventListener('click', () => setAuthMode('signin'));
+  if (tabSignup) tabSignup.addEventListener('click', () => setAuthMode('signup'));
+
+  // Auth button
+  const authBtn = document.getElementById('auth-btn');
+  if (authBtn) authBtn.addEventListener('click', handleAuth);
+
+  // Auth skip
+  const authSkip = document.querySelector('.auth-skip');
+  if (authSkip) authSkip.addEventListener('click', enterAsGuest);
+
+  // Sidebar navigation
+  document.querySelectorAll('.desktop-sidebar .sidebar-item[data-tab]').forEach(item => {
+    item.addEventListener('click', () => showTab(item.getAttribute('data-tab')));
+  });
+  document.querySelectorAll('.sidebar-log-btn').forEach(b => {
+    b.addEventListener('click', openLog);
+  });
+
+  // Settings rows
+  document.querySelectorAll('#modal-settings [data-action]').forEach(r => {
+    r.addEventListener('click', () => {
+      const a = r.getAttribute('data-action');
+      if (a === 'signin') { closeModal('modal-settings'); showScreen('auth'); }
+      else if (a === 'signout') doSignOut();
+      else if (a === 'privacy') { alert('Privacy: ScentHive only collects data you provide. We never sell it. Email hello@scenthive.app for deletion requests.'); }
+      else if (a === 'about') { alert('ScentHive v2.0\n\nThe Letterboxd of fragrance.\n\nscenthive.app'); }
+    });
+  });
+
+  // Right panel buttons
+  const rpLog = document.getElementById('rp-log-btn');
+  if (rpLog) rpLog.addEventListener('click', openLog);
+  const rpAdd = document.getElementById('rp-add-btn');
+  if (rpAdd) rpAdd.addEventListener('click', openAdd);
+}
+
+// ═══════ STARTUP ═══════
+(async () => {
+  injectNavs();
+  wireEvents();
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+      user = session.user;
+      await initApp();
+    }
+  } catch (e) {}
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      user = session.user;
+      await initApp();
+    }
+    if (event === 'SIGNED_OUT') {
+      user = null;
+      diary = [];
+      collection = [];
+      showScreen('auth');
+    }
+  });
+})();
+</script>
+</body>
+</html>
