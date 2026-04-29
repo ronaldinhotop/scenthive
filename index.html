@@ -149,7 +149,7 @@ img{max-width:100%;display:block}
 @keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
 
 /* AI BANNER */
-.ai-banner{margin:16px 20px;background:linear-gradient(135deg,#1E1608,#16130A);border:1px solid var(--gold-dim);border-radius:2px;padding:20px;position:relative;overflow:hidden;cursor:pointer;transition:border-color 0.2s}
+.ai-banner-removed{margin:16px 20px;background:linear-gradient(135deg,#1E1608,#16130A);border:1px solid var(--gold-dim);border-radius:2px;padding:20px;position:relative;overflow:hidden;cursor:pointer;transition:border-color 0.2s}
 .ai-banner:hover{border-color:var(--gold)}
 .ai-banner::before{content:'⬡';position:absolute;top:-20px;right:-10px;font-size:120px;color:rgba(200,169,81,0.06);pointer-events:none;line-height:1}
 .ai-banner::after{content:'⬡';position:absolute;bottom:-30px;right:40px;font-size:80px;color:rgba(200,169,81,0.04);pointer-events:none;line-height:1}
@@ -496,6 +496,18 @@ img{max-width:100%;display:block}
 .settings-value, .modal-label, .occ-chip, .dupe-match, .dupe-house {
   font-family: 'DM Mono', monospace !important;
 }
+
+.star-picker{display:flex;gap:8px;padding:4px 0}
+.star-pick{font-size:32px;cursor:pointer;color:var(--border);transition:color 0.1s;user-select:none}
+.star-pick:hover,.star-pick.active{color:var(--gold)}
+.star-pick.active~.star-pick:not(.active){color:var(--border)}
+
+
+/* LOG BUTTON — hero of the navigation */
+.nav-log{flex:0 0 auto !important;padding:0 !important;margin-top:-12px}
+.nav-log-circle{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:var(--gold);color:var(--bg,var(--black));font-size:24px;font-weight:300;box-shadow:0 4px 12px rgba(200,168,74,0.35);transition:transform 0.15s}
+.nav-log:active .nav-log-circle{transform:scale(0.92)}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
@@ -601,12 +613,7 @@ img{max-width:100%;display:block}
     </div>
   </div>
   <div class="search-results" id="search-results">
-    <div class="ai-banner" onclick="showTab('ai',null)">
-      <div class="ai-banner-label">✦ AI Powered</div>
-      <div class="ai-banner-title">Find your next <em>obsession.</em></div>
-      <div class="ai-banner-body">Describe yourself, your mood, what you own — get expert recommendations from 74,000+ fragrances.</div>
-      <button class="ai-banner-btn">Get recommendations →</button>
-    </div>
+    
 
     <!-- HIVE SECTION HEADER -->
     <div style="padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between">
@@ -617,12 +624,12 @@ img{max-width:100%;display:block}
     </div>
     <div id="trending-list"></div>
   </div>
-  <div class="bottom-nav" id="nav-discover">
+  <div class="bottom-nav">
     <button class="nav-btn active" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
-    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
-    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
-    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
-    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 7 4 10s3 6 6 6 6-3 6-6-3-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn nav-log" onclick="openLogModal()" aria-label="Log a fragrance"><span class="nav-log-circle">+</span></button>
+    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</button>
+    <button class="nav-btn" onclick="showTab('profile',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</button>
   </div>
 </div>
 
@@ -637,46 +644,6 @@ img{max-width:100%;display:block}
 </div>
 
 <!-- ══════════ AI ══════════ -->
-<div class="screen" id="screen-ai">
-  <div class="topbar"><div class="logo">Scent<em style="font-style:italic;color:var(--gold)">Hive</em></div><button class="tb-btn" onclick="showScreen('profile')">👤</button></div>
-  <div class="ai-screen">
-    <div class="ai-hero">
-      <div class="ai-eyebrow">✦ AI Recommendations</div>
-      <h2>Find your<br><em>next obsession.</em></h2>
-      <p>Describe yourself, your mood, what you already own — get expert picks instantly.</p>
-    </div>
-    <div class="ai-input-area">
-      <textarea class="ai-textarea" id="ai-input" placeholder="I love dark woody scents but want something lighter for summer. I own Naxos and Aventus. Budget €150…" rows="4"></textarea>
-      <div class="ai-chips">
-        <div class="ai-chip" onclick="setPrompt('I want a seductive date night fragrance, long-lasting, under €200')">🌙 Date night</div>
-        <div class="ai-chip" onclick="setPrompt('I need a fresh memorable office scent, professional but interesting')">💼 Office</div>
-        <div class="ai-chip" onclick="setPrompt('What should I wear in summer? Light, fresh, works in heat')">☀️ Summer</div>
-        <div class="ai-chip" onclick="setPrompt('I want my first niche fragrance. I usually wear Sauvage and Bleu de Chanel')">✨ Go niche</div>
-        <div class="ai-chip" onclick="setPrompt('Find me the best cheap dupe for Creed Aventus')">💰 Dupe finder</div>
-        <div class="ai-chip" onclick="setPrompt('I want something completely unique that nobody else will be wearing')">🔮 Be unique</div>
-      </div>
-      <button class="ai-submit" onclick="getAIRec()">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Get Recommendations
-      </button>
-    </div>
-    <div class="ai-response-area" id="ai-response-area">
-      <div class="thinking" id="ai-thinking" style="display:none">
-        <div class="dots"><span></span><span></span><span></span></div>
-        <span style="font-size:13px;color:var(--grey)" id="thinking-text">Analysing your preferences…</span>
-      </div>
-      <div id="ai-recs"></div>
-    </div>
-  </div>
-  <div class="bottom-nav">
-    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
-    <button class="nav-btn active" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
-    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
-    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
-    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
-  </div>
-</div>
-
 <!-- ══════════ COLLECTION ══════════ -->
 <div class="screen" id="screen-collection">
   <div class="topbar">
@@ -699,10 +666,10 @@ img{max-width:100%;display:block}
   </div>
   <div class="bottom-nav">
     <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
-    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
-    <button class="nav-btn active" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
-    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
-    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 7 4 10s3 6 6 6 6-3 6-6-3-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn nav-log" onclick="openLogModal()" aria-label="Log a fragrance"><span class="nav-log-circle">+</span></button>
+    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</button>
+    <button class="nav-btn" onclick="showTab('profile',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</button>
   </div>
 </div>
 
@@ -714,17 +681,17 @@ img{max-width:100%;display:block}
   </div>
   <div class="journal-screen">
     <div style="padding:18px 20px 14px">
-      <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:300;margin-bottom:5px">Scent <em style="font-style:italic;color:var(--gold)">Journal</em></h2>
+      <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:300;margin-bottom:5px">Your <em style="font-style:italic;color:var(--gold)">diary</em></h2>
       <p style="font-size:13px;color:var(--grey)">Every fragrance you've worn, remembered forever.</p>
     </div>
     <div id="journal-list"></div>
   </div>
   <div class="bottom-nav">
     <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
-    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
-    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
-    <button class="nav-btn active" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
-    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 7 4 10s3 6 6 6 6-3 6-6-3-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn nav-log" onclick="openLogModal()" aria-label="Log a fragrance"><span class="nav-log-circle">+</span></button>
+    <button class="nav-btn active" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</button>
+    <button class="nav-btn" onclick="showTab('profile',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</button>
   </div>
 </div>
 
@@ -767,10 +734,10 @@ img{max-width:100%;display:block}
   </div>
   <div class="bottom-nav">
     <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
-    <button class="nav-btn active" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 6.5 4 10s3 6 6 6 6-2.5 6-6-2.5-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
-    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
-    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
-    <button class="nav-btn" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+    <button class="nav-btn active" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 7 4 10s3 6 6 6 6-3 6-6-3-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn nav-log" onclick="openLogModal()" aria-label="Log a fragrance"><span class="nav-log-circle">+</span></button>
+    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</button>
+    <button class="nav-btn" onclick="showTab('profile',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</button>
   </div>
 </div>
 
@@ -778,7 +745,11 @@ img{max-width:100%;display:block}
 <div class="match-toast" id="match-toast"></div>
 
 <div class="screen" id="screen-calculator">
-  <div class="topbar"><div class="logo">Scent<em style="font-style:italic;color:var(--gold)">Hive</em></div><div style="width:34px"></div></div>
+  <div class="topbar">
+    <button class="tb-btn" onclick="showTab('profile',null)" style="border:none;background:none"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L5 9l6-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="logo">Scent<em style="font-style:italic;color:var(--gold)">Hive</em></div>
+    <div style="width:34px"></div>
+  </div><div style="width:34px"></div></div>
   <div class="calc-screen">
 
     <!-- BOTTLE CALCULATOR -->
@@ -871,11 +842,11 @@ img{max-width:100%;display:block}
     <div style="height:24px"></div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
-    <button class="nav-btn" onclick="showTab('ai',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3C6 3 3 6 3 10s3 7 7 7 7-3 7-7-3-7-7-7z" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>AI</button>
-    <button class="nav-btn" onclick="showTab('collection',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M3 9h14" stroke="currentColor" stroke-width="1.5"/></svg>Collection</button>
-    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Journal</button>
-    <button class="nav-btn active" onclick="showTab('calculator',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7M7 7l3-4 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="11" width="14" height="6" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>Tools</button>
+    <button class="nav-btn active" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 7 4 10s3 6 6 6 6-3 6-6-3-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn nav-log" onclick="openLogModal()" aria-label="Log a fragrance"><span class="nav-log-circle">+</span></button>
+    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</button>
+    <button class="nav-btn" onclick="showTab('profile',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</button>
   </div>
 </div>
 
@@ -924,6 +895,24 @@ img{max-width:100%;display:block}
     </div>
 
     <div class="profile-sec">
+      <div class="profile-sec-title">Tools</div>
+      <div class="settings-item" onclick="showTab('calculator',null)">
+        <div class="settings-item-left">
+          <div class="settings-icon grey">⚖️</div>
+          <div><div class="settings-label">Bottle calculator</div><div class="settings-value">Track usage & remaining ml</div></div>
+        </div>
+        <span style="color:var(--grey)">›</span>
+      </div>
+      <div class="settings-item" onclick="showTab('calculator',null);setTimeout(()=>document.querySelector('.calc-card.batch')?.scrollIntoView({behavior:'smooth'}),100)">
+        <div class="settings-item-left">
+          <div class="settings-icon grey">🔍</div>
+          <div><div class="settings-label">Batch code checker</div><div class="settings-value">Verify production year</div></div>
+        </div>
+        <span style="color:var(--grey)">›</span>
+      </div>
+    </div>
+
+    <div class="profile-sec">
       <div class="profile-sec-title">Settings</div>
       <div class="settings-item" onclick="showPrivacy()">
         <div class="settings-item-left">
@@ -953,6 +942,14 @@ img{max-width:100%;display:block}
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
+    <button class="nav-btn" onclick="showTab('swipe',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4C7 4 4 7 4 10s3 6 6 6 6-3 6-6-3-6-6-6z" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Swipe</button>
+    <button class="nav-btn nav-log" onclick="openLogModal()" aria-label="Log a fragrance"><span class="nav-log-circle">+</span></button>
+    <button class="nav-btn" onclick="showTab('journal',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</button>
+    <button class="nav-btn active" onclick="showTab('profile',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</button>
   </div>
 </div>
 
@@ -986,8 +983,18 @@ img{max-width:100%;display:block}
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Log today's scent</div>
+    <div style="font-size:12px;color:var(--grey);margin-bottom:18px;line-height:1.5">Rate it. Write a sentence. Save the moment.</div>
     <div class="modal-field"><label class="modal-label">Fragrance</label><input class="modal-input" id="w-name" type="text" placeholder="e.g. Naxos"></div>
     <div class="modal-field"><label class="modal-label">House</label><input class="modal-input" id="w-house" type="text" placeholder="e.g. Xerjoff"></div>
+    <div class="modal-field"><label class="modal-label">Your rating</label>
+      <div class="star-picker" id="log-star-picker">
+        <span class="star-pick" onclick="setLogRating(1)" data-val="1">★</span>
+        <span class="star-pick" onclick="setLogRating(2)" data-val="2">★</span>
+        <span class="star-pick" onclick="setLogRating(3)" data-val="3">★</span>
+        <span class="star-pick" onclick="setLogRating(4)" data-val="4">★</span>
+        <span class="star-pick" onclick="setLogRating(5)" data-val="5">★</span>
+      </div>
+    </div>
     <div class="modal-field"><label class="modal-label">Occasion</label>
       <div class="occ-chips">
         <div class="occ-chip" onclick="selOcc(this)">🌅 Morning</div>
@@ -1789,20 +1796,25 @@ async function loadJournal() {
 function renderJournal() {
   const list = document.getElementById('journal-list');
   if(journal.length === 0) {
-    list.innerHTML = '<div class="empty-state"><span>📔</span>Your journal is empty.<br>Tap + to log what you\'re wearing today.</div>';
+    list.innerHTML = '<div style="padding:48px 24px;text-align:center;color:var(--grey)"><div style="font-size:36px;margin-bottom:14px;opacity:0.4">📔</div><div style="font-family:\'Playfair Display\',serif;font-size:22px;font-style:italic;margin-bottom:6px;color:var(--white)">Your diary is empty</div><div style="font-size:13px;line-height:1.6">Tap the <span style="color:var(--gold)">+</span> button to log what you\'re wearing today.</div></div>';
     return;
   }
   list.innerHTML = journal.map(e => {
     const d = new Date(e.worn_at);
-    const dateStr = d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
-    return `<div class="journal-entry">
-      <div class="journal-date">${dateStr}</div>
-      <div class="journal-frag">${e.fragrance_name}</div>
-      <div class="journal-house">${e.house||''}</div>
-      <div class="journal-meta">
-        ${e.occasion?`<span class="journal-tag">${e.occasion}</span>`:''}
-        ${e.sprays?`<span class="journal-tag">${e.sprays} sprays</span>`:''}
-        ${e.longevity_hours?`<span class="journal-tag">${e.longevity_hours}h longevity</span>`:''}
+    const dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const stars = e.rating ? '★'.repeat(e.rating) + '<span style="color:var(--border)">' + '★'.repeat(5-e.rating) + '</span>' : '';
+    return `<div class="journal-entry" style="padding:16px 20px;border-bottom:1px solid var(--border2)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--grey);letter-spacing:0.08em">${dateStr}</div>
+        ${stars ? `<div style="font-size:14px;color:var(--gold);letter-spacing:1px">${stars}</div>` : ''}
+      </div>
+      <div style="font-family:\'Playfair Display\',serif;font-size:20px;font-style:italic;color:var(--white);margin-bottom:2px">${e.fragrance_name}</div>
+      <div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">${e.house||''}</div>
+      ${e.notes ? `<div style="font-size:13px;color:var(--white2);font-style:italic;line-height:1.65;margin-bottom:8px">"${e.notes}"</div>` : ''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${e.occasion?`<span class="journal-tag" style="font-family:\'DM Mono\',monospace;font-size:9px;padding:3px 8px;border:1px solid var(--border);color:var(--grey);border-radius:1px">${e.occasion}</span>`:''}
+        ${e.sprays?`<span class="journal-tag" style="font-family:\'DM Mono\',monospace;font-size:9px;padding:3px 8px;border:1px solid var(--border);color:var(--grey);border-radius:1px">${e.sprays} sprays</span>`:''}
+        ${e.longevity_hours?`<span class="journal-tag" style="font-family:\'DM Mono\',monospace;font-size:9px;padding:3px 8px;border:1px solid var(--border);color:var(--grey);border-radius:1px">${e.longevity_hours}h</span>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1827,6 +1839,8 @@ async function logWear() {
     journal.unshift(data[0]);
     renderJournal();
     closeModal('modal-wear');
+  logRating = 0;
+  document.querySelectorAll('#log-star-picker .star-pick').forEach(s=>s.classList.remove('active'));
     ['w-name','w-house','w-sprays','w-longevity','w-notes'].forEach(id=>document.getElementById(id).value='');
     document.querySelectorAll('#modal-wear .occ-chip').forEach(c=>c.classList.remove('selected'));
   } catch(e) { alert('Could not log: '+e.message); }
