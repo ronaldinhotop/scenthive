@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ScentHive</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after { margin:0; padding:0; box-sizing:border-box }
@@ -14,6 +14,7 @@
   --bg: #14120F;
   --bg2: #1C1A16;
   --bg3: #242118;
+  --bg4: #2C2920;
   --border: #2C2920;
   --border2: #221F18;
   --gold: #C8A84A;
@@ -42,7 +43,6 @@ html, body {
   overflow-x: hidden;
 }
 body { overscroll-behavior-y: none }
-
 ::-webkit-scrollbar { width: 0 }
 
 input, button, select, textarea {
@@ -52,18 +52,10 @@ input, button, select, textarea {
   background: none;
   outline: none;
 }
-
 img { max-width: 100%; display: block }
 
-/* Mix-blend-mode for all bottle images so white backgrounds disappear on dark */
-.bottle-img {
-  mix-blend-mode: screen;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+.bottle-img { mix-blend-mode: screen; width: 100%; height: 100%; object-fit: contain }
 
-/* SCREENS */
 .screen { display: none; min-height: 100vh; flex-direction: column; max-width: 480px; margin: 0 auto }
 .screen.active { display: flex }
 
@@ -76,12 +68,7 @@ img { max-width: 100%; display: block }
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border2);
 }
-.logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  font-weight: 400;
-  color: var(--white);
-}
+.logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 400 }
 .logo em { font-style: italic; color: var(--gold) }
 .tbar-btn {
   width: 34px; height: 34px;
@@ -107,8 +94,7 @@ img { max-width: 100%; display: block }
 .bnav-btn {
   flex: 1;
   display: flex; flex-direction: column; align-items: center;
-  gap: 4px;
-  padding: 6px 0;
+  gap: 4px; padding: 6px 0;
   cursor: pointer;
   color: var(--grey);
   font-family: 'DM Mono', monospace;
@@ -119,12 +105,8 @@ img { max-width: 100%; display: block }
 .bnav-btn.active { color: var(--gold) }
 .bnav-btn svg { opacity: 0.5 }
 .bnav-btn.active svg { opacity: 1 }
-.bnav-log {
-  flex: 0 0 auto;
-  margin-top: -14px;
-  padding: 0;
-}
-.bnav-log .log-circle {
+.bnav-log { flex: 0 0 auto; margin-top: -14px; padding: 0 }
+.log-circle {
   width: 50px; height: 50px;
   border-radius: 50%;
   background: var(--gold);
@@ -139,229 +121,68 @@ img { max-width: 100%; display: block }
 /* ═══ AUTH ═══ */
 #screen-auth {
   align-items: center; justify-content: center;
-  padding: 40px 24px;
-  min-height: 100vh;
+  padding: 40px 24px; min-height: 100vh;
   background: radial-gradient(ellipse at top, #1E1808 0%, var(--bg) 60%);
 }
 .auth-wrap { width: 100%; max-width: 360px }
-.auth-logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 44px;
-  font-weight: 400;
-  text-align: center;
-  margin-bottom: 4px;
-}
+.auth-logo { font-family: 'Playfair Display', serif; font-size: 44px; text-align: center; margin-bottom: 4px }
 .auth-logo em { font-style: italic; color: var(--gold) }
-.auth-tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--grey);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  text-align: center;
-  margin-bottom: 36px;
-}
-.auth-tabs {
-  display: flex;
-  margin-bottom: 24px;
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.auth-tab {
-  flex: 1;
-  padding: 11px;
-  background: transparent;
-  color: var(--grey);
-  font-size: 13px;
-  cursor: pointer;
-}
+.auth-tag { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey); letter-spacing: 0.16em; text-transform: uppercase; text-align: center; margin-bottom: 36px }
+.auth-tabs { display: flex; margin-bottom: 24px; border: 1px solid var(--border); border-radius: 2px; overflow: hidden }
+.auth-tab { flex: 1; padding: 11px; color: var(--grey); font-size: 13px; cursor: pointer }
 .auth-tab.active { background: var(--gold); color: var(--bg); font-weight: 500 }
-.auth-input {
-  width: 100%;
-  padding: 13px 16px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  font-size: 14px;
-  margin-bottom: 10px;
-  -webkit-appearance: none;
-}
+.auth-input { width: 100%; padding: 13px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; font-size: 14px; margin-bottom: 10px; -webkit-appearance: none }
 .auth-input:focus { border-color: var(--gold) }
 .auth-input::placeholder { color: var(--grey) }
-.auth-btn {
-  width: 100%;
-  padding: 14px;
-  background: var(--gold);
-  color: var(--bg);
-  font-weight: 500;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 2px;
-  margin-top: 4px;
-}
+.auth-btn { width: 100%; padding: 14px; background: var(--gold); color: var(--bg); font-weight: 500; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border-radius: 2px; margin-top: 4px }
 .auth-btn:active { transform: scale(0.98) }
 .auth-btn:disabled { opacity: 0.5 }
-.auth-msg {
-  font-size: 12px;
-  text-align: center;
-  margin-top: 10px;
-  min-height: 16px;
-}
+.auth-msg { font-size: 12px; text-align: center; margin-top: 10px; min-height: 16px }
 .auth-msg.error { color: var(--red) }
 .auth-msg.success { color: var(--green) }
-.auth-skip {
-  display: block;
-  width: 100%;
-  margin-top: 16px;
-  padding: 10px;
-  background: transparent;
-  color: var(--grey);
-  font-size: 12px;
-  cursor: pointer;
-  text-align: center;
-}
+.auth-skip { display: block; width: 100%; margin-top: 16px; padding: 10px; color: var(--grey); font-size: 12px; cursor: pointer; text-align: center }
 
-/* ═══ HOME / DISCOVER ═══ */
+/* ═══ HOME ═══ */
 .home-screen { flex: 1; overflow-y: auto }
-
-/* SEARCH BAR */
-.search-wrap {
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border2);
-}
-.search-box {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px 14px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-}
+.search-wrap { padding: 12px 18px; border-bottom: 1px solid var(--border2) }
+.search-box { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px }
 .search-box:focus-within { border-color: var(--gold) }
-.search-box input {
-  flex: 1;
-  background: none;
-  font-size: 14px;
-}
+.search-box input { flex: 1; font-size: 14px }
 .search-box input::placeholder { color: var(--grey) }
 .search-icon { color: var(--grey); flex-shrink: 0 }
 
-/* HERO FEATURE — top of home */
+/* HERO */
 .hero {
-  position: relative;
-  height: 240px;
-  overflow: hidden;
+  position: relative; height: 240px; overflow: hidden;
   background: linear-gradient(135deg, var(--cobalt-deep) 0%, var(--bg) 100%);
 }
 .hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 30% 30%, rgba(200,168,74,0.15) 0%, transparent 60%);
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 30%, rgba(200,168,74,0.18) 0%, transparent 60%);
 }
-.hero-content {
-  position: relative;
-  height: 100%;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 24px 20px;
-}
-.hero-tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--gold);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-.hero-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 32px;
-  font-weight: 400;
-  line-height: 1.05;
-  margin-bottom: 8px;
-}
+.hero-content { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 24px 20px }
+.hero-tag { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 10px }
+.hero-title { font-family: 'Playfair Display', serif; font-size: 32px; line-height: 1.05; margin-bottom: 8px }
 .hero-title em { font-style: italic; color: var(--gold-light) }
-.hero-sub {
-  font-size: 13px;
-  color: var(--white2);
-  line-height: 1.6;
-  max-width: 320px;
-}
-.hero-bee {
-  position: absolute;
-  top: 20px; right: 20px;
-  font-size: 28px;
-  filter: drop-shadow(0 0 8px rgba(232,168,51,0.4));
-  animation: float 3s ease-in-out infinite;
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0) }
-  50% { transform: translateY(-6px) }
-}
+.hero-sub { font-size: 13px; color: var(--white2); line-height: 1.6; max-width: 320px }
+.hero-bee { position: absolute; top: 20px; right: 20px; font-size: 28px; filter: drop-shadow(0 0 8px rgba(232,168,51,0.4)); animation: float 3s ease-in-out infinite }
+@keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
 
 /* SECTIONS */
-.section {
-  padding: 28px 0 24px;
-}
+.section { padding: 28px 0 24px }
 .section + .section { border-top: 1px solid var(--border2) }
-.section.tinted {
-  background: linear-gradient(180deg, var(--cobalt-pale) 0%, var(--bg) 100%);
-}
-.section-header {
-  padding: 0 20px 16px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-}
-.section-eyebrow {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--gold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  font-weight: 400;
-  color: var(--white);
-  line-height: 1.1;
-}
+.section.tinted { background: linear-gradient(180deg, var(--cobalt-pale) 0%, var(--bg) 100%) }
+.section-header { padding: 0 20px 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px }
+.section-eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--gold); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px }
+.section-title { font-family: 'Playfair Display', serif; font-size: 22px; line-height: 1.1 }
 .section-title em { font-style: italic; color: var(--gold-light) }
-.section-sub {
-  font-size: 11px;
-  color: var(--grey);
-  margin-top: 4px;
-}
-.section-more {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--gold);
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  flex-shrink: 0;
-}
+.section-sub { font-size: 11px; color: var(--grey); margin-top: 4px }
+.section-more { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold); letter-spacing: 0.08em; cursor: pointer; flex-shrink: 0 }
 
-/* POSTER ROW (horizontal scroll) */
-.poster-row {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 0 20px;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-}
+/* POSTER ROW */
+.poster-row { display: flex; gap: 12px; overflow-x: auto; padding: 0 20px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch }
 .poster-row::-webkit-scrollbar { display: none }
-.poster-card {
-  flex-shrink: 0;
-  width: 124px;
-  cursor: pointer;
-  scroll-snap-align: start;
-  transition: transform 0.15s;
-}
+.poster-card { flex-shrink: 0; width: 124px; cursor: pointer; scroll-snap-align: start; transition: transform 0.15s }
 .poster-card:active { transform: scale(0.96) }
 .poster-card-img {
   width: 124px; height: 162px;
@@ -372,778 +193,375 @@ img { max-width: 100%; display: block }
   display: flex; align-items: center; justify-content: center;
   position: relative;
 }
-.poster-card-img img {
-  max-width: 80%; max-height: 80%;
-  object-fit: contain;
-  mix-blend-mode: screen;
-}
+.poster-card-img img { max-width: 80%; max-height: 80%; object-fit: contain; mix-blend-mode: screen }
 .poster-card-emoji { font-size: 48px; opacity: 0.4 }
-.poster-card-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 14px;
-  font-style: italic;
-  color: var(--white);
-  margin-top: 8px;
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.poster-card-house {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--grey);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-top: 3px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.poster-card-rating {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--gold);
-  margin-top: 3px;
-}
+.poster-card-name { font-family: 'Playfair Display', serif; font-size: 14px; font-style: italic; margin-top: 8px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.poster-card-house { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
 
-/* REVIEW FEED */
+/* REVIEWS */
 .review-feed { padding: 0 20px }
-.review-card {
-  display: flex; gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border2);
-}
+.review-card { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border2); cursor: pointer }
 .review-card:last-child { border-bottom: none }
-.review-bottle {
-  width: 52px; height: 70px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
+.review-card:active { opacity: 0.7 }
+.review-bottle { width: 52px; height: 70px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
 .review-bottle img { max-width: 80%; max-height: 80%; object-fit: contain; mix-blend-mode: screen }
 .review-bottle-emoji { font-size: 26px; opacity: 0.4 }
 .review-content { flex: 1; min-width: 0 }
-.review-top {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 8px; margin-bottom: 5px; flex-wrap: wrap;
-}
-.review-frag {
-  font-family: 'Playfair Display', serif;
-  font-size: 16px;
-  font-style: italic;
-  color: var(--white);
-}
+.review-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; flex-wrap: wrap }
+.review-frag { font-family: 'Playfair Display', serif; font-size: 16px; font-style: italic }
 .review-stars { font-size: 12px; color: var(--gold); letter-spacing: 1px }
-.review-house {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--gold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.review-text {
-  font-size: 12px;
-  color: var(--white2);
-  line-height: 1.65;
-  font-style: italic;
-  margin-bottom: 6px;
-}
-.review-author {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--grey);
-  letter-spacing: 0.04em;
-}
+.review-house { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px }
+.review-text { font-size: 12px; color: var(--white2); line-height: 1.65; font-style: italic; margin-bottom: 6px }
+.review-author { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey) }
 
 /* ARTICLE FEATURE */
 .article-feature {
-  margin: 0 20px;
-  padding: 20px;
+  margin: 0 20px; padding: 20px;
   background: linear-gradient(135deg, var(--gold-pale) 0%, var(--bg2) 100%);
   border-left: 3px solid var(--gold);
-  border-radius: 2px;
-  cursor: pointer;
+  border-radius: 2px; cursor: pointer;
 }
-.article-feature-tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--gold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-.article-feature-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  line-height: 1.15;
-  margin-bottom: 8px;
-}
+.article-feature:active { opacity: 0.85 }
+.article-feature-tag { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--gold); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px }
+.article-feature-title { font-family: 'Playfair Display', serif; font-size: 22px; line-height: 1.15; margin-bottom: 8px }
 .article-feature-title em { font-style: italic; color: var(--gold-light) }
-.article-feature-excerpt {
-  font-size: 12px;
-  color: var(--white2);
-  line-height: 1.65;
-  margin-bottom: 10px;
-}
-.article-feature-meta {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--grey);
-  letter-spacing: 0.04em;
-}
+.article-feature-excerpt { font-size: 12px; color: var(--white2); line-height: 1.65; margin-bottom: 10px }
+.article-feature-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey) }
 
-/* LIST CARDS */
+/* ARTICLE CARDS */
+.article-row { display: flex; flex-direction: column; gap: 1px; background: var(--border2) }
+.article-card { padding: 18px 20px; background: var(--bg); cursor: pointer }
+.article-card:active { background: var(--bg2) }
+.article-card-source { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--cobalt); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px }
+.article-card-title { font-family: 'Playfair Display', serif; font-size: 17px; line-height: 1.25; margin-bottom: 6px }
+.article-card-meta { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey); letter-spacing: 0.04em }
+
+/* LISTS */
 .list-cards { padding: 0 20px; display: flex; flex-direction: column; gap: 10px }
-.list-card {
-  padding: 16px 18px;
-  background: var(--bg2);
-  border: 1px solid var(--cobalt-deep);
-  border-radius: 2px;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-.list-card:hover, .list-card:active { border-color: var(--cobalt) }
-.list-card-tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--cobalt);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.list-card-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 18px;
-  margin-bottom: 4px;
-}
+.list-card { padding: 16px 18px; background: var(--bg2); border: 1px solid var(--cobalt-deep); border-radius: 2px; cursor: pointer }
+.list-card:active { border-color: var(--cobalt) }
+.list-card-tag { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--cobalt); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px }
+.list-card-title { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 4px }
 .list-card-title em { font-style: italic; color: var(--gold-light) }
-.list-card-author {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--grey);
-  margin-bottom: 8px;
-}
+.list-card-author { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey); margin-bottom: 8px }
 .list-card-bottles { font-size: 16px; letter-spacing: 4px }
 
 /* SEARCH RESULTS */
-.search-results-wrap {
-  flex: 1;
-  overflow-y: auto;
-  display: none;
-}
+.search-results-wrap { flex: 1; overflow-y: auto; display: none }
 .search-results-wrap.active { display: block }
-.result-item {
-  display: flex; align-items: center; gap: 14px;
-  padding: 12px 18px;
+.result-item { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-bottom: 1px solid var(--border2); cursor: pointer }
+.result-item:active { background: var(--bg2) }
+.result-img { width: 44px; height: 56px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
+.result-img img { max-width: 80%; max-height: 80%; object-fit: contain; mix-blend-mode: screen }
+.result-img-emoji { font-size: 22px; opacity: 0.4 }
+.result-info { flex: 1; min-width: 0 }
+.result-name { font-family: 'Playfair Display', serif; font-size: 16px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.result-house { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px }
+.result-arrow { color: var(--grey) }
+.search-empty { padding: 32px 18px; text-align: center; color: var(--grey); font-size: 13px }
+
+/* ═══ DIARY (Letterboxd table style) ═══ */
+.diary-screen { flex: 1; overflow-y: auto }
+.diary-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--border2) }
+.diary-header h2 { font-family: 'Playfair Display', serif; font-size: 26px; margin-bottom: 4px }
+.diary-header h2 em { font-style: italic; color: var(--gold-light) }
+.diary-header p { font-size: 12px; color: var(--grey) }
+
+/* DIARY TABLE — inspired by Letterboxd */
+.diary-month-group {}
+.diary-month-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 18px 20px 10px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
+}
+.diary-row-item {
+  display: grid;
+  grid-template-columns: 40px 48px 1fr auto;
+  gap: 12px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border2);
   cursor: pointer;
+  align-items: center;
 }
-.result-item:active { background: var(--bg2) }
-.result-img {
-  width: 44px; height: 56px;
+.diary-row-item:active { background: var(--bg2) }
+.diary-day {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: var(--white2);
+  text-align: center;
+  line-height: 1;
+}
+.diary-day-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--grey);
+  text-align: center;
+  margin-top: 2px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.diary-bottle {
+  width: 48px; height: 60px;
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 2px;
   overflow: hidden;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
 }
-.result-img img { max-width: 80%; max-height: 80%; object-fit: contain; mix-blend-mode: screen }
-.result-img-emoji { font-size: 22px; opacity: 0.4 }
-.result-info { flex: 1; min-width: 0 }
-.result-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 16px;
+.diary-bottle img { max-width: 80%; max-height: 80%; object-fit: contain; mix-blend-mode: screen }
+.diary-bottle-emoji { font-size: 22px; opacity: 0.5 }
+.diary-info { min-width: 0 }
+.diary-name { font-family: 'Playfair Display', serif; font-size: 17px; font-style: italic; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.diary-name-house { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px }
+.diary-rating-cell { display: flex; flex-direction: column; align-items: flex-end; gap: 4px }
+.diary-rating-stars { font-size: 12px; color: var(--gold); letter-spacing: 1px }
+.diary-rating-stars .empty { color: var(--grey2) }
+.diary-review-icon { font-size: 12px; color: var(--cobalt); opacity: 0.7 }
+.diary-review-text {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--white2);
+  line-height: 1.55;
   font-style: italic;
-  color: var(--white);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.result-house {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--gold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-.result-arrow { color: var(--grey) }
-.search-empty {
-  padding: 32px 18px;
-  text-align: center;
-  color: var(--grey);
-  font-size: 13px;
+  padding: 8px 0 0 60px;
+  margin-top: 0;
 }
 
-/* ═══ DIARY ═══ */
-.diary-screen { flex: 1; overflow-y: auto }
-.diary-header {
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--border2);
-}
-.diary-header h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 26px;
-  font-weight: 400;
-  margin-bottom: 4px;
-}
-.diary-header h2 em { font-style: italic; color: var(--gold-light) }
-.diary-header p { font-size: 12px; color: var(--grey) }
-.diary-entry {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border2);
-}
-.diary-row {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 6px;
-  gap: 10px;
-}
-.diary-date {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--grey);
-  letter-spacing: 0.06em;
-}
-.diary-stars { font-size: 14px; color: var(--gold); letter-spacing: 2px }
-.diary-stars .empty { color: var(--grey2) }
-.diary-frag {
-  font-family: 'Playfair Display', serif;
-  font-size: 20px;
-  font-style: italic;
-  color: var(--white);
-  margin-bottom: 2px;
-}
-.diary-house {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--gold);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.diary-text {
-  font-size: 13px;
-  color: var(--white2);
-  font-style: italic;
-  line-height: 1.65;
-  margin-bottom: 8px;
-}
-.diary-tags { display: flex; gap: 6px; flex-wrap: wrap }
-.diary-tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  color: var(--grey);
-  letter-spacing: 0.04em;
-}
-.empty-state {
-  padding: 60px 24px;
-  text-align: center;
-}
-.empty-state-icon {
-  font-size: 40px;
-  margin-bottom: 14px;
-  opacity: 0.4;
-}
-.empty-state-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  font-style: italic;
-  color: var(--white);
-  margin-bottom: 6px;
-}
-.empty-state-text {
-  font-size: 13px;
-  color: var(--grey);
-  line-height: 1.6;
-  max-width: 280px;
-  margin: 0 auto;
-}
+.empty-state { padding: 60px 24px; text-align: center }
+.empty-state-icon { font-size: 40px; margin-bottom: 14px; opacity: 0.4 }
+.empty-state-title { font-family: 'Playfair Display', serif; font-size: 22px; font-style: italic; margin-bottom: 6px }
+.empty-state-text { font-size: 13px; color: var(--grey); line-height: 1.6; max-width: 280px; margin: 0 auto }
 .empty-state-text span { color: var(--gold); font-weight: 500 }
 
 /* ═══ COLLECTION ═══ */
 .col-screen { flex: 1; overflow-y: auto }
-.col-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  border-bottom: 1px solid var(--border2);
-}
-.col-stat {
-  padding: 16px;
-  text-align: center;
-  border-right: 1px solid var(--border2);
-}
+.col-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--border2) }
+.col-stat { padding: 16px; text-align: center; border-right: 1px solid var(--border2) }
 .col-stat:last-child { border-right: none }
-.col-stat-num {
-  font-family: 'Playfair Display', serif;
-  font-size: 24px;
-  color: var(--gold);
-  display: block;
-  line-height: 1;
-}
-.col-stat-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--grey);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-top: 4px;
-  display: block;
-}
-.col-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  padding: 2px;
-}
-.col-cell {
-  aspect-ratio: 3/4;
-  background: var(--bg2);
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-}
+.col-stat-num { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold); display: block; line-height: 1 }
+.col-stat-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; display: block }
+.col-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px }
+.col-cell { aspect-ratio: 3/4; background: var(--bg2); position: relative; overflow: hidden; cursor: pointer }
 .col-cell:active { opacity: 0.7 }
-.col-cell img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  mix-blend-mode: screen;
-  padding: 8px;
+.col-cell img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: screen; padding: 8px }
+.col-cell-emoji { font-size: 36px; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.4 }
+.col-cell-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 8px 6px; background: linear-gradient(to top, rgba(20,18,15,0.95), transparent) }
+.col-cell-name { font-family: 'Playfair Display', serif; font-size: 11px; font-style: italic; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.col-cell-house { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--grey); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+
+/* ═══ PROFILE (rich Letterboxd-style) ═══ */
+.profile-screen { flex: 1; overflow-y: auto }
+
+.profile-cover {
+  height: 100px;
+  background: linear-gradient(135deg, var(--cobalt-deep) 0%, var(--gold-pale) 100%);
+  position: relative;
 }
-.col-cell-emoji {
-  font-size: 36px;
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0.4;
-}
-.col-cell-overlay {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 8px 8px 6px;
-  background: linear-gradient(to top, rgba(20,18,15,0.95), transparent);
-}
-.col-cell-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 11px;
-  font-style: italic;
-  color: var(--white);
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.col-cell-house {
-  font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  color: var(--grey);
-  letter-spacing: 0.04em;
-  margin-top: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.profile-cover::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 70%, rgba(232,168,51,0.2) 0%, transparent 60%);
 }
 
-/* ═══ PROFILE ═══ */
-.profile-screen { flex: 1; overflow-y: auto }
 .profile-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid var(--border2);
+  padding: 0 20px 20px;
+  margin-top: -36px;
   position: relative;
-  overflow: hidden;
 }
-.profile-header::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 80px;
-  background: linear-gradient(180deg, rgba(200,168,74,0.08) 0%, transparent 100%);
-}
-.profile-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; position: relative }
+.profile-avatar-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 14px }
 .profile-avatar-ring {
-  width: 64px; height: 64px;
+  width: 76px; height: 76px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--gold), var(--honey));
-  padding: 2px;
+  padding: 3px;
   flex-shrink: 0;
 }
 .profile-avatar {
   width: 100%; height: 100%;
   border-radius: 50%;
-  background: var(--bg);
+  background: var(--bg2);
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
-  border: 2px solid var(--bg2);
+  font-size: 28px;
+  border: 3px solid var(--bg);
 }
-.profile-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  color: var(--white);
-  line-height: 1.1;
-}
-.profile-handle {
+.profile-edit-btn {
   font-family: 'DM Mono', monospace;
   font-size: 10px;
-  color: var(--grey);
+  padding: 7px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--white2);
   letter-spacing: 0.08em;
-  margin-top: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
 }
+.profile-name { font-family: 'Playfair Display', serif; font-size: 24px; line-height: 1.1 }
+.profile-handle { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--grey); letter-spacing: 0.08em; margin-top: 4px }
+.profile-bio { font-size: 13px; color: var(--white2); line-height: 1.6; margin-top: 12px; font-style: italic }
+
 .profile-stats {
   display: flex;
+  margin: 20px;
   border: 1px solid var(--border);
   border-radius: 2px;
   overflow: hidden;
+}
+.profile-stat { flex: 1; text-align: center; padding: 12px 4px; border-right: 1px solid var(--border); cursor: pointer }
+.profile-stat:last-child { border-right: none }
+.profile-stat:active { background: var(--bg2) }
+.profile-stat-num { font-family: 'Playfair Display', serif; font-size: 22px; line-height: 1; display: block }
+.profile-stat-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--grey); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; display: block }
+
+.profile-section { padding: 24px 0; border-top: 1px solid var(--border2) }
+.profile-sec-header { padding: 0 20px 14px; display: flex; align-items: flex-end; justify-content: space-between }
+.profile-sec-title { font-family: 'Playfair Display', serif; font-size: 18px; font-style: italic }
+.profile-sec-more { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold); letter-spacing: 0.08em }
+
+/* Favourite 4 */
+.favourites-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 0 20px;
+}
+.fav-cell {
+  aspect-ratio: 3/4;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
   position: relative;
 }
-.profile-stat {
-  flex: 1;
-  text-align: center;
-  padding: 10px 4px;
-  border-right: 1px solid var(--border);
-}
-.profile-stat:last-child { border-right: none }
-.profile-stat-num {
+.fav-cell img { max-width: 80%; max-height: 80%; object-fit: contain; mix-blend-mode: screen }
+.fav-cell-empty { font-size: 20px; color: var(--grey2) }
+.fav-cell-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 4px;
+  background: linear-gradient(to top, rgba(20,18,15,0.9), transparent);
   font-family: 'Playfair Display', serif;
-  font-size: 20px;
-  color: var(--white);
-  line-height: 1;
-  display: block;
-}
-.profile-stat-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  color: var(--grey);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-top: 4px;
-  display: block;
+  font-size: 9px;
+  font-style: italic;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.settings-section {
-  padding: 16px 0;
+/* Taste breakdown */
+.taste-bars { padding: 0 20px; display: flex; flex-direction: column; gap: 12px }
+.taste-row {}
+.taste-top { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px }
+.taste-name { color: var(--white2) }
+.taste-pct { font-family: 'DM Mono', monospace; color: var(--grey) }
+.taste-track { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden }
+.taste-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); border-radius: 2px }
+
+/* Top houses */
+.top-houses { padding: 0 20px; display: flex; flex-direction: column; gap: 8px }
+.house-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
 }
-.settings-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--grey);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0 20px 10px;
-}
-.settings-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border2);
-  cursor: pointer;
-}
+.house-name { font-family: 'Playfair Display', serif; font-size: 14px; font-style: italic }
+.house-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase }
+
+/* Recent reviews on profile */
+.profile-review-stack { display: flex; flex-direction: column }
+
+/* Settings */
+.settings-section { padding: 16px 0 }
+.settings-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey); letter-spacing: 0.12em; text-transform: uppercase; padding: 0 20px 10px }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border2); cursor: pointer }
 .settings-row:active { background: var(--bg2) }
 .settings-left { display: flex; align-items: center; gap: 14px }
-.settings-icon {
-  width: 32px; height: 32px;
-  border-radius: 2px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px;
-}
+.settings-icon { width: 32px; height: 32px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 14px }
 .settings-icon.gold { background: var(--gold-pale); color: var(--gold) }
 .settings-icon.dark { background: var(--bg2) }
 .settings-icon.red { background: rgba(192,74,74,0.12); color: var(--red) }
-.settings-text-name { font-size: 13px; color: var(--white) }
+.settings-text-name { font-size: 13px }
 .settings-text-name.danger { color: var(--red) }
-.settings-text-sub {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: var(--grey);
-  margin-top: 2px;
-  letter-spacing: 0.04em;
-}
+.settings-text-sub { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--grey); margin-top: 2px }
 .settings-arrow { color: var(--grey) }
 
 /* ═══ FRAGRANCE DETAIL ═══ */
-#screen-frag { display: none }
 .frag-screen { flex: 1; overflow-y: auto }
-.frag-hero {
-  padding: 0;
-  border-bottom: 1px solid var(--border2);
-}
+.frag-hero { border-bottom: 1px solid var(--border2) }
 .frag-hero-img {
-  width: 100%;
-  height: 240px;
+  width: 100%; height: 240px;
   background: linear-gradient(180deg, var(--bg2), var(--bg));
   display: flex; align-items: center; justify-content: center;
-  position: relative;
-  overflow: hidden;
+  position: relative; overflow: hidden;
 }
-.frag-hero-img img {
-  max-width: 60%; max-height: 80%;
-  object-fit: contain;
-  mix-blend-mode: screen;
-}
+.frag-hero-img img { max-width: 60%; max-height: 80%; object-fit: contain; mix-blend-mode: screen }
 .frag-hero-img-emoji { font-size: 80px; opacity: 0.3 }
-.frag-hero-img::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 80px;
-  background: linear-gradient(to top, var(--bg), transparent);
-}
+.frag-hero-img::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(to top, var(--bg), transparent) }
 .frag-hero-body { padding: 20px }
-.frag-hero-eyebrow {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--gold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.frag-hero-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 32px;
-  font-style: italic;
-  line-height: 1.05;
-  margin-bottom: 6px;
-}
-.frag-hero-meta {
-  font-size: 12px;
-  color: var(--grey);
-  margin-bottom: 14px;
-}
+.frag-hero-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 6px }
+.frag-hero-name { font-family: 'Playfair Display', serif; font-size: 32px; font-style: italic; line-height: 1.05; margin-bottom: 6px }
+.frag-hero-meta { font-size: 12px; color: var(--grey); margin-bottom: 14px }
 .frag-actions { display: flex; gap: 8px }
-.frag-btn {
-  flex: 1;
-  padding: 11px;
-  border-radius: 2px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  text-align: center;
-}
+.frag-btn { flex: 1; padding: 11px; border-radius: 2px; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; text-align: center }
 .frag-btn-primary { background: var(--gold); color: var(--bg) }
-.frag-btn-secondary {
-  background: var(--bg2);
-  color: var(--white2);
-  border: 1px solid var(--border);
-}
+.frag-btn-secondary { background: var(--bg2); color: var(--white2); border: 1px solid var(--border) }
 .frag-btn-secondary:active { border-color: var(--gold) }
-
-.detail-sec {
-  padding: 20px;
-  border-bottom: 1px solid var(--border2);
-}
-.detail-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--grey);
-  margin-bottom: 14px;
-}
+.detail-sec { padding: 20px; border-bottom: 1px solid var(--border2) }
+.detail-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey); margin-bottom: 14px }
 .note-pyramid { display: flex; flex-direction: column; gap: 14px }
-.note-layer-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--grey2);
-  margin-bottom: 8px;
-  display: flex; align-items: center; gap: 8px;
-}
+.note-layer-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey2); margin-bottom: 8px; display: flex; align-items: center; gap: 8px }
 .note-layer-label::after { content: ''; flex: 1; height: 1px; background: var(--border2) }
 .note-pills { display: flex; gap: 6px; flex-wrap: wrap }
-.note-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 6px 11px;
-  border: 1px solid var(--border);
-  border-radius: 1px;
-  font-size: 12px;
-  color: var(--white2);
-}
+.note-pill { display: inline-flex; align-items: center; gap: 5px; padding: 6px 11px; border: 1px solid var(--border); border-radius: 1px; font-size: 12px; color: var(--white2) }
 .note-pill.top { border-color: var(--gold-dim); background: var(--gold-pale); color: var(--gold-light) }
 .note-pill.base { border-color: #3A2A18; background: #1E1810; color: var(--honey) }
-
-.buy-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 14px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  margin-bottom: 8px;
-  cursor: pointer;
-}
+.buy-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; margin-bottom: 8px; cursor: pointer }
 .buy-row:active { border-color: var(--gold) }
-.buy-name { font-size: 13px; color: var(--white) }
-.buy-note {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  color: var(--grey);
-  margin-top: 2px;
-}
+.buy-name { font-size: 13px }
+.buy-note { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--grey); margin-top: 2px }
 
 /* ═══ MODAL ═══ */
-.modal-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.85);
-  z-index: 200;
-  align-items: flex-end;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-}
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px) }
 .modal-overlay.open { display: flex }
-.modal {
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  border-radius: 4px 4px 0 0;
-  padding: 20px;
-  width: 100%;
-  max-width: 480px;
-  max-height: 88vh;
-  overflow-y: auto;
-  animation: slideUp 0.3s ease forwards;
-}
-@keyframes slideUp {
-  from { transform: translateY(100%) }
-  to { transform: translateY(0) }
-}
-.modal-handle {
-  width: 32px; height: 3px;
-  background: var(--border);
-  border-radius: 2px;
-  margin: 0 auto 18px;
-}
-.modal-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 24px;
-  font-style: italic;
-  margin-bottom: 4px;
-}
-.modal-sub {
-  font-size: 12px;
-  color: var(--grey);
-  margin-bottom: 18px;
-  line-height: 1.5;
-}
-.modal-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--grey);
-  display: block;
-  margin-bottom: 7px;
-}
-.modal-input {
-  width: 100%;
-  padding: 12px 14px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  font-size: 14px;
-  margin-bottom: 12px;
-  -webkit-appearance: none;
-}
+.modal { background: var(--bg2); border-top: 1px solid var(--border); border-radius: 4px 4px 0 0; padding: 20px; width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; animation: slideUp 0.3s ease forwards }
+@keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+.modal-handle { width: 32px; height: 3px; background: var(--border); border-radius: 2px; margin: 0 auto 18px }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 24px; font-style: italic; margin-bottom: 4px }
+.modal-sub { font-size: 12px; color: var(--grey); margin-bottom: 18px; line-height: 1.5 }
+.modal-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey); display: block; margin-bottom: 7px }
+.modal-input { width: 100%; padding: 12px 14px; background: var(--bg3); border: 1px solid var(--border); border-radius: 2px; font-size: 14px; margin-bottom: 12px; -webkit-appearance: none }
 .modal-input:focus { border-color: var(--gold) }
 .modal-input::placeholder { color: var(--grey) }
 .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
-.star-picker {
-  display: flex; gap: 10px;
-  margin-bottom: 16px;
-  padding: 4px 0;
-}
-.star-pick {
-  font-size: 32px;
-  cursor: pointer;
-  color: var(--grey2);
-  transition: color 0.1s;
-  user-select: none;
-  line-height: 1;
-}
+.star-picker { display: flex; gap: 10px; margin-bottom: 16px; padding: 4px 0 }
+.star-pick { font-size: 32px; cursor: pointer; color: var(--grey2); transition: color 0.1s; line-height: 1 }
 .star-pick.active, .star-pick:hover { color: var(--gold) }
 .occ-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px }
-.occ-chip {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  padding: 7px 12px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  color: var(--grey);
-  cursor: pointer;
-  letter-spacing: 0.04em;
-  border-radius: 1px;
-}
-.occ-chip.selected {
-  background: var(--gold-pale);
-  border-color: var(--gold-dim);
-  color: var(--gold-light);
-}
-.modal-submit {
-  width: 100%;
-  padding: 13px;
-  background: var(--gold);
-  color: var(--bg);
-  font-weight: 500;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  margin-top: 6px;
-  border-radius: 2px;
-}
-.modal-cancel {
-  width: 100%;
-  padding: 11px;
-  background: transparent;
-  color: var(--grey);
-  font-size: 12px;
-  cursor: pointer;
-  margin-top: 6px;
-  text-align: center;
-}
+.occ-chip { font-family: 'DM Mono', monospace; font-size: 10px; padding: 7px 12px; background: var(--bg3); border: 1px solid var(--border); color: var(--grey); cursor: pointer; letter-spacing: 0.04em; border-radius: 1px }
+.occ-chip.selected { background: var(--gold-pale); border-color: var(--gold-dim); color: var(--gold-light) }
+.modal-submit { width: 100%; padding: 13px; background: var(--gold); color: var(--bg); font-weight: 500; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; margin-top: 6px; border-radius: 2px }
+.modal-cancel { width: 100%; padding: 11px; color: var(--grey); font-size: 12px; cursor: pointer; margin-top: 6px; text-align: center }
 
-.toast {
-  position: fixed;
-  top: 20px; left: 50%;
-  transform: translateX(-50%);
-  background: var(--gold);
-  color: var(--bg);
-  padding: 10px 20px;
-  border-radius: 2px;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  z-index: 500;
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-}
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--gold); color: var(--bg); padding: 10px 20px; border-radius: 2px; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; z-index: 500; opacity: 0; transition: opacity 0.3s; pointer-events: none }
 .toast.show { opacity: 1 }
-
-.spinner {
-  width: 18px; height: 18px;
-  border: 2px solid var(--border);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  margin: 0 auto;
-}
+.spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto }
 @keyframes spin { to { transform: rotate(360deg) } }
-.loading-row {
-  padding: 24px;
-  text-align: center;
-  color: var(--grey);
-  font-size: 12px;
-}
+.loading-row { padding: 24px; text-align: center; color: var(--grey); font-size: 12px }
 </style>
 </head>
 <body>
 
-<!-- ═══ AUTH SCREEN ═══ -->
+<!-- ═══ AUTH ═══ -->
 <div class="screen active" id="screen-auth">
   <div class="auth-wrap">
     <div class="auth-logo">Scent<em>Hive</em></div>
@@ -1161,33 +579,26 @@ img { max-width: 100%; display: block }
   </div>
 </div>
 
-<!-- ═══ HOME / DISCOVER ═══ -->
+<!-- ═══ HOME ═══ -->
 <div class="screen" id="screen-home">
   <div class="topbar">
     <div class="logo">Scent<em>Hive</em></div>
-    <button class="tbar-btn" onclick="showScreen('profile')">👤</button>
+    <button class="tbar-btn" onclick="goToProfile()">👤</button>
   </div>
-
   <div class="home-screen">
-    <!-- Search -->
     <div class="search-wrap">
       <div class="search-box">
         <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
           <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
           <path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        <input type="text" id="search-input" placeholder="Search any fragrance…" oninput="onSearch(this.value)" autocomplete="off">
+        <input type="text" id="search-input" placeholder="Search any fragrance…" autocomplete="off">
       </div>
     </div>
 
-    <!-- Search results (hidden until typing) -->
-    <div class="search-results-wrap" id="search-results">
-      <div class="loading-row">Type to search…</div>
-    </div>
+    <div class="search-results-wrap" id="search-results"></div>
 
-    <!-- Home content (hidden during search) -->
     <div id="home-content">
-      <!-- Hero -->
       <div class="hero">
         <span class="hero-bee">🐝</span>
         <div class="hero-content">
@@ -1197,7 +608,6 @@ img { max-width: 100%; display: block }
         </div>
       </div>
 
-      <!-- Popular this week -->
       <div class="section">
         <div class="section-header">
           <div>
@@ -1209,7 +619,6 @@ img { max-width: 100%; display: block }
         <div class="poster-row" id="shelf-popular"><div class="loading-row">Loading…</div></div>
       </div>
 
-      <!-- Popular reviews -->
       <div class="section tinted">
         <div class="section-header">
           <div>
@@ -1220,7 +629,6 @@ img { max-width: 100%; display: block }
         <div class="review-feed" id="review-feed"></div>
       </div>
 
-      <!-- Dark & brooding -->
       <div class="section">
         <div class="section-header">
           <div>
@@ -1233,9 +641,8 @@ img { max-width: 100%; display: block }
         <div class="poster-row" id="shelf-dark"><div class="loading-row">Loading…</div></div>
       </div>
 
-      <!-- Article feature -->
       <div class="section">
-        <div class="article-feature">
+        <div class="article-feature" onclick="openArticle('niche-guide')">
           <div class="article-feature-tag">Editorial · Guide</div>
           <div class="article-feature-title">A beginner's guide to <em>niche fragrance</em></div>
           <div class="article-feature-excerpt">If you've outgrown designer and don't know where to start with niche, here are the 12 houses that matter — and where to find samples without going broke.</div>
@@ -1243,7 +650,6 @@ img { max-width: 100%; display: block }
         </div>
       </div>
 
-      <!-- Fresh classics -->
       <div class="section">
         <div class="section-header">
           <div>
@@ -1256,7 +662,38 @@ img { max-width: 100%; display: block }
         <div class="poster-row" id="shelf-fresh"><div class="loading-row">Loading…</div></div>
       </div>
 
-      <!-- Lists -->
+      <!-- Articles list -->
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">From the journal</div>
+            <div class="section-title"><em>Latest</em> articles</div>
+          </div>
+        </div>
+        <div class="article-row" id="article-list">
+          <div class="article-card" onclick="openArticle('reformulation')">
+            <div class="article-card-source">ScentHive Journal · 3 min read</div>
+            <div class="article-card-title">The truth about reformulations</div>
+            <div class="article-card-meta">Why your favourite fragrance smells different now — and what to do about it.</div>
+          </div>
+          <div class="article-card" onclick="openArticle('layering')">
+            <div class="article-card-source">ScentHive Journal · 5 min read</div>
+            <div class="article-card-title">A guide to layering fragrances properly</div>
+            <div class="article-card-meta">Most layering advice is bad. Here's what actually works.</div>
+          </div>
+          <div class="article-card" onclick="openArticle('decants')">
+            <div class="article-card-source">ScentHive Journal · 4 min read</div>
+            <div class="article-card-title">How decants saved fragrance collecting</div>
+            <div class="article-card-meta">Why splitting a bottle changed everything for the community.</div>
+          </div>
+          <div class="article-card" onclick="openArticle('summer')">
+            <div class="article-card-source">ScentHive Journal · 6 min read</div>
+            <div class="article-card-title">10 summer fragrances that aren't generic</div>
+            <div class="article-card-meta">Beyond Acqua di Gio — what to wear when it's hot.</div>
+          </div>
+        </div>
+      </div>
+
       <div class="section tinted">
         <div class="section-header">
           <div>
@@ -1286,36 +723,15 @@ img { max-width: 100%; display: block }
         </div>
       </div>
 
-      <!-- Footer -->
       <div style="text-align:center;padding:40px 20px 24px;border-top:1px solid var(--border2)">
         <div style="font-size:32px;margin-bottom:10px">🐝</div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;color:var(--white);margin-bottom:4px">Built for serious noses</div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:4px">Built for serious noses</div>
         <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.12em">scenthive.app</div>
       </div>
     </div>
   </div>
 
-  <div class="bnav">
-    <button class="bnav-btn active" onclick="showTab('home', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h4v6" stroke="currentColor" stroke-width="1.5"/></svg>
-      Home
-    </button>
-    <button class="bnav-btn" onclick="showTab('diary', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Diary
-    </button>
-    <button class="bnav-btn bnav-log" onclick="openLog()">
-      <span class="log-circle">+</span>
-    </button>
-    <button class="bnav-btn" onclick="showTab('collection', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"/></svg>
-      Hive
-    </button>
-    <button class="bnav-btn" onclick="showTab('profile', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Profile
-    </button>
-  </div>
+  <div class="bnav" id="nav-home"></div>
 </div>
 
 <!-- ═══ DIARY ═══ -->
@@ -1331,25 +747,7 @@ img { max-width: 100%; display: block }
     </div>
     <div id="diary-list"></div>
   </div>
-  <div class="bnav">
-    <button class="bnav-btn" onclick="showTab('home', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h4v6" stroke="currentColor" stroke-width="1.5"/></svg>
-      Home
-    </button>
-    <button class="bnav-btn active" onclick="showTab('diary', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Diary
-    </button>
-    <button class="bnav-btn bnav-log" onclick="openLog()"><span class="log-circle">+</span></button>
-    <button class="bnav-btn" onclick="showTab('collection', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"/></svg>
-      Hive
-    </button>
-    <button class="bnav-btn" onclick="showTab('profile', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Profile
-    </button>
-  </div>
+  <div class="bnav" id="nav-diary"></div>
 </div>
 
 <!-- ═══ COLLECTION ═══ -->
@@ -1366,90 +764,79 @@ img { max-width: 100%; display: block }
     </div>
     <div class="col-grid" id="col-grid"></div>
   </div>
-  <div class="bnav">
-    <button class="bnav-btn" onclick="showTab('home', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h4v6" stroke="currentColor" stroke-width="1.5"/></svg>
-      Home
-    </button>
-    <button class="bnav-btn" onclick="showTab('diary', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Diary
-    </button>
-    <button class="bnav-btn bnav-log" onclick="openLog()"><span class="log-circle">+</span></button>
-    <button class="bnav-btn active" onclick="showTab('collection', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"/></svg>
-      Hive
-    </button>
-    <button class="bnav-btn" onclick="showTab('profile', this)">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Profile
-    </button>
-  </div>
+  <div class="bnav" id="nav-collection"></div>
 </div>
 
-<!-- ═══ PROFILE ═══ -->
+<!-- ═══ PROFILE (rich) ═══ -->
 <div class="screen" id="screen-profile">
   <div class="topbar">
     <button class="tbar-btn" onclick="goBack()">←</button>
     <div class="logo">Scent<em>Hive</em></div>
-    <div style="width:34px"></div>
+    <button class="tbar-btn" onclick="openModal('modal-settings')">⚙</button>
   </div>
   <div class="profile-screen">
+    <div class="profile-cover"></div>
     <div class="profile-header">
-      <div class="profile-top">
+      <div class="profile-avatar-row">
         <div class="profile-avatar-ring">
           <div class="profile-avatar" id="prof-avatar">👤</div>
         </div>
-        <div>
-          <div class="profile-name" id="prof-name">Guest</div>
-          <div class="profile-handle" id="prof-handle">@guest</div>
-        </div>
+        <button class="profile-edit-btn" onclick="alert('Edit profile coming soon')">Edit profile</button>
       </div>
-      <div class="profile-stats">
-        <div class="profile-stat"><span class="profile-stat-num" id="prof-logged">0</span><span class="profile-stat-label">Logged</span></div>
-        <div class="profile-stat"><span class="profile-stat-num" id="prof-collection">0</span><span class="profile-stat-label">Collection</span></div>
-        <div class="profile-stat"><span class="profile-stat-num" id="prof-houses">0</span><span class="profile-stat-label">Houses</span></div>
+      <div class="profile-name" id="prof-name">Guest</div>
+      <div class="profile-handle" id="prof-handle">@guest</div>
+      <div class="profile-bio" id="prof-bio">"Building my fragrance diary one wear at a time."</div>
+    </div>
+
+    <div class="profile-stats">
+      <div class="profile-stat" onclick="showTab('diary')"><span class="profile-stat-num" id="prof-logged">0</span><span class="profile-stat-label">Logged</span></div>
+      <div class="profile-stat" onclick="showTab('collection')"><span class="profile-stat-num" id="prof-collection">0</span><span class="profile-stat-label">Collection</span></div>
+      <div class="profile-stat"><span class="profile-stat-num" id="prof-houses">0</span><span class="profile-stat-label">Houses</span></div>
+      <div class="profile-stat"><span class="profile-stat-num" id="prof-avg">—</span><span class="profile-stat-label">Avg</span></div>
+    </div>
+
+    <!-- Favourites -->
+    <div class="profile-section">
+      <div class="profile-sec-header">
+        <div class="profile-sec-title">Favourite four</div>
+        <span class="profile-sec-more" onclick="alert('Pick favourites coming soon')">Edit →</span>
+      </div>
+      <div class="favourites-grid" id="favourites-grid"></div>
+    </div>
+
+    <!-- Recent reviews -->
+    <div class="profile-section">
+      <div class="profile-sec-header">
+        <div class="profile-sec-title">Recent <em style="font-style:italic;color:var(--gold-light)">reviews</em></div>
+        <span class="profile-sec-more" onclick="showTab('diary')">All →</span>
+      </div>
+      <div class="profile-review-stack" id="profile-reviews"></div>
+    </div>
+
+    <!-- Top houses -->
+    <div class="profile-section">
+      <div class="profile-sec-header">
+        <div class="profile-sec-title">Top houses</div>
+      </div>
+      <div class="top-houses" id="top-houses"></div>
+    </div>
+
+    <!-- Taste breakdown -->
+    <div class="profile-section">
+      <div class="profile-sec-header">
+        <div class="profile-sec-title">Your <em style="font-style:italic;color:var(--gold-light)">taste</em></div>
+      </div>
+      <div class="taste-bars" id="taste-bars">
+        <div class="taste-row"><div class="taste-top"><span class="taste-name">Oriental</span><span class="taste-pct">—</span></div><div class="taste-track"><div class="taste-fill" style="width:0%"></div></div></div>
+        <div class="taste-row"><div class="taste-top"><span class="taste-name">Woody</span><span class="taste-pct">—</span></div><div class="taste-track"><div class="taste-fill" style="width:0%"></div></div></div>
+        <div class="taste-row"><div class="taste-top"><span class="taste-name">Fresh</span><span class="taste-pct">—</span></div><div class="taste-track"><div class="taste-fill" style="width:0%"></div></div></div>
+        <div class="taste-row"><div class="taste-top"><span class="taste-name">Sweet</span><span class="taste-pct">—</span></div><div class="taste-track"><div class="taste-fill" style="width:0%"></div></div></div>
       </div>
     </div>
 
-    <div class="settings-section">
-      <div class="settings-label">Account</div>
-      <div class="settings-row" id="account-row" onclick="signInAction()">
-        <div class="settings-left">
-          <div class="settings-icon gold">⭐</div>
-          <div>
-            <div class="settings-text-name" id="account-name">Sign in</div>
-            <div class="settings-text-sub" id="account-sub">Save your data across devices</div>
-          </div>
-        </div>
-        <span class="settings-arrow">›</span>
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-label">About</div>
-      <div class="settings-row" onclick="alert('Privacy policy coming soon')">
-        <div class="settings-left">
-          <div class="settings-icon dark">🔒</div>
-          <div><div class="settings-text-name">Privacy & Data</div><div class="settings-text-sub">How we handle your information</div></div>
-        </div>
-        <span class="settings-arrow">›</span>
-      </div>
-      <div class="settings-row" onclick="alert('ScentHive v1.0\\n\\nThe Letterboxd of Fragrance.\\n\\nscenthive.app')">
-        <div class="settings-left">
-          <div class="settings-icon dark">ℹ️</div>
-          <div><div class="settings-text-name">About ScentHive</div><div class="settings-text-sub">v1.0 · scenthive.app</div></div>
-        </div>
-        <span class="settings-arrow">›</span>
-      </div>
-      <div class="settings-row" id="signout-row" onclick="doSignOut()" style="display:none">
-        <div class="settings-left">
-          <div class="settings-icon red">🚪</div>
-          <div><div class="settings-text-name danger">Sign out</div></div>
-        </div>
-      </div>
-    </div>
+    <div style="height:40px"></div>
   </div>
+  <div class="bnav" id="nav-profile"></div>
 </div>
 
 <!-- ═══ FRAGRANCE DETAIL ═══ -->
@@ -1462,78 +849,112 @@ img { max-width: 100%; display: block }
   <div class="frag-screen" id="frag-content"></div>
 </div>
 
+<!-- ═══ ARTICLE ═══ -->
+<div class="screen" id="screen-article">
+  <div class="topbar">
+    <button class="tbar-btn" onclick="goBack()">←</button>
+    <div class="logo">Scent<em>Hive</em></div>
+    <div style="width:34px"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:24px 22px 40px" id="article-content"></div>
+</div>
+
 <!-- ═══ LOG MODAL ═══ -->
 <div class="modal-overlay" id="modal-log">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Log a fragrance</div>
     <div class="modal-sub">Rate it. Write a sentence. Save the moment.</div>
-
     <label class="modal-label">Fragrance</label>
     <input class="modal-input" id="log-name" type="text" placeholder="e.g. Naxos">
-
     <label class="modal-label">House</label>
     <input class="modal-input" id="log-house" type="text" placeholder="e.g. Xerjoff">
-
     <label class="modal-label">Your rating</label>
     <div class="star-picker" id="star-picker">
-      <span class="star-pick" onclick="setRating(1)">★</span>
-      <span class="star-pick" onclick="setRating(2)">★</span>
-      <span class="star-pick" onclick="setRating(3)">★</span>
-      <span class="star-pick" onclick="setRating(4)">★</span>
-      <span class="star-pick" onclick="setRating(5)">★</span>
+      <span class="star-pick" data-r="1">★</span>
+      <span class="star-pick" data-r="2">★</span>
+      <span class="star-pick" data-r="3">★</span>
+      <span class="star-pick" data-r="4">★</span>
+      <span class="star-pick" data-r="5">★</span>
     </div>
-
     <label class="modal-label">Review <span style="color:var(--grey);font-size:9px">optional</span></label>
-    <input class="modal-input" id="log-review" type="text" placeholder="Two sentences. What does it smell like to you?">
-
+    <input class="modal-input" id="log-review" type="text" placeholder="Two sentences. What does it smell like?">
     <label class="modal-label">Occasion</label>
     <div class="occ-chips" id="log-occ">
-      <div class="occ-chip" onclick="selChip(this, 'log-occ')">Morning</div>
-      <div class="occ-chip" onclick="selChip(this, 'log-occ')">Work</div>
-      <div class="occ-chip" onclick="selChip(this, 'log-occ')">Evening</div>
-      <div class="occ-chip" onclick="selChip(this, 'log-occ')">Date</div>
-      <div class="occ-chip" onclick="selChip(this, 'log-occ')">Casual</div>
-      <div class="occ-chip" onclick="selChip(this, 'log-occ')">Formal</div>
+      <div class="occ-chip" data-v="Morning">Morning</div>
+      <div class="occ-chip" data-v="Work">Work</div>
+      <div class="occ-chip" data-v="Evening">Evening</div>
+      <div class="occ-chip" data-v="Date">Date</div>
+      <div class="occ-chip" data-v="Casual">Casual</div>
+      <div class="occ-chip" data-v="Formal">Formal</div>
     </div>
-
-    <button class="modal-submit" onclick="saveLog()">Save to diary</button>
-    <button class="modal-cancel" onclick="closeModal('modal-log')">Cancel</button>
+    <button class="modal-submit" id="log-save-btn">Save to diary</button>
+    <button class="modal-cancel" data-close="modal-log">Cancel</button>
   </div>
 </div>
 
-<!-- ═══ ADD TO COLLECTION MODAL ═══ -->
+<!-- ═══ ADD COLLECTION MODAL ═══ -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Add to your hive</div>
     <div class="modal-sub">A bottle you own.</div>
-
     <label class="modal-label">Fragrance</label>
     <input class="modal-input" id="add-name" type="text" placeholder="e.g. Naxos">
-
     <label class="modal-label">House</label>
     <input class="modal-input" id="add-house" type="text" placeholder="e.g. Xerjoff">
-
     <div class="modal-grid">
-      <div>
-        <label class="modal-label">Size (ml)</label>
-        <input class="modal-input" id="add-size" type="number" inputmode="decimal" placeholder="100">
+      <div><label class="modal-label">Size (ml)</label><input class="modal-input" id="add-size" type="number" inputmode="decimal" placeholder="100"></div>
+      <div><label class="modal-label">Price (€)</label><input class="modal-input" id="add-price" type="number" inputmode="decimal" placeholder="180"></div>
+    </div>
+    <button class="modal-submit" id="add-save-btn">Add to hive</button>
+    <button class="modal-cancel" data-close="modal-add">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS MODAL ═══ -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Settings</div>
+    <div class="settings-section" style="padding:0;margin-top:16px">
+      <div class="settings-row" id="account-row" data-action="signin">
+        <div class="settings-left">
+          <div class="settings-icon gold">⭐</div>
+          <div><div class="settings-text-name" id="account-name">Sign in</div><div class="settings-text-sub" id="account-sub">Save your data across devices</div></div>
+        </div>
+        <span class="settings-arrow">›</span>
       </div>
-      <div>
-        <label class="modal-label">Price (€)</label>
-        <input class="modal-input" id="add-price" type="number" inputmode="decimal" placeholder="180">
+      <div class="settings-row" data-action="privacy">
+        <div class="settings-left">
+          <div class="settings-icon dark">🔒</div>
+          <div><div class="settings-text-name">Privacy & Data</div><div class="settings-text-sub">How we handle your information</div></div>
+        </div>
+        <span class="settings-arrow">›</span>
+      </div>
+      <div class="settings-row" data-action="about">
+        <div class="settings-left">
+          <div class="settings-icon dark">ℹ️</div>
+          <div><div class="settings-text-name">About ScentHive</div><div class="settings-text-sub">v2.0 · scenthive.app</div></div>
+        </div>
+        <span class="settings-arrow">›</span>
+      </div>
+      <div class="settings-row" id="signout-row" data-action="signout" style="display:none">
+        <div class="settings-left">
+          <div class="settings-icon red">🚪</div>
+          <div><div class="settings-text-name danger">Sign out</div></div>
+        </div>
       </div>
     </div>
-
-    <button class="modal-submit" onclick="saveCollection()">Add to hive</button>
-    <button class="modal-cancel" onclick="closeModal('modal-add')">Cancel</button>
+    <button class="modal-cancel" data-close="modal-settings" style="margin-top:14px">Close</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
+'use strict';
+
 // ═══════ CONFIG ═══════
 const SB_URL = 'https://razsffndadhxlqvvmjrr.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhenNmZm5kYWRoeGxxdnZtanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NTI2ODIsImV4cCI6MjA5MjAyODY4Mn0.2B73ncLA5iPPZTvCZ4k-fv85p2dgwi4-JwFJjS0ZU7s';
@@ -1552,6 +973,41 @@ let curScreen = 'auth';
 let searchTimer = null;
 let fragStore = {};
 
+// ═══════ NAV BUILDER ═══════
+function buildNav(active) {
+  const tabs = [
+    { id: 'home', label: 'Home', svg: '<path d="M3 9l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h4v6" stroke="currentColor" stroke-width="1.5"/>' },
+    { id: 'diary', label: 'Diary', svg: '<rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' },
+    { id: '_log_', label: '', svg: '' },
+    { id: 'collection', label: 'Hive', svg: '<rect x="3" y="5" width="14" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"/>' },
+    { id: 'profile', label: 'Profile', svg: '<circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' }
+  ];
+  return tabs.map(t => {
+    if (t.id === '_log_') {
+      return '<button class="bnav-btn bnav-log" data-act="log"><span class="log-circle">+</span></button>';
+    }
+    const cls = (t.id === active) ? 'bnav-btn active' : 'bnav-btn';
+    return `<button class="${cls}" data-tab="${t.id}"><svg width="20" height="20" viewBox="0 0 20 20" fill="none">${t.svg}</svg>${t.label}</button>`;
+  }).join('');
+}
+
+function injectNavs() {
+  const map = { 'nav-home': 'home', 'nav-diary': 'diary', 'nav-collection': 'collection', 'nav-profile': 'profile' };
+  Object.keys(map).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = buildNav(map[id]);
+  });
+  // Wire up clicks
+  document.querySelectorAll('.bnav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tab = this.getAttribute('data-tab');
+      const act = this.getAttribute('data-act');
+      if (act === 'log') openLog();
+      else if (tab) showTab(tab);
+    });
+  });
+}
+
 // ═══════ NAVIGATION ═══════
 function showScreen(id) {
   prevScreen = curScreen;
@@ -1562,21 +1018,16 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
-function showTab(id, btn) {
+function showTab(id) {
   showScreen(id);
-  if (btn) {
-    btn.parentElement.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
   if (id === 'diary') renderDiary();
   if (id === 'collection') renderCollection();
   if (id === 'profile') renderProfile();
   if (id === 'home') renderHome();
 }
 
-function goBack() {
-  showScreen(prevScreen || 'home');
-}
+function goBack() { showScreen(prevScreen || 'home') }
+function goToProfile() { showTab('profile') }
 
 // ═══════ AUTH ═══════
 function setAuthMode(mode) {
@@ -1599,29 +1050,16 @@ async function handleAuth() {
   const password = document.getElementById('auth-password').value;
   const name = document.getElementById('auth-name').value.trim();
   const btn = document.getElementById('auth-btn');
-
-  if (!email || !password) {
-    setMsg('Please fill in all fields.', 'error');
-    return;
-  }
-
+  if (!email || !password) { setMsg('Please fill in all fields.', 'error'); return; }
   btn.disabled = true;
   btn.textContent = 'Please wait…';
-
   try {
     if (authMode === 'signup') {
-      const { error } = await sb.auth.signUp({
-        email, password,
-        options: { data: { name: name || email.split('@')[0] } }
-      });
+      const { error } = await sb.auth.signUp({ email, password, options: { data: { name: name || email.split('@')[0] } } });
       if (error) throw error;
       const { data, error: e2 } = await sb.auth.signInWithPassword({ email, password });
-      if (!e2 && data.user) {
-        user = data.user;
-        await initApp();
-      } else {
-        setMsg('Account created! Please sign in.', 'success');
-      }
+      if (!e2 && data.user) { user = data.user; await initApp(); }
+      else setMsg('Account created! Please sign in.', 'success');
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -1638,22 +1076,16 @@ async function handleAuth() {
 
 function enterAsGuest() {
   user = null;
-  // Load from localStorage if available
   try {
     diary = JSON.parse(localStorage.getItem('sh_diary') || '[]');
     collection = JSON.parse(localStorage.getItem('sh_collection') || '[]');
-  } catch (e) {
-    diary = [];
-    collection = [];
-  }
-  renderHome();
-  showScreen('home');
+  } catch (e) { diary = []; collection = []; }
+  showTab('home');
 }
 
 async function initApp() {
   await Promise.all([loadCollection(), loadDiary()]);
-  renderHome();
-  showScreen('home');
+  showTab('home');
 }
 
 async function doSignOut() {
@@ -1661,42 +1093,31 @@ async function doSignOut() {
   user = null;
   diary = [];
   collection = [];
+  closeModal('modal-settings');
   showScreen('auth');
 }
 
-function signInAction() {
-  if (user) {
-    // Already signed in — do nothing
-    return;
-  }
-  showScreen('auth');
-}
-
-// ═══════ DATA LOADING ═══════
+// ═══════ DATA ═══════
 async function loadCollection() {
   if (!user) {
-    try { collection = JSON.parse(localStorage.getItem('sh_collection') || '[]'); } catch(e) { collection = []; }
+    try { collection = JSON.parse(localStorage.getItem('sh_collection') || '[]'); } catch (e) { collection = []; }
     return;
   }
   try {
     const { data } = await sb.from('collection').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
     if (data) collection = data;
-  } catch (e) {
-    collection = [];
-  }
+  } catch (e) { collection = []; }
 }
 
 async function loadDiary() {
   if (!user) {
-    try { diary = JSON.parse(localStorage.getItem('sh_diary') || '[]'); } catch(e) { diary = []; }
+    try { diary = JSON.parse(localStorage.getItem('sh_diary') || '[]'); } catch (e) { diary = []; }
     return;
   }
   try {
     const { data } = await sb.from('journal_entries').select('*').eq('user_id', user.id).order('worn_at', { ascending: false }).limit(100);
     if (data) diary = data;
-  } catch (e) {
-    diary = [];
-  }
+  } catch (e) { diary = []; }
 }
 
 function saveLocal() {
@@ -1706,10 +1127,10 @@ function saveLocal() {
   } catch (e) {}
 }
 
-// ═══════ HOME / SHELVES ═══════
+// ═══════ HOME ═══════
 async function renderHome() {
   loadShelf('shelf-popular', ['Sauvage Dior', 'Aventus Creed', 'Baccarat Rouge 540', 'Naxos Xerjoff', 'Oud Wood Tom Ford', 'Bleu de Chanel']);
-  loadShelf('shelf-dark', ['Tobacco Vanille Tom Ford', 'Encre Noire Lalique', 'Black Orchid', 'Interlude Man Amouage', 'Oud Wood Tom Ford']);
+  loadShelf('shelf-dark', ['Tobacco Vanille', 'Encre Noire Lalique', 'Black Orchid', 'Interlude Man Amouage', 'Oud Wood']);
   loadShelf('shelf-fresh', ['Bleu de Chanel EDP', 'Acqua di Gio', 'Y EDP YSL', 'Erba Pura Xerjoff', 'Light Blue']);
   renderReviews();
 }
@@ -1721,28 +1142,37 @@ async function loadShelf(elId, names) {
   for (const name of names) {
     try {
       const frags = await searchFragella(name);
-      if (frags && frags[0]) {
-        cards.push(buildPosterCard(frags[0]));
-      }
+      if (frags && frags[0]) cards.push(buildPosterCard(frags[0]));
     } catch (e) {}
   }
-  el.innerHTML = cards.length ? cards.join('') : '<div class="loading-row">No results</div>';
+  el.innerHTML = cards.length ? cards.join('') : '<div class="loading-row">Could not load</div>';
+  // Wire clicks
+  el.querySelectorAll('.poster-card').forEach(card => {
+    card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
+  });
 }
 
 function buildPosterCard(f) {
   const key = 'p' + Math.random().toString(36).slice(2, 8);
   fragStore[key] = f;
-  const safeName = (f.name || '').replace(/"/g, '&quot;');
-  const safeHouse = (f.house || '').replace(/"/g, '&quot;');
+  const safeName = escapeHtml(f.name || '');
+  const safeHouse = escapeHtml(f.house || '');
   const img = f.image_url
-    ? `<img src="${f.image_url}" alt="${safeName}" onerror="this.outerHTML='<div class=\\'poster-card-emoji\\'>🏺</div>'">`
+    ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;poster-card-emoji&quot;>🏺</div>'">`
     : '<div class="poster-card-emoji">🏺</div>';
   return `
-    <div class="poster-card" onclick="openFrag('${key}')">
+    <div class="poster-card" data-key="${key}">
       <div class="poster-card-img">${img}</div>
       <div class="poster-card-name">${safeName}</div>
       <div class="poster-card-house">${safeHouse}${f.launch_year ? ' · ' + f.launch_year : ''}</div>
     </div>`;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s) {
+  return String(s || '').replace(/"/g, '&quot;');
 }
 
 function renderReviews() {
@@ -1752,17 +1182,15 @@ function renderReviews() {
     { name: 'Naxos', house: 'Xerjoff', stars: 5, text: 'Honey, lavender, tobacco. Worn to a dinner — three compliments before the starter arrived.', author: '@scentdiarist', emoji: '🟤' },
     { name: 'Sauvage', house: 'Dior', stars: 3, text: 'I want to be the kind of person who hates this. I am not. The ambroxan is undeniable.', author: '@henrik_oslo', emoji: '🔵' },
     { name: 'Aventus', house: 'Creed', stars: 4, text: 'The reformulations are real but the magic still remains in the dry-down. Don\'t @ me.', author: '@marina_olfact', emoji: '🟠' },
-    { name: 'Black Orchid', house: 'Tom Ford', stars: 5, text: 'Smells like a velvet curtain in a 1920s opium den. I mean that as a compliment.', author: '@noseknows', emoji: '⚫' },
+    { name: 'Black Orchid', house: 'Tom Ford', stars: 5, text: 'Smells like a velvet curtain in a 1920s opium den. I mean that as a compliment.', author: '@noseknows', emoji: '⚫' }
   ];
   el.innerHTML = reviews.map(r => `
     <div class="review-card">
-      <div class="review-bottle">
-        <div class="review-bottle-emoji">${r.emoji}</div>
-      </div>
+      <div class="review-bottle"><div class="review-bottle-emoji">${r.emoji}</div></div>
       <div class="review-content">
         <div class="review-top">
           <div class="review-frag">${r.name}</div>
-          <div class="review-stars">${'★'.repeat(r.stars)}${'<span style="color:var(--grey2)">' + '★'.repeat(5 - r.stars) + '</span>'}</div>
+          <div class="review-stars">${'★'.repeat(r.stars)}<span style="color:var(--grey2)">${'★'.repeat(5-r.stars)}</span></div>
         </div>
         <div class="review-house">${r.house}</div>
         <div class="review-text">"${r.text}"</div>
@@ -1793,10 +1221,13 @@ async function doSearch(q) {
   try {
     const frags = await searchFragella(q);
     if (!frags || frags.length === 0) {
-      wrap.innerHTML = `<div class="search-empty">No results for "${q}"</div>`;
+      wrap.innerHTML = `<div class="search-empty">No results for "${escapeHtml(q)}"</div>`;
       return;
     }
     wrap.innerHTML = frags.map(f => buildResultItem(f)).join('');
+    wrap.querySelectorAll('.result-item').forEach(item => {
+      item.addEventListener('click', () => openFrag(item.getAttribute('data-key')));
+    });
   } catch (e) {
     wrap.innerHTML = '<div class="search-empty">Search unavailable right now</div>';
   }
@@ -1805,16 +1236,16 @@ async function doSearch(q) {
 function buildResultItem(f) {
   const key = 'r' + Math.random().toString(36).slice(2, 8);
   fragStore[key] = f;
-  const safeName = (f.name || '').replace(/"/g, '&quot;');
+  const safeName = escapeHtml(f.name || 'Unknown');
   const img = f.image_url
-    ? `<img src="${f.image_url}" alt="${safeName}" onerror="this.outerHTML='<div class=\\'result-img-emoji\\'>🏺</div>'">`
+    ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;result-img-emoji&quot;>🏺</div>'">`
     : '<div class="result-img-emoji">🏺</div>';
   return `
-    <div class="result-item" onclick="openFrag('${key}')">
+    <div class="result-item" data-key="${key}">
       <div class="result-img">${img}</div>
       <div class="result-info">
-        <div class="result-name">${f.name || 'Unknown'}</div>
-        <div class="result-house">${f.house || ''}</div>
+        <div class="result-name">${safeName}</div>
+        <div class="result-house">${escapeHtml(f.house || '')}</div>
       </div>
       <span class="result-arrow">›</span>
     </div>`;
@@ -1830,16 +1261,13 @@ async function searchFragella(q) {
     if (!res.ok) return [];
     const data = await res.json();
     return data.fragrances || [];
-  } catch (e) {
-    return [];
-  }
+  } catch (e) { return []; }
 }
 
 // ═══════ FRAGRANCE DETAIL ═══════
 function openFrag(key) {
   const f = fragStore[key];
   if (!f) return;
-
   const top = f.notes_top || f['Top Notes'] || [];
   const heart = f.notes_heart || f['Middle Notes'] || [];
   const base = f.notes_base || f['Base Notes'] || [];
@@ -1848,29 +1276,31 @@ function openFrag(key) {
 
   const renderNoteSet = (notes, cls) => notes.map(n => {
     const name = typeof n === 'string' ? n : (n.name || String(n));
-    return `<span class="note-pill ${cls}">${name}</span>`;
+    return `<span class="note-pill ${cls}">${escapeHtml(name)}</span>`;
   }).join('');
 
-  const safeName = (f.name || '').replace(/'/g, "\\'");
-  const safeHouse = (f.house || '').replace(/'/g, "\\'");
-  const buyQ = encodeURIComponent(f.name + ' ' + (f.house || ''));
+  const buyQ = encodeURIComponent((f.name || '') + ' ' + (f.house || ''));
+  const safeName = escapeHtml(f.name || '');
+  const safeHouse = escapeHtml(f.house || '');
+  const safeFamily = escapeHtml(f.family || '');
+
+  const meta = [f.family, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ');
 
   document.getElementById('frag-content').innerHTML = `
     <div class="frag-hero">
       <div class="frag-hero-img">
-        ${f.image_url ? `<img src="${f.image_url}" alt="${f.name}" onerror="this.outerHTML='<div class=\\'frag-hero-img-emoji\\'>🏺</div>'">` : '<div class="frag-hero-img-emoji">🏺</div>'}
+        ${f.image_url ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;frag-hero-img-emoji&quot;>🏺</div>'">` : '<div class="frag-hero-img-emoji">🏺</div>'}
       </div>
       <div class="frag-hero-body">
-        <div class="frag-hero-eyebrow">${f.house || ''}</div>
-        <div class="frag-hero-name">${f.name || 'Unknown'}</div>
-        <div class="frag-hero-meta">${[f.family, f.launch_year, f.gender].filter(Boolean).join(' · ')}</div>
+        <div class="frag-hero-eyebrow">${safeHouse}</div>
+        <div class="frag-hero-name">${safeName}</div>
+        <div class="frag-hero-meta">${meta}</div>
         <div class="frag-actions">
-          <button class="frag-btn frag-btn-primary" onclick="prefillLog('${safeName}','${safeHouse}')">Log & rate</button>
-          <button class="frag-btn frag-btn-secondary" onclick="quickAdd('${safeName}','${safeHouse}')">+ Hive</button>
+          <button class="frag-btn frag-btn-primary" data-act="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}">Log & rate</button>
+          <button class="frag-btn frag-btn-secondary" data-act="add" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-family="${escapeAttr(f.family||'')}">+ Hive</button>
         </div>
       </div>
     </div>
-
     ${hasNotes ? `
     <div class="detail-sec">
       <div class="detail-label">Fragrance Notes</div>
@@ -1878,34 +1308,48 @@ function openFrag(key) {
         ${top.length ? `<div><div class="note-layer-label">Top</div><div class="note-pills">${renderNoteSet(top, 'top')}</div></div>` : ''}
         ${heart.length ? `<div><div class="note-layer-label">Heart</div><div class="note-pills">${renderNoteSet(heart, '')}</div></div>` : ''}
         ${base.length ? `<div><div class="note-layer-label">Base</div><div class="note-pills">${renderNoteSet(base, 'base')}</div></div>` : ''}
-        ${(!top.length && !heart.length && !base.length && general.length) ? `<div><div class="note-layer-label">Notes</div><div class="note-pills">${renderNoteSet(general.slice(0, 8), '')}</div></div>` : ''}
+        ${(!top.length && !heart.length && !base.length && general.length) ? `<div><div class="note-layer-label">Notes</div><div class="note-pills">${renderNoteSet(general.slice(0,8), '')}</div></div>` : ''}
       </div>
     </div>` : ''}
-
     <div class="detail-sec">
       <div class="detail-label">Buy near you</div>
-      <div class="buy-row" onclick="window.open('https://www.notino.no/search/?phrase=${buyQ}','_blank')">
+      <div class="buy-row" data-url="https://www.notino.no/search/?phrase=${buyQ}">
         <div><div class="buy-name">🇳🇴 Notino Norway</div><div class="buy-note">Free shipping over 299 kr</div></div>
         <span style="color:var(--grey)">›</span>
       </div>
-      <div class="buy-row" onclick="window.open('https://www.kicks.no/search?q=${buyQ}','_blank')">
+      <div class="buy-row" data-url="https://www.kicks.no/search?q=${buyQ}">
         <div><div class="buy-name">🇳🇴 Kicks</div><div class="buy-note">Same day delivery available</div></div>
         <span style="color:var(--grey)">›</span>
       </div>
-      <div class="buy-row" onclick="window.open('https://www.google.com/search?q=${buyQ}+buy','_blank')">
+      <div class="buy-row" data-url="https://www.google.com/search?q=${buyQ}+buy">
         <div><div class="buy-name">🔍 Compare prices</div><div class="buy-note">Google Shopping</div></div>
         <span style="color:var(--grey)">›</span>
       </div>
     </div>
     <div style="height:32px"></div>
   `;
+
+  // Wire up buttons inside the rendered detail
+  document.querySelectorAll('#frag-content .frag-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const act = b.getAttribute('data-act');
+      const name = b.getAttribute('data-name');
+      const house = b.getAttribute('data-house');
+      if (act === 'log') prefillLog(name, house);
+      else if (act === 'add') quickAdd(name, house);
+    });
+  });
+  document.querySelectorAll('#frag-content .buy-row').forEach(b => {
+    b.addEventListener('click', () => window.open(b.getAttribute('data-url'), '_blank'));
+  });
+
   showScreen('frag');
 }
 
 function prefillLog(name, house) {
   document.getElementById('log-name').value = name;
   document.getElementById('log-house').value = house;
-  openLog();
+  openLog(true);
 }
 
 async function quickAdd(name, house) {
@@ -1914,7 +1358,7 @@ async function quickAdd(name, house) {
     try {
       const { data } = await sb.from('collection').insert([{ user_id: user.id, name, house }]).select();
       if (data) collection.unshift(data[0]);
-    } catch (e) {}
+    } catch (e) { collection.unshift(entry); }
   } else {
     collection.unshift(entry);
     saveLocal();
@@ -1923,35 +1367,25 @@ async function quickAdd(name, house) {
 }
 
 // ═══════ LOG MODAL ═══════
-function openLog() {
-  ['log-name', 'log-house', 'log-review'].forEach(id => document.getElementById(id).value = '');
+function openLog(prefilled) {
+  if (!prefilled) {
+    document.getElementById('log-name').value = '';
+    document.getElementById('log-house').value = '';
+  }
+  document.getElementById('log-review').value = '';
   document.querySelectorAll('#star-picker .star-pick').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('#log-occ .occ-chip').forEach(c => c.classList.remove('selected'));
   logRating = 0;
   openModal('modal-log');
 }
 
-function setRating(n) {
-  logRating = n;
-  document.querySelectorAll('#star-picker .star-pick').forEach((s, i) => s.classList.toggle('active', i < n));
-}
-
-function selChip(el, groupId) {
-  document.querySelectorAll(`#${groupId} .occ-chip`).forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
 async function saveLog() {
   const name = document.getElementById('log-name').value.trim();
   const house = document.getElementById('log-house').value.trim();
   const review = document.getElementById('log-review').value.trim();
-  const occ = document.querySelector('#log-occ .occ-chip.selected')?.textContent || '';
-
-  if (!name) {
-    alert('Please enter the fragrance name.');
-    return;
-  }
-
+  const occChip = document.querySelector('#log-occ .occ-chip.selected');
+  const occ = occChip ? occChip.getAttribute('data-v') : '';
+  if (!name) { alert('Please enter the fragrance name.'); return; }
   const entry = {
     fragrance_name: name,
     house,
@@ -1960,7 +1394,6 @@ async function saveLog() {
     occasion: occ,
     worn_at: new Date().toISOString()
   };
-
   if (user) {
     try {
       const { data, error } = await sb.from('journal_entries').insert([{ user_id: user.id, ...entry }]).select();
@@ -1973,13 +1406,12 @@ async function saveLog() {
     diary.unshift({ ...entry, id: 'local_' + Date.now() });
     saveLocal();
   }
-
   closeModal('modal-log');
   toast('✓ Logged to diary');
   renderDiary();
 }
 
-// ═══════ ADD TO COLLECTION MODAL ═══════
+// ═══════ ADD COLLECTION ═══════
 function openAdd() {
   ['add-name', 'add-house', 'add-size', 'add-price'].forEach(id => document.getElementById(id).value = '');
   openModal('modal-add');
@@ -1990,20 +1422,8 @@ async function saveCollection() {
   const house = document.getElementById('add-house').value.trim();
   const size = document.getElementById('add-size').value;
   const price = document.getElementById('add-price').value;
-
-  if (!name) {
-    alert('Please enter the fragrance name.');
-    return;
-  }
-
-  const entry = {
-    name,
-    house,
-    size_ml: size || null,
-    price_paid: price || null,
-    created_at: new Date().toISOString()
-  };
-
+  if (!name) { alert('Please enter the fragrance name.'); return; }
+  const entry = { name, house, size_ml: size || null, price_paid: price || null, created_at: new Date().toISOString() };
   if (user) {
     try {
       const { data, error } = await sb.from('collection').insert([{ user_id: user.id, ...entry }]).select();
@@ -2016,13 +1436,12 @@ async function saveCollection() {
     collection.unshift({ ...entry, id: 'local_' + Date.now() });
     saveLocal();
   }
-
   closeModal('modal-add');
   toast('✓ Added to your hive');
   renderCollection();
 }
 
-// ═══════ DIARY RENDER ═══════
+// ═══════ DIARY (Letterboxd table) ═══════
 function renderDiary() {
   const el = document.getElementById('diary-list');
   if (!el) return;
@@ -2035,27 +1454,50 @@ function renderDiary() {
       </div>`;
     return;
   }
-  el.innerHTML = diary.map(e => {
+  // Group by month
+  const monthMap = {};
+  diary.forEach(e => {
     const d = new Date(e.worn_at);
-    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    const stars = e.rating
-      ? '★'.repeat(e.rating) + `<span class="empty">${'★'.repeat(5 - e.rating)}</span>`
-      : '';
+    const key = d.getFullYear() + '-' + String(d.getMonth()).padStart(2, '0');
+    if (!monthMap[key]) monthMap[key] = { label: d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }), entries: [] };
+    monthMap[key].entries.push(e);
+  });
+  const months = Object.keys(monthMap).sort().reverse();
+  el.innerHTML = months.map(k => {
+    const m = monthMap[k];
     return `
-      <div class="diary-entry">
-        <div class="diary-row">
-          <div class="diary-date">${dateStr}</div>
-          ${stars ? `<div class="diary-stars">${stars}</div>` : ''}
-        </div>
-        <div class="diary-frag">${e.fragrance_name}</div>
-        <div class="diary-house">${e.house || ''}</div>
-        ${e.notes ? `<div class="diary-text">"${e.notes}"</div>` : ''}
-        ${e.occasion ? `<div class="diary-tags"><span class="diary-tag">${e.occasion}</span></div>` : ''}
-      </div>`;
+      <div class="diary-month-group">
+        <div class="diary-month-label">${m.label}</div>
+        ${m.entries.map(e => {
+          const d = new Date(e.worn_at);
+          const day = d.getDate();
+          const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
+          const stars = e.rating ? '★'.repeat(e.rating) + '<span class="empty">' + '★'.repeat(5 - e.rating) + '</span>' : '';
+          const reviewIcon = e.notes ? '<span class="diary-review-icon">≡</span>' : '';
+          return `
+            <div class="diary-row-item">
+              <div>
+                <div class="diary-day">${day}</div>
+                <div class="diary-day-sub">${dayName}</div>
+              </div>
+              <div class="diary-bottle"><div class="diary-bottle-emoji">🏺</div></div>
+              <div class="diary-info">
+                <div class="diary-name">${escapeHtml(e.fragrance_name)}</div>
+                <div class="diary-name-house">${escapeHtml(e.house || '')}</div>
+              </div>
+              <div class="diary-rating-cell">
+                ${stars ? `<div class="diary-rating-stars">${stars}</div>` : ''}
+                ${reviewIcon}
+              </div>
+              ${e.notes ? `<div class="diary-review-text">"${escapeHtml(e.notes)}"</div>` : ''}
+            </div>`;
+        }).join('')}
+      </div>
+    `;
   }).join('');
 }
 
-// ═══════ COLLECTION RENDER ═══════
+// ═══════ COLLECTION ═══════
 function renderCollection() {
   const grid = document.getElementById('col-grid');
   if (!grid) return;
@@ -2077,22 +1519,22 @@ function renderCollection() {
   }
   grid.innerHTML = collection.map(b => {
     const img = b.image_url
-      ? `<img src="${b.image_url}" alt="${b.name}" onerror="this.outerHTML='<div class=\\'col-cell-emoji\\'>🏺</div>'">`
+      ? `<img src="${escapeAttr(b.image_url)}" alt="${escapeHtml(b.name)}" onerror="this.outerHTML='<div class=&quot;col-cell-emoji&quot;>🏺</div>'">`
       : '<div class="col-cell-emoji">🏺</div>';
     return `
       <div class="col-cell">
         ${img}
         <div class="col-cell-overlay">
-          <div class="col-cell-name">${b.name}</div>
-          <div class="col-cell-house">${b.house || ''}</div>
+          <div class="col-cell-name">${escapeHtml(b.name)}</div>
+          <div class="col-cell-house">${escapeHtml(b.house || '')}</div>
         </div>
       </div>`;
   }).join('');
 }
 
-// ═══════ PROFILE RENDER ═══════
+// ═══════ PROFILE ═══════
 function renderProfile() {
-  const houses = [...new Set(collection.map(b => b.house).filter(Boolean))];
+  // Account info
   if (user) {
     const name = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
     document.getElementById('prof-name').textContent = name;
@@ -2101,6 +1543,7 @@ function renderProfile() {
     document.getElementById('account-name').textContent = 'Signed in';
     document.getElementById('account-sub').textContent = user.email;
     document.getElementById('signout-row').style.display = 'flex';
+    document.getElementById('account-row').setAttribute('data-action', 'noop');
   } else {
     document.getElementById('prof-name').textContent = 'Guest';
     document.getElementById('prof-handle').textContent = '@guest';
@@ -2108,21 +1551,192 @@ function renderProfile() {
     document.getElementById('account-name').textContent = 'Sign in';
     document.getElementById('account-sub').textContent = 'Save your data across devices';
     document.getElementById('signout-row').style.display = 'none';
+    document.getElementById('account-row').setAttribute('data-action', 'signin');
   }
+
+  // Stats
+  const houses = [...new Set(collection.map(b => b.house).filter(Boolean))];
   document.getElementById('prof-logged').textContent = diary.length;
   document.getElementById('prof-collection').textContent = collection.length;
   document.getElementById('prof-houses').textContent = houses.length;
+
+  // Avg rating
+  const rated = diary.filter(e => e.rating);
+  const avg = rated.length ? (rated.reduce((s, e) => s + e.rating, 0) / rated.length).toFixed(1) : '—';
+  document.getElementById('prof-avg').textContent = avg;
+
+  // Favourites — top 4 highest rated
+  const favs = [...rated].sort((a, b) => b.rating - a.rating).slice(0, 4);
+  const favsGrid = document.getElementById('favourites-grid');
+  if (favs.length === 0) {
+    favsGrid.innerHTML = Array(4).fill(0).map(() => `<div class="fav-cell"><div class="fav-cell-empty">+</div></div>`).join('');
+  } else {
+    favsGrid.innerHTML = favs.map(f => `
+      <div class="fav-cell">
+        <div class="col-cell-emoji">🏺</div>
+        <div class="fav-cell-overlay">${escapeHtml(f.fragrance_name)}</div>
+      </div>
+    `).join('');
+    // Fill remaining
+    const rem = 4 - favs.length;
+    if (rem > 0) {
+      favsGrid.innerHTML += Array(rem).fill(0).map(() => `<div class="fav-cell"><div class="fav-cell-empty">+</div></div>`).join('');
+    }
+  }
+
+  // Recent reviews — last 3 with notes
+  const recentReviews = diary.filter(e => e.notes).slice(0, 3);
+  const reviewsEl = document.getElementById('profile-reviews');
+  if (recentReviews.length === 0) {
+    reviewsEl.innerHTML = `<div style="padding:0 20px;color:var(--grey);font-size:12px;font-style:italic">No reviews yet — log a fragrance and add a note.</div>`;
+  } else {
+    reviewsEl.innerHTML = recentReviews.map(r => {
+      const d = new Date(r.worn_at);
+      const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const stars = r.rating ? '★'.repeat(r.rating) + '<span style="color:var(--grey2)">' + '★'.repeat(5 - r.rating) + '</span>' : '';
+      return `
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border2)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <div style="font-family:'Playfair Display',serif;font-size:15px;font-style:italic">${escapeHtml(r.fragrance_name)}</div>
+            ${stars ? `<div style="font-size:11px;color:var(--gold)">${stars}</div>` : ''}
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">${escapeHtml(r.house || '')} · ${dateStr}</div>
+          <div style="font-size:12px;color:var(--white2);font-style:italic;line-height:1.55">"${escapeHtml(r.notes)}"</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Top houses
+  const houseCounts = {};
+  diary.forEach(e => {
+    if (e.house) houseCounts[e.house] = (houseCounts[e.house] || 0) + 1;
+  });
+  collection.forEach(b => {
+    if (b.house) houseCounts[b.house] = (houseCounts[b.house] || 0) + 1;
+  });
+  const topHouses = Object.entries(houseCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const topHousesEl = document.getElementById('top-houses');
+  if (topHouses.length === 0) {
+    topHousesEl.innerHTML = `<div style="color:var(--grey);font-size:12px;font-style:italic">No houses yet — log fragrances to see your favourite houses appear here.</div>`;
+  } else {
+    topHousesEl.innerHTML = topHouses.map(([h, c]) => `
+      <div class="house-row">
+        <div class="house-name">${escapeHtml(h)}</div>
+        <div class="house-count">${c} ${c === 1 ? 'entry' : 'entries'}</div>
+      </div>
+    `).join('');
+  }
+
+  // Bio
+  const bio = user ? `"Building my fragrance diary one wear at a time."` : `"Welcome — sign in to save your diary and build your taste profile."`;
+  document.getElementById('prof-bio').textContent = bio;
+}
+
+// ═══════ ARTICLES ═══════
+const ARTICLES = {
+  'niche-guide': {
+    title: "A beginner's guide to <em>niche fragrance</em>",
+    meta: '12 min read · By the ScentHive team',
+    body: `
+      <p>If you've spent time on fragrance TikTok, you've heard the word "niche" thrown around as if it's a value judgment. It isn't. Niche fragrances are simply those produced outside the major designer labels — usually by smaller houses with bigger budgets per bottle. They're not always better. They're often weirder. And that's the point.</p>
+      <p>Here are the houses you should know.</p>
+      <h3>1. Xerjoff</h3>
+      <p>Italian luxury. Their Naxos and Erba Pura have become modern classics. Bottles are heavy enough to use as paperweights. Pricing is steep but resale value holds.</p>
+      <h3>2. Maison Francis Kurkdjian</h3>
+      <p>Home of Baccarat Rouge 540 — the most polarising fragrance of the last decade. You'll either love the metallic sweetness or hate it. Try a sample first.</p>
+      <h3>3. Amouage</h3>
+      <p>Omani house with a focus on opulence. Interlude Man and Reflection Man are both highly regarded. Their fragrances are loud, complex, and not for everyone.</p>
+      <h3>4. Parfums de Marly</h3>
+      <p>French house riding a wave of popularity. Layton and Herod are gateway niche scents that designer wearers tend to love.</p>
+      <p>The above is a starting point. Real niche exploration takes years and a lot of sampling. Decant sites like Lucky Scent and The Perfumed Court let you try before committing to a full bottle.</p>
+      <p style="color:var(--grey);font-style:italic;margin-top:24px">More articles coming as we build out the ScentHive Journal.</p>
+    `
+  },
+  'reformulation': {
+    title: 'The truth about reformulations',
+    meta: '3 min read',
+    body: `
+      <p>Your favourite fragrance smells different now. You're not imagining it. Reformulations happen for one of three reasons.</p>
+      <p><strong>1. IFRA regulations.</strong> The International Fragrance Association periodically restricts ingredients deemed allergenic. Oakmoss, certain musks, and natural extracts have all been hit. When restricted, perfumers must reformulate using synthetic substitutes.</p>
+      <p><strong>2. Cost reduction.</strong> When a fragrance becomes wildly successful, brands often quietly swap expensive naturals for cheaper alternatives. The bottle and price stay the same. The smell changes.</p>
+      <p><strong>3. Brand acquisition.</strong> When a niche house is acquired by a conglomerate, formulations often shift to align with corporate sourcing.</p>
+      <p>How do you tell? Look for batch codes. Older codes typically indicate older formulations. ScentHive's batch checker can help you date a bottle before you buy.</p>
+    `
+  },
+  'layering': {
+    title: 'A guide to layering fragrances properly',
+    meta: '5 min read',
+    body: `
+      <p>Most layering advice online is wrong. People recommend pairing two fragrances that already share notes. This produces a muddy, unfocused result.</p>
+      <p>Good layering follows one principle — <em>contrast creates clarity</em>.</p>
+      <p>Pair a rich, dark base (Tobacco Vanille, Naxos) with a bright top (lemon cologne, neroli soliflore). Pair a clean white musk with a smoky oud. The contrast lets each fragrance breathe.</p>
+      <p>Application matters too. Spray the deeper fragrance first on the body, the brighter one above it on clothing. The order changes how they meet your nose.</p>
+      <p>Three combinations that always work:</p>
+      <p>Naxos + Mandarin (or any citrus EDC)<br>Tobacco Vanille + Cologne Indélébile by Frederic Malle<br>Oud Wood + Mojave Ghost</p>
+      <p>Avoid layering two big fragrances. Avoid layering two of the same family. The whole point is a third dimension neither fragrance has alone.</p>
+    `
+  },
+  'decants': {
+    title: 'How decants saved fragrance collecting',
+    meta: '4 min read',
+    body: `
+      <p>A decade ago, sampling expensive fragrances meant either visiting a department store with a knowledgeable SA or buying a full bottle and hoping. Decanting changed everything.</p>
+      <p>A decant is a small sample of a fragrance — usually 5ml or 10ml — split off from a full bottle. Decant communities (most famously the splits on Basenotes and Reddit) made expensive niche houses accessible to people who couldn't justify €300 bottles.</p>
+      <p>The benefits are obvious. You can sample 20 fragrances for the price of a single bottle. You can carry travel sizes without committing your daily wear. You can build a "wardrobe" of dozens of scents without breaking your budget.</p>
+      <p>The risks are real too. Counterfeit decants are common. Buy from established sites (LuckyScent, The Perfumed Court, MicroParfums) or trusted community sellers with reputation systems.</p>
+      <p>Decants are how serious noses are built. There's no other way to smell 100 fragrances in a year on a normal budget.</p>
+    `
+  },
+  'summer': {
+    title: '10 summer fragrances that aren\'t generic',
+    meta: '6 min read',
+    body: `
+      <p>Acqua di Gio Profumo. Bleu de Chanel. Sauvage. You already know these. They're popular for a reason but they're also everywhere. Here are ten less-obvious summer fragrances that won't smell like everyone else at the beach.</p>
+      <p><strong>1. Mandarino di Amalfi by Tom Ford</strong> — bright Italian citrus done with elegance.</p>
+      <p><strong>2. Erba Pura by Xerjoff</strong> — sunshine in a bottle. Universally loved.</p>
+      <p><strong>3. Eau Sauvage by Dior (the original)</strong> — a 1966 cologne that still feels modern.</p>
+      <p><strong>4. Cologne Indélébile by Frederic Malle</strong> — citrus and white musk done luxuriously.</p>
+      <p><strong>5. Reflection Man by Amouage</strong> — clean elegance taken to the extreme.</p>
+      <p><strong>6. Mojave Ghost by Byredo</strong> — desert flowers, dry and ethereal.</p>
+      <p><strong>7. Fucking Fabulous by Tom Ford</strong> — yes the name. Yes the price. The leather is unreal.</p>
+      <p><strong>8. Nishane Hacivat</strong> — pineapple done seriously.</p>
+      <p><strong>9. L'Eau d'Issey Pour Homme</strong> — aquatic without being basic.</p>
+      <p><strong>10. Eau de Sport by Dolce & Gabbana</strong> — cheap, fresh, perfect for the gym.</p>
+    `
+  }
+};
+
+function openArticle(id) {
+  const a = ARTICLES[id];
+  if (!a) return;
+  document.getElementById('article-content').innerHTML = `
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:12px">ScentHive Journal</div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:32px;line-height:1.1;font-weight:400;margin-bottom:12px">${a.title}</h1>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--grey);margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border2)">${a.meta}</div>
+    <div style="font-size:15px;line-height:1.75;color:var(--white2)" id="article-body">${a.body}</div>
+  `;
+  // Style elements inside
+  document.querySelectorAll('#article-body p').forEach(p => p.style.marginBottom = '16px');
+  document.querySelectorAll('#article-body h3').forEach(h => {
+    h.style.fontFamily = "'Playfair Display', serif";
+    h.style.fontSize = '20px';
+    h.style.fontStyle = 'italic';
+    h.style.color = 'var(--gold-light)';
+    h.style.marginTop = '24px';
+    h.style.marginBottom = '12px';
+    h.style.fontWeight = '400';
+  });
+  document.querySelectorAll('#article-body strong').forEach(s => {
+    s.style.color = 'var(--white)';
+    s.style.fontWeight = '500';
+  });
+  showScreen('article');
 }
 
 // ═══════ MODAL ═══════
 function openModal(id) { document.getElementById(id).classList.add('open') }
 function closeModal(id) { document.getElementById(id).classList.remove('open') }
-
-document.querySelectorAll('.modal-overlay').forEach(o => {
-  o.addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('open');
-  });
-});
 
 // ═══════ TOAST ═══════
 function toast(msg) {
@@ -2132,8 +1746,60 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2400);
 }
 
+// ═══════ EVENT WIRING ═══════
+function wireEvents() {
+  // Modal close on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+  });
+
+  // Modal close buttons
+  document.querySelectorAll('[data-close]').forEach(b => {
+    b.addEventListener('click', () => closeModal(b.getAttribute('data-close')));
+  });
+
+  // Search input
+  const si = document.getElementById('search-input');
+  if (si) si.addEventListener('input', (e) => onSearch(e.target.value));
+
+  // Star picker
+  document.querySelectorAll('#star-picker .star-pick').forEach(s => {
+    s.addEventListener('click', () => {
+      logRating = parseInt(s.getAttribute('data-r'));
+      document.querySelectorAll('#star-picker .star-pick').forEach((x, i) => x.classList.toggle('active', i < logRating));
+    });
+  });
+
+  // Occasion chips
+  document.querySelectorAll('#log-occ .occ-chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('#log-occ .occ-chip').forEach(x => x.classList.remove('selected'));
+      c.classList.add('selected');
+    });
+  });
+
+  // Save buttons
+  document.getElementById('log-save-btn').addEventListener('click', saveLog);
+  document.getElementById('add-save-btn').addEventListener('click', saveCollection);
+
+  // Settings rows
+  document.querySelectorAll('#modal-settings [data-action]').forEach(r => {
+    r.addEventListener('click', () => {
+      const a = r.getAttribute('data-action');
+      if (a === 'signin') { closeModal('modal-settings'); showScreen('auth'); }
+      else if (a === 'signout') doSignOut();
+      else if (a === 'privacy') alert('Privacy policy: ScentHive collects only the data you provide. We never sell your data. Email hello@scenthive.app for deletion requests.');
+      else if (a === 'about') alert('ScentHive v2.0\\n\\nThe Letterboxd of fragrance.\\n\\nscenthive.app');
+    });
+  });
+}
+
 // ═══════ STARTUP ═══════
 (async () => {
+  injectNavs();
+  wireEvents();
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
@@ -2141,7 +1807,6 @@ function toast(msg) {
       await initApp();
     }
   } catch (e) {}
-
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       user = session.user;
