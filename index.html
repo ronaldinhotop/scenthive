@@ -508,6 +508,88 @@ img{max-width:100%;display:block}
 .nav-log-circle{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:var(--gold);color:var(--bg,var(--black));font-size:24px;font-weight:300;box-shadow:0 4px 12px rgba(200,168,74,0.35);transition:transform 0.15s}
 .nav-log:active .nav-log-circle{transform:scale(0.92)}
 
+
+
+/* ═══ RICH HOME — Letterboxd / Magazine inspired ═══ */
+
+/* HERO FEATURE */
+.hero-feature{position:relative;height:280px;overflow:hidden;margin-bottom:0;background:var(--bg2)}
+.hero-feature-img{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(0.55) saturate(1.2)}
+.hero-feature-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,18,15,0.1) 0%,rgba(20,18,15,0.95) 90%)}
+.hero-feature-content{position:relative;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:24px 20px}
+.hero-feature-tag{font-family:'DM Mono',monospace;font-size:9px;color:var(--cobalt);letter-spacing:0.16em;font-weight:500;margin-bottom:8px;background:var(--cobalt-pale);display:inline-block;padding:4px 8px;border:1px solid var(--cobalt-deep);align-self:flex-start;border-radius:1px}
+.hero-feature-title{font-family:'Playfair Display',serif;font-size:30px;line-height:1.1;color:var(--white);margin-bottom:8px;font-weight:400}
+.hero-feature-title em{color:var(--gold-light,var(--gold));font-style:italic}
+.hero-feature-meta{font-size:12px;color:var(--white2);line-height:1.6;margin-bottom:8px;font-weight:300}
+.hero-feature-author{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.05em}
+
+/* HONEY DIVIDER */
+.honey-divider{display:flex;align-items:center;padding:18px 20px;gap:14px;background:var(--bg)}
+.honey-icon{font-size:18px;filter:drop-shadow(0 0 4px rgba(232,168,51,0.4))}
+.honey-line{flex:1;height:1px;background:linear-gradient(90deg,var(--gold-pale),transparent)}
+
+/* SECTIONS */
+.home-section{padding:24px 0 28px;background:var(--bg)}
+.home-section.bg-tinted{background:linear-gradient(180deg,var(--cobalt-pale) 0%,rgba(15,24,40,0.4) 100%);border-top:1px solid var(--cobalt-deep);border-bottom:1px solid var(--cobalt-deep)}
+.section-header{display:flex;align-items:flex-end;justify-content:space-between;padding:0 20px 16px;gap:16px}
+.section-eyebrow{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.14em;font-weight:500;text-transform:uppercase;margin-bottom:4px}
+.section-title{font-family:'Playfair Display',serif;font-size:24px;color:var(--white);font-weight:400;line-height:1.1}
+.section-title em{color:var(--gold-light,var(--gold));font-style:italic}
+.section-sub{font-size:11px;color:var(--grey);margin-top:4px;font-weight:300}
+.section-more{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:0.08em;cursor:pointer;flex-shrink:0;text-transform:uppercase}
+
+/* POSTER ROW — horizontal scroll like Letterboxd */
+.poster-row{display:flex;gap:10px;overflow-x:auto;padding:0 20px 4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.poster-row::-webkit-scrollbar{display:none}
+.poster-card{flex-shrink:0;width:120px;cursor:pointer;scroll-snap-align:start;transition:transform 0.2s}
+.poster-card:active{transform:scale(0.96)}
+.poster-card-img{width:120px;height:160px;background:var(--bg2);border-radius:2px;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);position:relative}
+.poster-card-img img{max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:screen}
+.poster-card-img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:30px;background:linear-gradient(to top,rgba(0,0,0,0.4),transparent);pointer-events:none}
+.poster-card-emoji{font-size:48px;opacity:0.5}
+.poster-card-name{font-family:'Playfair Display',serif;font-size:13px;font-style:italic;color:var(--white);margin-top:8px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.poster-card-house{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.06em;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.poster-card-rating{display:flex;align-items:center;gap:4px;margin-top:4px;font-family:'DM Mono',monospace;font-size:9px;color:var(--gold)}
+
+/* REVIEW FEED — Letterboxd style */
+.review-feed{display:flex;flex-direction:column;padding:0 20px}
+.review-card{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--cobalt-deep)}
+.review-card:last-child{border-bottom:none}
+.review-card-bottle{width:54px;height:72px;background:var(--bg);border-radius:2px;border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.review-card-bottle img{max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:screen}
+.review-card-body{flex:1;min-width:0}
+.review-card-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.review-card-frag{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:var(--white)}
+.review-card-year{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);font-style:normal}
+.review-card-stars{font-size:12px;color:var(--gold);letter-spacing:1px}
+.review-card-text{font-size:12px;color:var(--white2);line-height:1.65;margin-bottom:6px;font-style:italic}
+.review-card-author{font-family:'DM Mono',monospace;font-size:10px;color:var(--cobalt-deep);font-weight:500}
+
+/* ARTICLE FEATURE */
+.article-feature{margin:0 20px 24px;padding:24px 20px;background:linear-gradient(135deg,var(--gold-pale) 0%,rgba(20,18,15,0.6) 100%);border:1px solid var(--gold-pale);border-left:3px solid var(--gold);border-radius:2px;cursor:pointer}
+.article-feature-tag{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.16em;font-weight:500;margin-bottom:10px}
+.article-feature-title{font-family:'Playfair Display',serif;font-size:22px;line-height:1.15;color:var(--white);margin-bottom:8px;font-weight:400}
+.article-feature-title em{color:var(--gold-light,var(--gold));font-style:italic}
+.article-feature-excerpt{font-size:12px;color:var(--white2);line-height:1.65;margin-bottom:10px;font-weight:300}
+.article-feature-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.04em}
+
+/* LIST CARDS */
+.list-cards{display:flex;flex-direction:column;gap:10px;padding:0 20px}
+.list-card{padding:16px 18px;background:var(--bg);border:1px solid var(--cobalt-deep);border-radius:2px;cursor:pointer;transition:border-color 0.2s}
+.list-card:hover{border-color:var(--cobalt)}
+.list-card-tag{font-family:'DM Mono',monospace;font-size:9px;color:var(--cobalt);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.list-card-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--white);margin-bottom:4px;font-weight:400}
+.list-card-title em{color:var(--gold-light,var(--gold));font-style:italic}
+.list-card-author{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);margin-bottom:8px}
+.list-card-bottles{font-size:14px;letter-spacing:4px}
+
+/* BEE FOOTER */
+.bee-footer{text-align:center;padding:40px 20px 24px;border-top:1px solid var(--border);background:radial-gradient(ellipse at center,var(--gold-pale) 0%,transparent 70%)}
+.bee-footer-icon{font-size:32px;margin-bottom:10px;filter:drop-shadow(0 0 8px rgba(232,168,51,0.4))}
+.bee-footer-text{font-family:'Playfair Display',serif;font-size:18px;font-style:italic;color:var(--white);margin-bottom:4px}
+.bee-footer-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.12em}
+
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
@@ -613,16 +695,172 @@ img{max-width:100%;display:block}
     </div>
   </div>
   <div class="search-results" id="search-results">
-    
 
-    <!-- HIVE SECTION HEADER -->
-    <div style="padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px">⬡ The Hive</div>
-        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:300;color:var(--white)">Popular <em style="font-style:italic;color:var(--gold-light)">right now</em></div>
+    <!-- HERO FEATURE — Like Letterboxd's spotlight -->
+    <div class="hero-feature">
+      <div class="hero-feature-img" style="background-image:url('https://images.unsplash.com/photo-1591375687247-0e6e1e7c5b2c?w=800')"></div>
+      <div class="hero-feature-overlay"></div>
+      <div class="hero-feature-content">
+        <div class="hero-feature-tag">EDITORIAL · FEATURED</div>
+        <div class="hero-feature-title">The art of <em>vintage Guerlain</em></div>
+        <div class="hero-feature-meta">A deep dive into the house that defined French perfumery — and why their pre-2000 formulations are quietly being hunted on resale markets.</div>
+        <div class="hero-feature-author">By Sergey Borisov · 8 min read</div>
       </div>
     </div>
-    <div id="trending-list"></div>
+
+    <!-- HONEY DIVIDER -->
+    <div class="honey-divider">
+      <span class="honey-icon">🐝</span>
+      <span class="honey-line"></span>
+    </div>
+
+    <!-- POPULAR THIS WEEK — Letterboxd-style -->
+    <div class="home-section">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Popular this week</div>
+          <div class="section-title">Most logged <em>right now</em></div>
+        </div>
+        <a class="section-more">See all →</a>
+      </div>
+      <div class="poster-row" id="trending-list"></div>
+    </div>
+
+    <!-- POPULAR REVIEWS — Letterboxd inspired -->
+    <div class="home-section bg-tinted">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">From the community</div>
+          <div class="section-title">Popular <em>reviews</em></div>
+        </div>
+      </div>
+      <div class="review-feed">
+        <div class="review-card">
+          <div class="review-card-bottle">
+            <img src="https://www.fragrantica.com/mdimg/perfume/375x500.30.jpg" class="bottle-img" onerror="this.style.display='none'">
+          </div>
+          <div class="review-card-body">
+            <div class="review-card-meta">
+              <span class="review-card-frag">Sauvage <span class="review-card-year">2015</span></span>
+              <span class="review-card-stars">★★★</span>
+            </div>
+            <div class="review-card-text">"I want to be the kind of person who hates this. I am not. The ambroxan is undeniable. Sue me."</div>
+            <div class="review-card-author">@henrik_oslo</div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-card-bottle">
+            <img src="https://www.fragrantica.com/mdimg/perfume/375x500.10.jpg" class="bottle-img" onerror="this.style.display='none'">
+          </div>
+          <div class="review-card-body">
+            <div class="review-card-meta">
+              <span class="review-card-frag">Naxos <span class="review-card-year">2015</span></span>
+              <span class="review-card-stars">★★★★★</span>
+            </div>
+            <div class="review-card-text">"Honey, lavender, tobacco. Worn to a dinner — three compliments before the starter arrived."</div>
+            <div class="review-card-author">@scentdiarist</div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-card-bottle">
+            <img src="https://www.fragrantica.com/mdimg/perfume/375x500.50.jpg" class="bottle-img" onerror="this.style.display='none'">
+          </div>
+          <div class="review-card-body">
+            <div class="review-card-meta">
+              <span class="review-card-frag">Aventus <span class="review-card-year">2010</span></span>
+              <span class="review-card-stars">★★★★</span>
+            </div>
+            <div class="review-card-text">"The reformulations are real but the magic still remains in the dry-down. Don't @ me."</div>
+            <div class="review-card-author">@marina_olfact</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DARK & BROODING SHELF -->
+    <div class="home-section">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Curated shelf</div>
+          <div class="section-title">Dark & <em>brooding</em></div>
+          <div class="section-sub">Oud, tobacco, leather. For the cold months.</div>
+        </div>
+        <a class="section-more">See all →</a>
+      </div>
+      <div class="poster-row" id="shelf-dark"></div>
+    </div>
+
+    <!-- ARTICLE FEATURE -->
+    <div class="article-feature">
+      <div class="article-feature-tag">JOURNAL · GUIDE</div>
+      <div class="article-feature-title">A beginner's guide to <em>niche fragrance</em></div>
+      <div class="article-feature-excerpt">If you've outgrown designer and don't know where to start with niche, here are the 12 houses that matter — and where to find samples without going broke.</div>
+      <div class="article-feature-meta">12 min read · By the ScentHive editorial team</div>
+    </div>
+
+    <!-- FRESH CLASSICS SHELF -->
+    <div class="home-section bg-tinted">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Curated shelf</div>
+          <div class="section-title">Fresh <em>classics</em></div>
+          <div class="section-sub">Office-friendly signatures that never fail.</div>
+        </div>
+        <a class="section-more">See all →</a>
+      </div>
+      <div class="poster-row" id="shelf-fresh"></div>
+    </div>
+
+    <!-- NEW RELEASES -->
+    <div class="home-section">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Fresh from the bench</div>
+          <div class="section-title">New <em>releases</em></div>
+          <div class="section-sub">What just dropped this month.</div>
+        </div>
+        <a class="section-more">See all →</a>
+      </div>
+      <div class="poster-row" id="shelf-new"></div>
+    </div>
+
+    <!-- LISTS FROM THE HIVE -->
+    <div class="home-section bg-tinted">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Curated by the community</div>
+          <div class="section-title">Lists from the <em>hive</em></div>
+        </div>
+      </div>
+      <div class="list-cards">
+        <div class="list-card">
+          <div class="list-card-tag">9 fragrances</div>
+          <div class="list-card-title">Best for a <em>first date</em></div>
+          <div class="list-card-author">By @joshsmells · 2.1k likes</div>
+          <div class="list-card-bottles">🟤 ⚫ 🟠 🔴 🟫</div>
+        </div>
+        <div class="list-card">
+          <div class="list-card-tag">14 fragrances</div>
+          <div class="list-card-title">Essential <em>oud</em> for beginners</div>
+          <div class="list-card-author">By @ouddiaries · 4.8k likes</div>
+          <div class="list-card-bottles">🟤 🟫 ⚫ 🟤 🟫</div>
+        </div>
+        <div class="list-card">
+          <div class="list-card-tag">7 fragrances</div>
+          <div class="list-card-title">Hidden gems <em>under €60</em></div>
+          <div class="list-card-author">By @scentbudget · 1.6k likes</div>
+          <div class="list-card-bottles">🟠 🔴 ⚫ 🟫 🟤</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEE FOOTER -->
+    <div class="bee-footer">
+      <div class="bee-footer-icon">🐝</div>
+      <div class="bee-footer-text">Built for serious noses</div>
+      <div class="bee-footer-sub">scenthive.app</div>
+    </div>
+
   </div>
   <div class="bottom-nav">
     <button class="nav-btn active" onclick="showTab('discover',this)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M13 7l-4 2-2 4 4-2 2-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Discover</button>
@@ -1187,6 +1425,7 @@ function showScreen(id) {
   window.scrollTo(0,0);
 }
 function showTab(id, btn) {
+  if(id === 'discover') setTimeout(renderHomeShelves, 50);
   showScreen(id);
   document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll(`.nav-btn[onclick*="'${id}'"]`).forEach(b => b.classList.add('active'));
@@ -1222,7 +1461,8 @@ async function handleAuth() {
       const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name: name || email.split('@')[0] } } });
       if(error) throw error;
       const { data: d2, error: e2 } = await sb.auth.signInWithPassword({ email, password });
-      if(!e2 && d2.user) { user = d2.user; await initApp(); }
+      if(!e2 && d2.user) { user = d2.user; await initApp();
+  setTimeout(renderHomeShelves, 200); }
       else setMsg('Account created! Check your email if not logged in.','success');
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
@@ -1378,16 +1618,60 @@ function fragCard(f) {
     </div>`;
 }
 
-async function renderTrending() {
-  const list = document.getElementById('trending-list');
-  // Seed with popular fragrances via API
-  const popular = ['Sauvage', 'Aventus', 'Black Orchid', 'Baccarat Rouge 540', 'Oud Wood'];
-  const results = [];
-  for(const name of popular.slice(0,5)) {
-    const res = await searchFragella(name);
-    if(res[0]) results.push(res[0]);
+async function buildPosterCard(f) {
+  const img = f.image_url ? `<img src="${f.image_url}" alt="${f.name}" onerror="this.parentElement.innerHTML='<div class=\'poster-card-emoji\'>🏺</div>'">` : `<div class="poster-card-emoji">🏺</div>`;
+  const rating = f.rating ? `<div class="poster-card-rating">★ ${f.rating}</div>` : '';
+  return `<div class="poster-card" onclick="showFragDetailFromCache('${(f.fragella_id||f.name||'').replace(/'/g,"\\'")}','${(f.name||'').replace(/'/g,"\\'")}','${(f.house||'').replace(/'/g,"\\'")}')">
+    <div class="poster-card-img">${img}</div>
+    <div class="poster-card-name">${f.name}</div>
+    <div class="poster-card-house">${f.house||''}${f.launch_year?' · '+f.launch_year:''}</div>
+    ${rating}
+  </div>`;
+}
+
+async function showFragDetailFromCache(id, name, house) {
+  // Try to find in fragStore
+  const found = Object.values(fragStore).find(f => f.fragella_id === id || f.name === name);
+  if(found) {
+    showFragDetail('cache_'+id, found);
+  } else {
+    // Search Fragella for it
+    const res = await searchFragella(name + ' ' + house);
+    if(res && res[0]) {
+      showFragDetail('search_'+id, res[0]);
+    }
   }
-  if(results.length > 0) {
+}
+
+async function loadShelf(elId, names) {
+  const el = document.getElementById(elId);
+  if(!el) return;
+  el.innerHTML = '<div style="padding:20px;color:var(--grey);font-size:11px">Loading…</div>';
+  const cards = [];
+  for(const name of names) {
+    const frags = await searchFragella(name);
+    if(frags && frags[0]) {
+      const f = frags[0];
+      const key = 'shelf'+Math.random().toString(36).slice(2,8);
+      fragStore[key] = f;
+      cards.push(buildPosterCard(f));
+    }
+  }
+  el.innerHTML = cards.join('') || '<div style="padding:20px;color:var(--grey);font-size:11px">No results</div>';
+}
+
+async function renderHomeShelves() {
+  const popular = ['Sauvage Dior','Aventus Creed','Baccarat Rouge 540','Naxos Xerjoff','Oud Wood Tom Ford','Bleu de Chanel'];
+  const dark = ['Tobacco Vanille','Encre Noire Lalique','Black Orchid Tom Ford','Interlude Man Amouage','Oud Wood Tom Ford'];
+  const fresh = ['Bleu de Chanel EDP','Acqua di Gio Profumo','Y EDP YSL','Erba Pura Xerjoff','Light Blue Dolce'];
+  const newRel = ['Naxos Xerjoff','Aventus Creed','Lost Cherry Tom Ford','Reflection Man Amouage','Viking Creed'];
+  await loadShelf('trending-list', popular);
+  await loadShelf('shelf-dark', dark);
+  await loadShelf('shelf-fresh', fresh);
+  await loadShelf('shelf-new', newRel);
+}
+
+if(results.length > 0) {
     list.innerHTML = results.map(f => fragCard(f)).join('');
   } else {
     // Fallback static list
