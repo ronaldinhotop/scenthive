@@ -792,10 +792,12 @@ img { max-width: 100%; display: block }
         <div class="section-header">
           <div>
             <div class="section-eyebrow">From the community</div>
-            <div class="section-title">Popular <em>reviews</em></div>
+            <div class="section-title">Recent <em>reviews</em></div>
           </div>
         </div>
-        <div class="review-feed" id="review-feed"></div>
+        <div class="review-feed" id="review-feed">
+          <div class="loading-row" style="padding:24px;color:var(--grey);font-size:13px;font-style:italic">No reviews yet — be the first to log a fragrance.</div>
+        </div>
       </div>
 
       <div class="section">
@@ -863,32 +865,15 @@ img { max-width: 100%; display: block }
         </div>
       </div>
 
-      <div class="section tinted">
+      <div class="section tinted" id="community-reviews-section">
         <div class="section-header">
           <div>
-            <div class="section-eyebrow">Curated by the community</div>
-            <div class="section-title">Lists from the <em>hive</em></div>
+            <div class="section-eyebrow">The community diary</div>
+            <div class="section-title">What people are <em>wearing</em></div>
           </div>
         </div>
-        <div class="list-cards">
-          <div class="list-card">
-            <div class="list-card-tag">9 fragrances</div>
-            <div class="list-card-title">Best for a <em>first date</em></div>
-            <div class="list-card-author">By @joshsmells · 2.1k likes</div>
-            <div class="list-card-bottles">🟤 ⚫ 🟠 🔴 🟫</div>
-          </div>
-          <div class="list-card">
-            <div class="list-card-tag">14 fragrances</div>
-            <div class="list-card-title">Essential <em>oud</em> for beginners</div>
-            <div class="list-card-author">By @ouddiaries · 4.8k likes</div>
-            <div class="list-card-bottles">🟤 🟫 ⚫ 🟤 🟫</div>
-          </div>
-          <div class="list-card">
-            <div class="list-card-tag">7 fragrances</div>
-            <div class="list-card-title">Hidden gems <em>under €60</em></div>
-            <div class="list-card-author">By @scentbudget · 1.6k likes</div>
-            <div class="list-card-bottles">🟠 🔴 ⚫ 🟫 🟤</div>
-          </div>
+        <div id="community-diary-feed">
+          <div style="padding:20px 24px;font-size:13px;color:var(--grey);font-style:italic">No entries yet — log a fragrance to appear here.</div>
         </div>
       </div>
 
@@ -1043,37 +1028,67 @@ img { max-width: 100%; display: block }
   <div style="flex:1;overflow-y:auto;padding:24px 22px 40px" id="article-content"></div>
 </div>
 
-<!-- ═══ LOG MODAL ═══ -->
+<!-- ═══ LOG MODAL — search-first ═══ -->
 <div class="modal-overlay" id="modal-log">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Log a fragrance</div>
-    <div class="modal-sub">Rate it. Write a sentence. Save the moment.</div>
-    <label class="modal-label">Fragrance</label>
-    <input class="modal-input" id="log-name" type="text" placeholder="e.g. Naxos">
-    <label class="modal-label">House</label>
-    <input class="modal-input" id="log-house" type="text" placeholder="e.g. Xerjoff">
-    <label class="modal-label">Your rating</label>
-    <div class="star-picker" id="star-picker">
-      <span class="star-pick" data-r="1">★</span>
-      <span class="star-pick" data-r="2">★</span>
-      <span class="star-pick" data-r="3">★</span>
-      <span class="star-pick" data-r="4">★</span>
-      <span class="star-pick" data-r="5">★</span>
+
+    <!-- STEP 1: Search for fragrance -->
+    <div id="log-step-1">
+      <div class="modal-title">Log a fragrance</div>
+      <div class="modal-sub">Search for what you wore today.</div>
+      <div style="position:relative">
+        <input class="modal-input" id="log-search" type="text" placeholder="Search any fragrance…" autocomplete="off" style="padding-right:40px">
+        <div id="log-search-spinner" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%)"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div></div>
+      </div>
+      <div id="log-search-results" style="max-height:280px;overflow-y:auto;margin-bottom:10px"></div>
+      <div style="border-top:1px solid var(--border2);padding-top:12px;margin-top:4px">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Can't find it? Add manually</div>
+        <div style="display:flex;gap:8px">
+          <input class="modal-input" id="log-name-manual" type="text" placeholder="Fragrance name" style="margin-bottom:0;flex:1">
+          <input class="modal-input" id="log-house-manual" type="text" placeholder="House" style="margin-bottom:0;width:120px">
+        </div>
+        <button onclick="selectManualFrag()" style="width:100%;margin-top:8px;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--white2);font-size:12px;cursor:pointer;letter-spacing:0.04em">Use this →</button>
+      </div>
+      <button class="modal-cancel" data-close="modal-log">Cancel</button>
     </div>
-    <label class="modal-label">Review <span style="color:var(--grey);font-size:9px">optional</span></label>
-    <input class="modal-input" id="log-review" type="text" placeholder="Two sentences. What does it smell like?">
-    <label class="modal-label">Occasion</label>
-    <div class="occ-chips" id="log-occ">
-      <div class="occ-chip" data-v="Morning">Morning</div>
-      <div class="occ-chip" data-v="Work">Work</div>
-      <div class="occ-chip" data-v="Evening">Evening</div>
-      <div class="occ-chip" data-v="Date">Date</div>
-      <div class="occ-chip" data-v="Casual">Casual</div>
-      <div class="occ-chip" data-v="Formal">Formal</div>
+
+    <!-- STEP 2: Rate and review -->
+    <div id="log-step-2" style="display:none">
+      <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg3);border-radius:2px;margin-bottom:18px;cursor:pointer" id="log-selected-frag" onclick="resetLogStep()">
+        <div id="log-selected-img" style="width:44px;height:56px;background:var(--bg2);border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0">🏺</div>
+        <div style="flex:1;min-width:0">
+          <div id="log-selected-name" style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+          <div id="log-selected-house" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px"></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey)">← change</div>
+      </div>
+
+      <label class="modal-label">Your rating</label>
+      <div class="star-picker" id="star-picker">
+        <span class="star-pick" data-r="1">★</span>
+        <span class="star-pick" data-r="2">★</span>
+        <span class="star-pick" data-r="3">★</span>
+        <span class="star-pick" data-r="4">★</span>
+        <span class="star-pick" data-r="5">★</span>
+      </div>
+
+      <label class="modal-label">Review <span style="color:var(--grey);font-size:9px">optional</span></label>
+      <textarea class="modal-input" id="log-review" placeholder="Two sentences. What does it smell like to you?" style="height:80px;resize:none;line-height:1.5"></textarea>
+
+      <label class="modal-label">Occasion</label>
+      <div class="occ-chips" id="log-occ">
+        <div class="occ-chip" data-v="Morning">Morning</div>
+        <div class="occ-chip" data-v="Work">Work</div>
+        <div class="occ-chip" data-v="Evening">Evening</div>
+        <div class="occ-chip" data-v="Date">Date</div>
+        <div class="occ-chip" data-v="Casual">Casual</div>
+        <div class="occ-chip" data-v="Formal">Formal</div>
+      </div>
+
+      <button class="modal-submit" id="log-save-btn">Save to diary</button>
+      <button class="modal-cancel" data-close="modal-log">Cancel</button>
     </div>
-    <button class="modal-submit" id="log-save-btn">Save to diary</button>
-    <button class="modal-cancel" data-close="modal-log">Cancel</button>
   </div>
 </div>
 
@@ -1265,6 +1280,7 @@ function enterAsGuest() {
     collection = JSON.parse(localStorage.getItem('sh_collection') || '[]');
   } catch (e) { diary = []; collection = []; }
   showTab('home');
+  loadCommunityFeed();
   updateRightSidebar();
 }
 
@@ -1335,7 +1351,7 @@ async function renderHome() {
   loadShelf('shelf-popular', ['Sauvage Dior', 'Aventus Creed', 'Baccarat Rouge 540', 'Naxos Xerjoff', 'Oud Wood Tom Ford', 'Bleu de Chanel']);
   loadShelf('shelf-dark', ['Tobacco Vanille', 'Encre Noire Lalique', 'Black Orchid', 'Interlude Man Amouage', 'Oud Wood']);
   loadShelf('shelf-fresh', ['Bleu de Chanel EDP', 'Acqua di Gio', 'Y EDP YSL', 'Erba Pura Xerjoff', 'Light Blue']);
-  renderReviews();
+  loadCommunityFeed();
 }
 
 async function loadShelf(elId, names) {
@@ -1454,18 +1470,7 @@ function buildResultItem(f) {
     </div>`;
 }
 
-async function searchFragella(q) {
-  try {
-    const res = await fetch(SEARCH_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: q })
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.fragrances || [];
-  } catch (e) { return []; }
-}
+// searchFragella defined above
 
 // ═══════ FRAGRANCE DETAIL ═══════
 function openFrag(key) {
@@ -1499,7 +1504,7 @@ function openFrag(key) {
         <div class="frag-hero-name">${safeName}</div>
         <div class="frag-hero-meta">${meta}</div>
         <div class="frag-actions">
-          <button class="frag-btn frag-btn-primary" data-act="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}">Log & rate</button>
+          <button class="frag-btn frag-btn-primary" data-act="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}">Log & rate</button>
           <button class="frag-btn frag-btn-secondary" data-act="add" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-family="${escapeAttr(f.family||'')}">+ Hive</button>
         </div>
       </div>
@@ -1538,7 +1543,7 @@ function openFrag(key) {
       const act = b.getAttribute('data-act');
       const name = b.getAttribute('data-name');
       const house = b.getAttribute('data-house');
-      if (act === 'log') prefillLog(name, house);
+      if (act === 'log') prefillLog(name, house, b.getAttribute('data-img'));
       else if (act === 'add') quickAdd(name, house);
     });
   });
@@ -1549,10 +1554,8 @@ function openFrag(key) {
   showScreen('frag');
 }
 
-function prefillLog(name, house) {
-  document.getElementById('log-name').value = name;
-  document.getElementById('log-house').value = house;
-  openLog(true);
+function prefillLog(name, house, imageUrl) {
+  openLog({ name, house, image_url: imageUrl || null });
 }
 
 async function quickAdd(name, house) {
@@ -1951,6 +1954,214 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2400);
 }
 
+// ═══════ FRAGELLA SEARCH + SUPABASE CACHE ═══════
+async function searchFragella(q) {
+  if (!q || q.trim().length < 2) return [];
+  // 1. Check Supabase cache first
+  try {
+    const { data } = await sb.from('fragrances_cache')
+      .select('*')
+      .ilike('name', '%' + q + '%')
+      .limit(8);
+    if (data && data.length > 0) return data;
+  } catch (e) {}
+  // 2. Hit Fragella API
+  try {
+    const res = await fetch(SEARCH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q })
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const frags = data.fragrances || [];
+    // 3. Cache results in Supabase
+    if (frags.length > 0) {
+      cacheFragrances(frags);
+    }
+    return frags;
+  } catch (e) { return []; }
+}
+
+async function cacheFragrances(frags) {
+  try {
+    const rows = frags.map(f => ({
+      fragella_id: String(f.fragella_id || f.id || Math.random()),
+      name: f.name || '',
+      house: f.house || '',
+      family: f.family || '',
+      notes_top: f.notes_top || f['Top Notes'] || [],
+      notes_heart: f.notes_heart || f['Middle Notes'] || [],
+      notes_base: f.notes_base || f['Base Notes'] || [],
+      accords: f.accords || f['Main Accords'] || [],
+      longevity: f.longevity || '',
+      sillage: f.sillage || '',
+      gender: f.gender || '',
+      image_url: f.image_url || f['Image URL'] || '',
+      launch_year: f.launch_year || f.Year || null,
+      price_range: f.price_range || '',
+    }));
+    await sb.from('fragrances_cache')
+      .upsert(rows, { onConflict: 'fragella_id', ignoreDuplicates: true });
+  } catch (e) {}
+}
+
+// ═══════ LOG MODAL — search-first flow ═══════
+let selectedFrag = null;
+let logSearchTimer = null;
+
+function openLog(prefilled) {
+  selectedFrag = null;
+  logRating = 0;
+  document.getElementById('log-step-1').style.display = 'block';
+  document.getElementById('log-step-2').style.display = 'none';
+  document.getElementById('log-search').value = prefilled ? (prefilled.name || '') : '';
+  document.getElementById('log-search-results').innerHTML = '';
+  document.getElementById('log-review').value = '';
+  document.querySelectorAll('#star-picker .star-pick').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('#log-occ .occ-chip').forEach(c => c.classList.remove('selected'));
+  if (prefilled) {
+    selectFrag(prefilled);
+  }
+  openModal('modal-log');
+}
+
+function resetLogStep() {
+  selectedFrag = null;
+  document.getElementById('log-step-1').style.display = 'block';
+  document.getElementById('log-step-2').style.display = 'none';
+  document.getElementById('log-search').focus();
+}
+
+function selectFrag(f) {
+  selectedFrag = f;
+  document.getElementById('log-step-1').style.display = 'none';
+  document.getElementById('log-step-2').style.display = 'block';
+  document.getElementById('log-selected-name').textContent = f.name || '';
+  document.getElementById('log-selected-house').textContent = f.house || '';
+  // Show image
+  const imgWrap = document.getElementById('log-selected-img');
+  if (f.image_url) {
+    imgWrap.innerHTML = '<img src="' + escapeAttr(f.image_url) + '" alt="" style="width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;padding:4px" onerror="this.outerHTML='🏺'">';
+  } else {
+    imgWrap.textContent = '🏺';
+  }
+}
+
+function selectManualFrag() {
+  const name = document.getElementById('log-name-manual').value.trim();
+  const house = document.getElementById('log-house-manual').value.trim();
+  if (!name) { alert('Please enter the fragrance name.'); return; }
+  selectFrag({ name, house, image_url: null });
+}
+
+function onLogSearch(q) {
+  clearTimeout(logSearchTimer);
+  const results = document.getElementById('log-search-results');
+  const spinner = document.getElementById('log-search-spinner');
+  if (!q.trim()) { results.innerHTML = ''; return; }
+  spinner.style.display = 'block';
+  logSearchTimer = setTimeout(async () => {
+    const frags = await searchFragella(q);
+    spinner.style.display = 'none';
+    if (!frags.length) {
+      results.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--grey);font-style:italic">No results — try a different spelling or add manually below.</div>';
+      return;
+    }
+    results.innerHTML = frags.slice(0, 6).map((f, i) => {
+      const key = 'ls' + i + Math.random().toString(36).slice(2,6);
+      fragStore[key] = f;
+      const img = f.image_url
+        ? '<img src="' + escapeAttr(f.image_url) + '" alt="" style="max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:screen" onerror="this.outerHTML='🏺'">'
+        : '🏺';
+      return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
+        '<div style="width:36px;height:46px;background:var(--bg3);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:18px;flex-shrink:0">' + img + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:'Playfair Display',serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name || '') + '</div>' +
+          '<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">' + escapeHtml(f.house || '') + '</div>' +
+        '</div>' +
+        '<span style="color:var(--grey)">›</span>' +
+      '</div>';
+    }).join('');
+    // Wire clicks
+    results.querySelectorAll('.log-search-result').forEach(r => {
+      r.addEventListener('click', () => selectFrag(fragStore[r.getAttribute('data-key')]));
+    });
+  }, 350);
+}
+
+async function saveLog() {
+  if (!selectedFrag) { alert('Please search and select a fragrance first.'); return; }
+  const review = document.getElementById('log-review').value.trim();
+  const occChip = document.querySelector('#log-occ .occ-chip.selected');
+  const occ = occChip ? occChip.getAttribute('data-v') : '';
+  const entry = {
+    fragrance_name: selectedFrag.name || '',
+    house: selectedFrag.house || '',
+    notes: review,
+    rating: logRating,
+    occasion: occ,
+    image_url: selectedFrag.image_url || null,
+    fragella_id: selectedFrag.fragella_id || null,
+    worn_at: new Date().toISOString()
+  };
+  if (user) {
+    try {
+      const { data, error } = await sb.from('journal_entries')
+        .insert([{ user_id: user.id, ...entry }]).select();
+      if (error) throw error;
+      if (data) diary.unshift(data[0]);
+    } catch (e) {
+      diary.unshift({ ...entry, id: 'local_' + Date.now() });
+    }
+  } else {
+    diary.unshift({ ...entry, id: 'local_' + Date.now() });
+    saveLocal();
+  }
+  closeModal('modal-log');
+  toast('✓ Logged to diary');
+  renderDiary();
+  updateRightSidebar();
+  loadCommunityFeed();
+}
+
+// ═══════ REAL COMMUNITY FEED ═══════
+async function loadCommunityFeed() {
+  const el = document.getElementById('community-diary-feed') || document.getElementById('review-feed');
+  if (!el) return;
+  try {
+    const { data } = await sb.from('journal_entries')
+      .select('*')
+      .order('worn_at', { ascending: false })
+      .limit(10);
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div style="padding:20px 24px;font-size:13px;color:var(--grey);font-style:italic">No entries yet — be the first to log a fragrance.</div>';
+      return;
+    }
+    el.innerHTML = data.map(e => {
+      const d = new Date(e.worn_at);
+      const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const stars = e.rating ? '★'.repeat(e.rating) + '<span style="color:var(--grey2)">' + '★'.repeat(5-e.rating) + '</span>' : '';
+      const imgHtml = e.image_url
+        ? '<img src="' + escapeAttr(e.image_url) + '" alt="" style="max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:screen" onerror="this.style.display='none'">'
+        : '<span style="font-size:20px;opacity:0.4">🏺</span>';
+      return '<div class="review-card">' +
+        '<div class="review-bottle">' + imgHtml + '</div>' +
+        '<div class="review-content">' +
+          '<div class="review-top">' +
+            '<div class="review-frag">' + escapeHtml(e.fragrance_name) + '</div>' +
+            (stars ? '<div class="review-stars">' + stars + '</div>' : '') +
+          '</div>' +
+          '<div class="review-house">' + escapeHtml(e.house || '') + ' · ' + dateStr + '</div>' +
+          (e.notes ? '<div class="review-text">"' + escapeHtml(e.notes) + '"</div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch (e) {
+    el.innerHTML = '<div style="padding:20px;font-size:12px;color:var(--grey)">Could not load community entries.</div>';
+  }
+}
+
 // ═══════ EVENT WIRING ═══════
 function wireEvents() {
   // Modal close on overlay click
@@ -1965,9 +2176,13 @@ function wireEvents() {
     b.addEventListener('click', () => closeModal(b.getAttribute('data-close')));
   });
 
-  // Search input
+  // Main search input
   const si = document.getElementById('search-input');
   if (si) si.addEventListener('input', (e) => onSearch(e.target.value));
+  
+  // Log modal search
+  const ls = document.getElementById('log-search');
+  if (ls) ls.addEventListener('input', (e) => onLogSearch(e.target.value));
 
   // Star picker
   document.querySelectorAll('#star-picker .star-pick').forEach(s => {
