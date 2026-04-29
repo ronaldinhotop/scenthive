@@ -1387,6 +1387,13 @@ function buildPosterCard(f) {
     </div>`;
 }
 
+
+function makeImg(url, alt, cls, style) {
+  if (!url) return '';
+  var s = style || 'max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:screen';
+  return '<img src="' + escapeAttr(url) + '" alt="' + escapeHtml(alt||'') + '" class="' + (cls||'') + '" style="' + s + '" >';
+}
+
 function escapeHtml(s) {
   return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -2002,7 +2009,7 @@ function selectFrag(f) {
   // Show image
   const imgWrap = document.getElementById('log-selected-img');
   if (f.image_url) {
-    imgWrap.innerHTML = '<img src="' + escapeAttr(f.image_url) + '" alt="" style="width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;padding:4px" onerror="this.outerHTML='🏺'">';
+    imgWrap.innerHTML = makeImg(f.image_url, f.name, '', 'width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;padding:4px') || '🏺';
   } else {
     imgWrap.textContent = '🏺';
   }
@@ -2032,13 +2039,13 @@ function onLogSearch(q) {
       const key = 'ls' + i + Math.random().toString(36).slice(2,6);
       fragStore[key] = f;
       const img = f.image_url
-        ? '<img src="' + escapeAttr(f.image_url) + '" alt="" style="max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:screen" onerror="this.outerHTML='🏺'">'
+        ? makeImg(f.image_url, f.name)
         : '🏺';
       return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
         '<div style="width:36px;height:46px;background:var(--bg3);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:18px;flex-shrink:0">' + img + '</div>' +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:'Playfair Display',serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name || '') + '</div>' +
-          '<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">' + escapeHtml(f.house || '') + '</div>' +
+          '<div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name || '') + '</div>' +
+          '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">' + escapeHtml(f.house || '') + '</div>' +
         '</div>' +
         '<span style="color:var(--grey)">›</span>' +
       '</div>';
@@ -2103,7 +2110,7 @@ async function loadCommunityFeed() {
       const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
       const stars = e.rating ? '★'.repeat(e.rating) + '<span style="color:var(--grey2)">' + '★'.repeat(5-e.rating) + '</span>' : '';
       const imgHtml = e.image_url
-        ? '<img src="' + escapeAttr(e.image_url) + '" alt="" style="max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:screen" onerror="this.style.display='none'">'
+        ? makeImg(e.image_url, e.fragrance_name)
         : '<span style="font-size:20px;opacity:0.4">🏺</span>';
       return '<div class="review-card">' +
         '<div class="review-bottle">' + imgHtml + '</div>' +
