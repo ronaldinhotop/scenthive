@@ -593,6 +593,16 @@ img{max-width:100%;display:block}
 
 <!-- ═══ DIARY ═══ -->
 <div class="screen" id="screen-diary">
+  <div class="desktop-sidebar">
+    <div class="sidebar-logo">Scent<em>Hive</em></div>
+    <div class="sidebar-item" data-tab="home"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 9l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h4v6" stroke="currentColor" stroke-width="1.5"/></svg>Home</div>
+    <div class="sidebar-item active" data-tab="diary"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</div>
+    <div class="sidebar-item" data-tab="collection"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"/></svg>Hive</div>
+    <div class="sidebar-item" data-tab="profile"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</div>
+    <div class="sidebar-log-btn">+ Log a fragrance</div>
+    <div class="sidebar-footer">scenthive.app</div>
+  </div>
+  <div class="screen-main">
   <div class="topbar">
     <div class="logo">Scent<em>Hive</em></div>
     <button class="tbar-btn" onclick="openLog()" style="color:var(--gold)">+</button>
@@ -605,10 +615,21 @@ img{max-width:100%;display:block}
     <div id="diary-list"></div>
   </div>
   <div class="bnav" id="nav-diary"></div>
+  </div>
 </div>
 
 <!-- ═══ COLLECTION ═══ -->
 <div class="screen" id="screen-collection">
+  <div class="desktop-sidebar">
+    <div class="sidebar-logo">Scent<em>Hive</em></div>
+    <div class="sidebar-item" data-tab="home"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 9l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h4v6" stroke="currentColor" stroke-width="1.5"/></svg>Home</div>
+    <div class="sidebar-item" data-tab="diary"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</div>
+    <div class="sidebar-item active" data-tab="collection"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"/></svg>Hive</div>
+    <div class="sidebar-item" data-tab="profile"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</div>
+    <div class="sidebar-log-btn">+ Log a fragrance</div>
+    <div class="sidebar-footer">scenthive.app</div>
+  </div>
+  <div class="screen-main">
   <div class="topbar">
     <div class="logo">Scent<em>Hive</em></div>
     <button class="tbar-btn" onclick="openAdd()" style="color:var(--gold)">+</button>
@@ -623,6 +644,7 @@ img{max-width:100%;display:block}
     <button class="col-add-btn" id="col-add-btn">+ Add a bottle to your hive</button>
   </div>
   <div class="bnav" id="nav-collection"></div>
+  </div>
 </div>
 
 <!-- ═══ PROFILE (rich) ═══ -->
@@ -1038,8 +1060,8 @@ async function updateRightSidebar() {
 
 async function renderHome() {
   loadPopularShelf();
-  loadShelf('shelf-dark', ['Tobacco Vanille', 'Encre Noire Lalique', 'Black Orchid', 'Interlude Man Amouage', 'Oud Wood']);
-  loadShelf('shelf-fresh', ['Bleu de Chanel EDP', 'Acqua di Gio', 'Y EDP YSL', 'Erba Pura Xerjoff', 'Light Blue']);
+  loadShelf('shelf-dark', ['Tobacco Vanille Tom Ford', 'Encre Noire Lalique', 'Black Orchid Tom Ford', 'Interlude Man Amouage', 'Oud Wood Tom Ford', 'Lost Cherry Tom Ford', 'Dior Homme Intense']);
+  loadShelf('shelf-fresh', ['Bleu de Chanel EDP', 'Acqua di Gio Profumo', 'Y EDP YSL', 'Erba Pura Xerjoff', 'Light Blue Dolce', 'Terre Hermes', 'Reflection Man Amouage', 'Viking Creed']);
   loadCommunityFeed();
   loadArticlesList();
 }
@@ -1235,50 +1257,47 @@ function openFrag(key) {
 
   const meta = [f.family, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ');
 
-  document.getElementById('frag-content').innerHTML = `
-    <div class="frag-hero">
-      <div class="frag-hero-img">
-        ${f.image_url ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;frag-hero-img-emoji&quot;>🏺</div>'">` : '<div class="frag-hero-img-emoji">🏺</div>'}
-      </div>
-      <div class="frag-hero-body">
-        <div class="frag-hero-eyebrow">${safeHouse}</div>
-        <div class="frag-hero-name">${safeName}</div>
-        <div class="frag-hero-meta">${meta}</div>
-        <div class="frag-actions">
-          <button class="frag-btn frag-btn-primary" data-act="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}">Log & rate</button>
-          <button class="frag-btn frag-btn-secondary" data-act="add" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-family="${escapeAttr(f.family||'')}">+ Hive</button>
-        </div>
-      </div>
-    </div>
-    ${hasNotes ? `
-    <div class="detail-sec">
-      <div class="detail-label">Fragrance Notes</div>
-      <div class="note-pyramid">
-        ${top.length ? `<div><div class="note-layer-label">Top</div><div class="note-pills">${renderNoteSet(top, 'top')}</div></div>` : ''}
-        ${heart.length ? `<div><div class="note-layer-label">Heart</div><div class="note-pills">${renderNoteSet(heart, '')}</div></div>` : ''}
-        ${base.length ? `<div><div class="note-layer-label">Base</div><div class="note-pills">${renderNoteSet(base, 'base')}</div></div>` : ''}
-        ${(!top.length && !heart.length && !base.length && general.length) ? `<div><div class="note-layer-label">Notes</div><div class="note-pills">${renderNoteSet(general.slice(0,8), '')}</div></div>` : ''}
-      </div>
-    </div>` : ''}
-    <div class="detail-sec">
-      <div class="detail-label">Buy near you</div>
-      <div class="buy-row" data-url="https://www.notino.no/search/?phrase=${buyQ}">
-        <div><div class="buy-name">🇳🇴 Notino Norway</div><div class="buy-note">Free shipping over 299 kr</div></div>
-        <span style="color:var(--grey)">›</span>
-      </div>
-      <div class="buy-row" data-url="https://www.kicks.no/search?q=${buyQ}">
-        <div><div class="buy-name">🇳🇴 Kicks</div><div class="buy-note">Same day delivery available</div></div>
-        <span style="color:var(--grey)">›</span>
-      </div>
-      <div class="buy-row" data-url="https://www.google.com/search?q=${buyQ}+buy">
-        <div><div class="buy-name">🔍 Compare prices</div><div class="buy-note">Google Shopping</div></div>
-        <span style="color:var(--grey)">›</span>
-      </div>
-    </div>
-    <div style="height:32px"></div>
-  `;
+  document.getElementById('frag-content').innerHTML =
+    '<div class="frag-hero">' +
+      '<div class="frag-hero-img">' + (f.image_url ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + safeName + '">' : '<div class="frag-hero-img-emoji">🏺</div>') + '</div>' +
+      '<div class="frag-hero-body">' +
+        '<div class="frag-hero-eyebrow">' + safeHouse + '</div>' +
+        '<div class="frag-hero-name">' + safeName + '</div>' +
+        '<div class="frag-hero-meta">' + [f.family, f.oil_type, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' +
+        '<div class="frag-actions">' +
+          '<button class="frag-btn frag-btn-primary" data-act="log" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '">Log & rate</button>' +
+          '<button class="frag-btn frag-btn-secondary" data-act="add" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-family="' + escapeAttr(f.family||'') + '">+ Hive</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    ((f.longevity || f.sillage || f.gender || f.launch_year) ?
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border2)">' +
+        (f.longevity ? '<div style="padding:14px;text-align:center;border-right:1px solid var(--border2)"><div style="font-family:Playfair Display,serif;font-size:17px;color:var(--gold)">' + escapeHtml(f.longevity) + '</div><div style="font-family:DM Mono,monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">Longevity</div></div>' : '') +
+        (f.sillage ? '<div style="padding:14px;text-align:center;border-right:1px solid var(--border2)"><div style="font-family:Playfair Display,serif;font-size:17px;color:var(--gold)">' + escapeHtml(f.sillage) + '</div><div style="font-family:DM Mono,monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">Sillage</div></div>' : '') +
+        (f.gender ? '<div style="padding:14px;text-align:center;border-right:1px solid var(--border2)"><div style="font-family:Playfair Display,serif;font-size:17px;color:var(--gold)">' + escapeHtml(f.gender) + '</div><div style="font-family:DM Mono,monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">Gender</div></div>' : '') +
+        (f.launch_year ? '<div style="padding:14px;text-align:center"><div style="font-family:Playfair Display,serif;font-size:17px;color:var(--gold)">' + f.launch_year + '</div><div style="font-family:DM Mono,monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">Year</div></div>' : '') +
+      '</div>' : '') +
+    (hasNotes ? '<div class="detail-sec"><div class="detail-label">Fragrance Notes</div><div class="note-pyramid">' +
+      (top.length ? '<div><div class="note-layer-label">Top</div><div class="note-pills">' + renderNoteSet(top, 'top') + '</div></div>' : '') +
+      (heart.length ? '<div><div class="note-layer-label">Heart</div><div class="note-pills">' + renderNoteSet(heart, '') + '</div></div>' : '') +
+      (base.length ? '<div><div class="note-layer-label">Base</div><div class="note-pills">' + renderNoteSet(base, 'base') + '</div></div>' : '') +
+      (!top.length && !heart.length && !base.length && general.length ? '<div><div class="note-layer-label">Notes</div><div class="note-pills">' + renderNoteSet(general.slice(0,10), '') + '</div></div>' : '') +
+    '</div></div>' : '') +
+    (accords && accords.length ? '<div class="detail-sec"><div class="detail-label">Scent Character</div>' +
+      accords.slice(0,7).map(a => {
+        const nm = typeof a === 'string' ? a : (a.name || String(a));
+        const pct = typeof a === 'object' ? (a.percentage || a.pct || 65) : 65;
+        return '<div style="margin-bottom:10px"><div style="font-size:12px;color:var(--white2);margin-bottom:5px">' + escapeHtml(nm) + '</div><div style="height:3px;background:var(--bg4);border-radius:2px"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px"></div></div></div>';
+      }).join('') + '</div>' : '') +
+    '<div class="detail-sec" id="frag-reviews"><div class="detail-label">Reviews from the hive</div><div style="color:var(--grey);font-size:12px;font-style:italic">Loading…</div></div>' +
+    '<div class="detail-sec"><div class="detail-label">Buy near you</div>' +
+      '<div class="buy-row" data-url="https://www.notino.no/search/?phrase=' + buyQ + '"><div><div class="buy-name">🇳🇴 Notino Norway</div><div class="buy-note">Free shipping over 299 kr</div></div><span style="color:var(--grey)">›</span></div>' +
+      '<div class="buy-row" data-url="https://www.kicks.no/search?q=' + buyQ + '"><div><div class="buy-name">🇳🇴 Kicks</div><div class="buy-note">Same day delivery</div></div><span style="color:var(--grey)">›</span></div>' +
+      '<div class="buy-row" data-url="https://www.parfyme.no/?s=' + buyQ + '"><div><div class="buy-name">🇳🇴 Parfyme.no</div><div class="buy-note">Norwegian specialist</div></div><span style="color:var(--grey)">›</span></div>' +
+      '<div class="buy-row" data-url="https://www.google.com/search?q=' + buyQ + '+buy"><div><div class="buy-name">🔍 Compare prices</div><div class="buy-note">Google Shopping</div></div><span style="color:var(--grey)">›</span></div>' +
+    '</div><div style="height:40px"></div>';
 
-  // Wire up buttons inside the rendered detail
+    // Wire up buttons inside the rendered detail
   document.querySelectorAll('#frag-content .frag-btn').forEach(b => {
     b.addEventListener('click', () => {
       const act = b.getAttribute('data-act');
@@ -1293,6 +1312,36 @@ function openFrag(key) {
   });
 
   showScreen('frag');
+  if (f.name) loadFragReviews(f.name);
+}
+
+async function loadFragReviews(fragName) {
+  const el = document.getElementById('frag-reviews');
+  if (!el) return;
+  try {
+    const { data } = await sb.from('journal_entries')
+      .select('rating, notes, worn_at')
+      .ilike('fragrance_name', '%' + fragName.split(' ')[0] + '%')
+      .not('notes', 'is', null)
+      .order('worn_at', { ascending: false })
+      .limit(5);
+    if (!data || !data.length) {
+      el.innerHTML = '<div class="detail-label">Reviews from the hive</div><div style="color:var(--grey);font-size:12px;font-style:italic;padding:4px 0">No reviews yet.</div>';
+      return;
+    }
+    el.innerHTML = '<div class="detail-label">Reviews from the hive</div>' +
+      data.map(r => {
+        const stars = r.rating ? '★'.repeat(r.rating) + '<span style="color:var(--grey2)">' + '★'.repeat(5-r.rating) + '</span>' : '';
+        const d = new Date(r.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        return '<div style="padding:12px 0;border-bottom:1px solid var(--border2)">' +
+          '<div style="display:flex;justify-content:space-between;margin-bottom:5px">' +
+            (stars ? '<div style="font-size:12px;color:var(--gold)">' + stars + '</div>' : '') +
+            '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--grey)">' + d + '</div>' +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--white2);font-style:italic;line-height:1.6">"' + escapeHtml(r.notes) + '"</div>' +
+        '</div>';
+      }).join('');
+  } catch (e) {}
 }
 
 function prefillLog(name, house, imageUrl) {
@@ -2009,7 +2058,9 @@ async function seedArticles() {
 
 
 // Keep openArticle for backwards compat
-function openArticle(slug) { openArticleFromDb(slug); }
+function openArticle(slug) {
+  openArticleFromDb(slug);
+}
 
 // ═══════ EVENT WIRING ═══════
 function wireEvents() {
