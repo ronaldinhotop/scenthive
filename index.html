@@ -10,12 +10,13 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#14181c;--bg2:#1c2228;--bg3:#242c36;--bg4:#2c3440;
-  --border:#2c3440;--border2:#222c36;
-  --gold:#00c030;--gold-light:#00e054;--gold-dim:#008022;--gold-pale:#091a0d;
-  --cobalt:#5577aa;--cobalt-deep:#1e2c40;--cobalt-pale:#141e2a;
-  --white:#f0f0f0;--white2:#8799ab;--grey:#556677;--grey2:#2c3c4c;
-  --honey:#ff8000;--green:#00c030;--red:#c04a4a;
+  --bg:#0d1018;--bg2:#171c28;--bg3:#1e2434;--bg4:#282e3e;
+  --border:#2a3040;--border2:#1a2030;
+  --gold:#f0c040;--gold-light:#f8d464;--gold-dim:#a07820;--gold-pale:#1a1508;
+  --purple:#8b5cf6;--purple-light:#a78bfa;--purple-dim:#5b21b6;--purple-pale:#150d30;
+  --cobalt:#4a6fa5;--cobalt-deep:#1e2c40;--cobalt-pale:#141e2a;
+  --white:#f2f0ff;--white2:#8890a8;--grey:#4a5468;--grey2:#252c3a;
+  --honey:#ff8c00;--green:#22c55e;--red:#ef4444;
   --sidebar-w:240px;--right-w:300px;
 }
 html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden}
@@ -29,24 +30,24 @@ img{max-width:100%;display:block}
 .screen.active{display:flex}
 
 /* ═══ TOPBAR ═══ */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;position:sticky;top:0;z-index:100;background:rgba(20,24,28,0.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;position:sticky;top:0;z-index:100;background:rgba(13,16,24,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2)}
 .logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:400}
 .logo em{font-style:italic;color:var(--gold)}
 .tbar-btn{width:34px;height:34px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--white2);cursor:pointer}
 .tbar-btn:active{background:var(--bg3)}
 
 /* ═══ BOTTOM NAV ═══ */
-.bnav{position:sticky;bottom:0;display:flex;background:rgba(20,24,28,0.96);backdrop-filter:blur(20px);border-top:1px solid var(--border2);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100}
+.bnav{position:sticky;bottom:0;display:flex;background:rgba(13,16,24,0.98);backdrop-filter:blur(20px);border-top:1px solid var(--border2);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;cursor:pointer;color:var(--grey);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;text-transform:uppercase}
 .bnav-btn.active{color:var(--gold)}
 .bnav-btn svg{opacity:0.5}
 .bnav-btn.active svg{opacity:1}
 .bnav-log{flex:0 0 auto;margin-top:-14px;padding:0}
-.log-circle{width:50px;height:50px;border-radius:50%;background:var(--gold);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:300;box-shadow:0 4px 16px rgba(0,192,48,0.4);transition:transform 0.15s}
+.log-circle{width:50px;height:50px;border-radius:50%;background:var(--gold);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:300;box-shadow:0 4px 20px rgba(240,192,64,0.45);transition:transform 0.15s}
 .bnav-log:active .log-circle{transform:scale(0.9)}
 
 /* ═══ AUTH ═══ */
-#screen-auth{align-items:center;justify-content:center;padding:40px 24px;min-height:100vh;background:radial-gradient(ellipse at top,#1a2a1a 0%,var(--bg) 60%)}
+#screen-auth{align-items:center;justify-content:center;padding:40px 24px;min-height:100vh;background:radial-gradient(ellipse at top,#1a0d30 0%,var(--bg) 65%)}
 .auth-wrap{width:100%;max-width:360px}
 .auth-logo{font-family:'Playfair Display',serif;font-size:48px;text-align:center;margin-bottom:4px}
 .auth-logo em{font-style:italic;color:var(--gold)}
@@ -75,15 +76,19 @@ img{max-width:100%;display:block}
 .search-icon{color:var(--grey);flex-shrink:0}
 
 /* HERO */
-.hero{position:relative;height:260px;overflow:hidden;background:linear-gradient(135deg,var(--cobalt-deep) 0%,var(--bg) 100%)}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 30%,rgba(200,168,74,0.2) 0%,transparent 60%)}
+.hero{position:relative;height:290px;overflow:hidden;background:linear-gradient(145deg,#1a0d38 0%,#0d1018 75%)}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% 55%,rgba(139,92,246,0.18) 0%,transparent 55%),radial-gradient(ellipse at 78% 15%,rgba(240,192,64,0.12) 0%,transparent 45%)}
 .hero-content{position:relative;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:28px 22px}
 .hero-tag{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:10px}
 .hero-title{font-family:'Playfair Display',serif;font-size:36px;line-height:1.05;margin-bottom:8px}
 .hero-title em{font-style:italic;color:var(--gold-light)}
 .hero-sub{font-size:13px;color:var(--white2);line-height:1.6;max-width:300px}
-.hero-bee{position:absolute;top:24px;right:24px;font-size:32px;filter:drop-shadow(0 0 12px rgba(0,192,48,0.5));animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-8px) rotate(5deg)}}
+.hero-bee{position:absolute;pointer-events:none}
+.bee-1{top:24px;right:24px;font-size:34px;filter:drop-shadow(0 0 16px rgba(240,192,64,0.65));animation:floatBee1 4s ease-in-out infinite}
+.bee-2{top:78px;right:76px;font-size:18px;filter:drop-shadow(0 0 8px rgba(240,192,64,0.35));animation:floatBee2 6.5s ease-in-out infinite 1.5s;opacity:0.6}
+.bee-3{top:46px;right:128px;font-size:11px;filter:drop-shadow(0 0 5px rgba(240,192,64,0.2));animation:floatBee1 5.5s ease-in-out infinite 3s;opacity:0.3}
+@keyframes floatBee1{0%,100%{transform:translateY(0) rotate(-6deg)}40%{transform:translateY(-12px) rotate(6deg)}70%{transform:translateY(3px) rotate(-3deg)}}
+@keyframes floatBee2{0%,100%{transform:translateY(0) rotate(4deg) translateX(0)}35%{transform:translateY(-9px) rotate(-5deg) translateX(7px)}70%{transform:translateY(5px) rotate(2deg) translateX(-4px)}}
 
 /* SECTIONS */
 .section{padding:28px 0 24px}
@@ -201,7 +206,7 @@ img{max-width:100%;display:block}
 /* ═══ PROFILE ═══ */
 .profile-screen{flex:1;overflow-y:auto}
 .profile-cover{height:110px;background:linear-gradient(135deg,var(--cobalt-deep) 0%,var(--gold-pale) 60%,var(--bg) 100%);position:relative;overflow:hidden}
-.profile-cover::after{content:'🐝';position:absolute;right:24px;bottom:16px;font-size:32px;opacity:0.3;filter:drop-shadow(0 0 8px rgba(0,192,48,0.4))}
+.profile-cover::after{content:'🐝';position:absolute;right:24px;bottom:16px;font-size:32px;opacity:0.3;filter:drop-shadow(0 0 10px rgba(240,192,64,0.45))}
 .profile-header{padding:0 20px 22px;margin-top:-40px;position:relative}
 .profile-avatar-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
 .profile-avatar-ring{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));padding:3px;flex-shrink:0}
@@ -417,6 +422,70 @@ img{max-width:100%;display:block}
   .poster-card{width:140px}
   .poster-card-img{width:140px;height:182px}
 }
+
+/* ═══ HONEYCOMB NOTE PYRAMID ═══ */
+.hex-pyramid{padding:20px 20px 4px}
+.hex-tier{margin-bottom:22px}
+.hex-tier-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.hex-tier-label::after{content:'';flex:1;height:1px;background:var(--border2)}
+.hex-label-top{color:var(--gold)}
+.hex-label-heart{color:var(--purple-light)}
+.hex-label-base{color:var(--white2)}
+.hex-grid{display:flex;flex-direction:column}
+.hex-row{display:flex;gap:4px}
+.hex-row+.hex-row{margin-top:-14px}
+.hex-row-offset{margin-left:41px}
+.hex-cell{width:78px;height:68px;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 10px;cursor:default;transition:transform 0.2s,filter 0.2s;flex-shrink:0}
+.hex-cell:hover{transform:scale(1.1);filter:brightness(1.3);z-index:2;position:relative}
+.hex-top{background:linear-gradient(135deg,rgba(240,192,64,0.25),rgba(240,192,64,0.08))}
+.hex-heart{background:linear-gradient(135deg,rgba(139,92,246,0.25),rgba(139,92,246,0.08))}
+.hex-base{background:var(--bg3)}
+.hex-emoji{font-size:13px;line-height:1}
+.hex-name{font-family:'DM Mono',monospace;font-size:8px;text-align:center;line-height:1.3;letter-spacing:0.01em}
+.hex-top .hex-name{color:var(--gold-light)}
+.hex-heart .hex-name{color:var(--purple-light)}
+.hex-base .hex-name{color:var(--white2)}
+
+/* ═══ IMPROVED ACCORD BARS ═══ */
+.accord-bar-wrap{margin-bottom:12px}
+.accord-bar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.accord-bar-name{font-size:12px;color:var(--white2)}
+.accord-bar-pct{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey)}
+.accord-track{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.accord-fill-purple{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--purple-dim),var(--purple))}
+.accord-fill-gold{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold-dim),var(--gold))}
+
+/* ═══ FRAG STATS GRID ═══ */
+.frag-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border2)}
+.frag-stat-cell{padding:16px 8px;text-align:center;border-right:1px solid var(--border2)}
+.frag-stat-cell:last-child{border-right:none}
+.frag-stat-val{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold);line-height:1;display:block}
+.frag-stat-key{font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:5px;display:block}
+
+/* ═══ HERO HEX BG ═══ */
+.hero-hex-bg{position:absolute;inset:0;opacity:0.04;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='70'%3E%3Cpath d='M20,2 L60,2 L78,35 L60,68 L20,68 L2,35 Z' fill='none' stroke='%23f0c040' stroke-width='1.5'/%3E%3C/svg%3E");background-size:80px 70px}
+
+/* ═══ IMPROVED POSTER CARD ═══ */
+.poster-card{flex-shrink:0;width:128px;cursor:pointer;scroll-snap-align:start;transition:transform 0.2s}
+.poster-card:hover{transform:translateY(-4px)}
+.poster-card-img{width:128px;height:168px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:3px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.poster-card-img::after{content:'';position:absolute;inset:0;border-radius:3px;box-shadow:inset 0 -40px 30px rgba(13,16,24,0.8)}
+
+/* ═══ SEARCH RESULTS ═══ */
+.result-item{transition:background 0.15s}
+.result-item:hover{background:var(--bg2)}
+.result-genre{font-family:'DM Mono',monospace;font-size:9px;color:var(--purple-light);letter-spacing:0.05em;margin-top:3px}
+
+/* ═══ PURPLE ACCENTS ═══ */
+.diary-has-review{color:var(--purple-light) !important}
+.note-pill{border-radius:2px}
+.note-pill.top{border-color:var(--gold-dim);background:rgba(240,192,64,0.1);color:var(--gold-light)}
+.note-pill.base{border-color:var(--purple-dim);background:rgba(139,92,246,0.1);color:var(--purple-light)}
+
+/* ═══ SIDEBAR LOGO BRAND ═══ */
+.sidebar-logo{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:28px;padding:0 8px;letter-spacing:-0.01em}
+.sidebar-logo em{font-style:italic;color:var(--gold)}
+.auth-logo em,.logo em{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -485,11 +554,14 @@ img{max-width:100%;display:block}
 
     <div id="home-content">
       <div class="hero">
-        <span class="hero-bee">🐝</span>
+        <div class="hero-hex-bg"></div>
+        <span class="hero-bee bee-1">🐝</span>
+        <span class="hero-bee bee-2">🐝</span>
+        <span class="hero-bee bee-3">🐝</span>
         <div class="hero-content">
-          <div class="hero-tag">Welcome to The Hive</div>
-          <div class="hero-title">Build your <em>scent diary</em></div>
-          <div class="hero-sub">Log every fragrance you smell. Rate it. Build your taste profile over time.</div>
+          <div class="hero-tag">🍯 Welcome to the Hive</div>
+          <div class="hero-title">Your fragrance <em>diary</em></div>
+          <div class="hero-sub">Log every scent. Rate it. Discover your nose. Join the community.</div>
         </div>
       </div>
 
@@ -1235,6 +1307,53 @@ function buildResultItem(f) {
 
 // searchFragella defined above
 
+// ═══════ NOTE HELPERS ═══════
+function noteEmoji(n) {
+  n = (n || '').toLowerCase();
+  if (n.includes('rose')) return '🌹';
+  if (n.includes('jasmin')) return '🌸';
+  if (n.includes('lemon') || n.includes('bergamot')) return '🍋';
+  if (n.includes('vanilla')) return '🍦';
+  if (n.includes('cedar')) return '🌲';
+  if (n.includes('sandalwood') || n.includes('wood')) return '🪵';
+  if (n.includes('musk')) return '☁️';
+  if (n.includes('oud')) return '🪵';
+  if (n.includes('iris') || n.includes('violet')) return '💜';
+  if (n.includes('amber')) return '🟡';
+  if (n.includes('pepper')) return '🌶️';
+  if (n.includes('tobacco')) return '🍃';
+  if (n.includes('leather')) return '🟤';
+  if (n.includes('orange') || n.includes('mandarin') || n.includes('grapefruit')) return '🍊';
+  if (n.includes('honey')) return '🍯';
+  if (n.includes('patchouli') || n.includes('mint')) return '🌿';
+  if (n.includes('lavender')) return '💐';
+  if (n.includes('neroli') || n.includes('ylang') || n.includes('blossom')) return '🌼';
+  if (n.includes('vetiver') || n.includes('hay') || n.includes('grass')) return '🌾';
+  if (n.includes('coffee')) return '☕';
+  if (n.includes('chocolate') || n.includes('cocoa')) return '🍫';
+  if (n.includes('fruit') || n.includes('apple') || n.includes('peach')) return '🍎';
+  if (n.includes('sea') || n.includes('aqua') || n.includes('marine')) return '🌊';
+  return '';
+}
+
+function buildHexNotes(notes, tier) {
+  if (!notes || !notes.length) return '';
+  var items = notes.slice(0, 12);
+  var rows = [];
+  for (var i = 0; i < items.length; i += 3) rows.push(items.slice(i, i + 3));
+  return rows.map(function(row, ri) {
+    var offset = (ri % 2 === 1) ? ' hex-row-offset' : '';
+    var cells = row.map(function(n) {
+      var name = typeof n === 'string' ? n : (n.name || String(n));
+      var em = noteEmoji(name);
+      return '<div class="hex-cell hex-' + tier + '" title="' + escapeHtml(name) + '">' +
+        (em ? '<div class="hex-emoji">' + em + '</div>' : '') +
+        '<div class="hex-name">' + escapeHtml(name) + '</div></div>';
+    }).join('');
+    return '<div class="hex-row' + offset + '">' + cells + '</div>';
+  }).join('');
+}
+
 // ═══════ FRAGRANCE DETAIL ═══════
 function openFrag(key) {
   const f = fragStore[key];
@@ -1245,11 +1364,7 @@ function openFrag(key) {
   const general = f['General Notes'] || [];
   const hasNotes = top.length || heart.length || base.length || general.length;
 
-  const renderNoteSet = (notes, cls) => notes.map(n => {
-    const name = typeof n === 'string' ? n : (n.name || String(n));
-    return `<span class="note-pill ${cls}">${escapeHtml(name)}</span>`;
-  }).join('');
-
+  const accords = f.accords || [];
   const buyQ = encodeURIComponent((f.name || '') + ' ' + (f.house || ''));
   const safeName = escapeHtml(f.name || '');
   const safeHouse = escapeHtml(f.house || '');
@@ -1271,23 +1386,24 @@ function openFrag(key) {
       '</div>' +
     '</div>' +
     ((f.longevity || f.sillage || f.gender || f.launch_year) ?
-      '<div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border2)">' +
-        (f.longevity ? '<div style="padding:14px;text-align:center;border-right:1px solid var(--border2)"><div style="font-family:Playfair Display,serif;font-size:17px;color:var(--gold)">' + escapeHtml(f.longevity) + '</div><div style="font-family:DM Mono,monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">Longevity</div></div>' : '') +
-        (f.sillage ? '<div style="padding:14px;text-align:center;border-right:1px solid var(--border2)"><div style="font-family:Playfair Display,serif;font-size:17px;color:var(--gold)">' + escapeHtml(f.sillage) + '</div><div style="font-family:DM Mono,monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">Sillage</div></div>' : '') +
-        (f.gender ? '<div style="padding:14px;text-align:center;border-right:1px solid var(--border2)"><div style="font-family:Playfair Display,serif;font-size:17px;color:var(--gold)">' + escapeHtml(f.gender) + '</div><div style="font-family:DM Mono,monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">Gender</div></div>' : '') +
-        (f.launch_year ? '<div style="padding:14px;text-align:center"><div style="font-family:Playfair Display,serif;font-size:17px;color:var(--gold)">' + f.launch_year + '</div><div style="font-family:DM Mono,monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px">Year</div></div>' : '') +
+      '<div class="frag-stats-grid">' +
+        (f.longevity ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.longevity) + '</span><span class="frag-stat-key">Longevity</span></div>' : '') +
+        (f.sillage ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.sillage) + '</span><span class="frag-stat-key">Sillage</span></div>' : '') +
+        (f.gender ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.gender) + '</span><span class="frag-stat-key">Gender</span></div>' : '') +
+        (f.launch_year ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + f.launch_year + '</span><span class="frag-stat-key">Year</span></div>' : '') +
       '</div>' : '') +
-    (hasNotes ? '<div class="detail-sec"><div class="detail-label">Fragrance Notes</div><div class="note-pyramid">' +
-      (top.length ? '<div><div class="note-layer-label">Top</div><div class="note-pills">' + renderNoteSet(top, 'top') + '</div></div>' : '') +
-      (heart.length ? '<div><div class="note-layer-label">Heart</div><div class="note-pills">' + renderNoteSet(heart, '') + '</div></div>' : '') +
-      (base.length ? '<div><div class="note-layer-label">Base</div><div class="note-pills">' + renderNoteSet(base, 'base') + '</div></div>' : '') +
-      (!top.length && !heart.length && !base.length && general.length ? '<div><div class="note-layer-label">Notes</div><div class="note-pills">' + renderNoteSet(general.slice(0,10), '') + '</div></div>' : '') +
+    (hasNotes ? '<div class="detail-sec"><div class="detail-label">Fragrance Notes</div><div class="hex-pyramid">' +
+      (top.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-top">Top notes</div><div class="hex-grid">' + buildHexNotes(top, 'top') + '</div></div>' : '') +
+      (heart.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-heart">Heart notes</div><div class="hex-grid">' + buildHexNotes(heart, 'heart') + '</div></div>' : '') +
+      (base.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-base">Base notes</div><div class="hex-grid">' + buildHexNotes(base, 'base') + '</div></div>' : '') +
+      (!top.length && !heart.length && !base.length && general.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-base">Notes</div><div class="hex-grid">' + buildHexNotes(general.slice(0,12), 'base') + '</div></div>' : '') +
     '</div></div>' : '') +
     (accords && accords.length ? '<div class="detail-sec"><div class="detail-label">Scent Character</div>' +
-      accords.slice(0,7).map(a => {
-        const nm = typeof a === 'string' ? a : (a.name || String(a));
-        const pct = typeof a === 'object' ? (a.percentage || a.pct || 65) : 65;
-        return '<div style="margin-bottom:10px"><div style="font-size:12px;color:var(--white2);margin-bottom:5px">' + escapeHtml(nm) + '</div><div style="height:3px;background:var(--bg4);border-radius:2px"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px"></div></div></div>';
+      accords.slice(0,7).map(function(a, ai) {
+        var nm = typeof a === 'string' ? a : (a.name || String(a));
+        var pct = typeof a === 'object' ? (a.percentage || a.pct || 70) : 70;
+        var fillCls = ai % 2 === 0 ? 'accord-fill-purple' : 'accord-fill-gold';
+        return '<div class="accord-bar-wrap"><div class="accord-bar-top"><span class="accord-bar-name">' + escapeHtml(nm) + '</span><span class="accord-bar-pct">' + Math.round(pct) + '%</span></div><div class="accord-track"><div class="' + fillCls + '" style="width:' + pct + '%"></div></div></div>';
       }).join('') + '</div>' : '') +
     '<div class="detail-sec" id="frag-reviews"><div class="detail-label">Reviews from the hive</div><div style="color:var(--grey);font-size:12px;font-style:italic">Loading…</div></div>' +
     '<div class="detail-sec"><div class="detail-label">Buy near you</div>' +
@@ -1335,7 +1451,7 @@ async function loadFragReviews(fragName) {
         const d = new Date(r.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
         return '<div style="padding:12px 0;border-bottom:1px solid var(--border2)">' +
           '<div style="display:flex;justify-content:space-between;margin-bottom:5px">' +
-            (stars ? '<div style="font-size:12px;color:var(--gold)">' + stars + '</div>' : '') +
+            (stars ? '<div style="font-size:12px;color:var(--honey)">' + stars + '</div>' : '') +
             '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--grey)">' + d + '</div>' +
           '</div>' +
           '<div style="font-size:12px;color:var(--white2);font-style:italic;line-height:1.6">"' + escapeHtml(r.notes) + '"</div>' +
