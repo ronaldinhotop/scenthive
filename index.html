@@ -500,6 +500,37 @@ img{max-width:100%;display:block}
 .sidebar-logo{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:28px;padding:0 8px;letter-spacing:-0.01em}
 .sidebar-logo em{font-style:italic;color:var(--gold)}
 .auth-logo em,.logo em{color:var(--gold)}
+
+/* ═══ POSTER CARD QUICK ACTIONS ═══ */
+.poster-card-actions{position:absolute;inset:0;background:rgba(13,16,24,0.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;opacity:0;transition:opacity 0.18s;border-radius:3px;z-index:2}
+.poster-card:hover .poster-card-actions{opacity:1}
+.pca-btn{padding:7px 0;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;border-radius:2px;cursor:pointer;width:88px;text-align:center;transition:filter 0.15s}
+.pca-btn:hover{filter:brightness(1.15)}
+.pca-log{background:var(--gold);color:var(--bg)}
+.pca-hive{background:transparent;border:1px solid var(--border);color:var(--white2)}
+
+/* ═══ LONGEVITY / SILLAGE METER ═══ */
+.perf-section{padding:20px 20px 4px}
+.perf-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.perf-row-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;width:68px;flex-shrink:0}
+.perf-track{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.perf-fill-gold{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width 0.8s ease}
+.perf-fill-purple{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--purple-dim),var(--purple));transition:width 0.8s ease}
+.perf-val{font-family:'DM Mono',monospace;font-size:9px;color:var(--white2);min-width:52px;text-align:right}
+
+/* ═══ SEASON BADGES ═══ */
+.season-wrap{display:flex;gap:6px;flex-wrap:wrap;padding:0 0 4px}
+.season-badge{padding:7px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.04em;display:flex;align-items:center;gap:6px;transition:all 0.2s}
+.season-badge.active-season{background:var(--purple-pale);border-color:var(--purple-dim);color:var(--purple-light)}
+.season-badge.active-summer{background:rgba(240,192,64,0.1);border-color:var(--gold-dim);color:var(--gold-light)}
+
+/* ═══ SIMILAR FRAGRANCES ═══ */
+#frag-similar{overflow:hidden}
+#frag-similar .poster-row{padding:0 0 4px}
+
+/* ═══ PROFILE EDIT ═══ */
+.profile-edit-btn{font-family:'DM Mono',monospace;font-size:10px;padding:8px 16px;background:var(--bg2);border:1px solid var(--border);color:var(--white2);letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:border-color 0.2s}
+.profile-edit-btn:hover{border-color:var(--gold);color:var(--gold)}
 </style>
 </head>
 <body>
@@ -747,7 +778,7 @@ img{max-width:100%;display:block}
         <div class="profile-avatar-ring">
           <div class="profile-avatar" id="prof-avatar">👤</div>
         </div>
-        <button class="profile-edit-btn" onclick="toast('Edit profile coming soon 🐝')">Edit profile</button>
+        <button class="profile-edit-btn" onclick="openEditProfile()">Edit profile</button>
       </div>
       <div class="profile-name" id="prof-name">Guest</div>
       <div class="profile-handle" id="prof-handle">@guest</div>
@@ -893,18 +924,57 @@ img{max-width:100%;display:block}
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Add to your hive</div>
-    <div class="modal-sub">A bottle you own.</div>
-    <label class="modal-label">Fragrance</label>
-    <input class="modal-input" id="add-name" type="text" placeholder="e.g. Naxos">
-    <label class="modal-label">House</label>
-    <input class="modal-input" id="add-house" type="text" placeholder="e.g. Xerjoff">
-    <div class="modal-grid">
-      <div><label class="modal-label">Size (ml)</label><input class="modal-input" id="add-size" type="number" inputmode="decimal" placeholder="100"></div>
-      <div><label class="modal-label">Price (€)</label><input class="modal-input" id="add-price" type="number" inputmode="decimal" placeholder="180"></div>
+    <!-- Step 1: Search -->
+    <div id="add-step-1">
+      <div class="modal-title">Add to your hive</div>
+      <div class="modal-sub">Search for a bottle you own.</div>
+      <div style="position:relative">
+        <input class="modal-input" id="add-search" type="text" placeholder="Search any fragrance…" autocomplete="off" style="padding-right:40px">
+        <div id="add-search-spinner" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%)"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div></div>
+      </div>
+      <div id="add-search-results" style="max-height:240px;overflow-y:auto;margin-bottom:10px"></div>
+      <div style="border-top:1px solid var(--border2);padding-top:12px;margin-top:4px">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Can't find it? Add manually</div>
+        <div style="display:flex;gap:8px">
+          <input class="modal-input" id="add-name-manual" type="text" placeholder="Fragrance name" style="margin-bottom:0;flex:1">
+          <input class="modal-input" id="add-house-manual" type="text" placeholder="House" style="margin-bottom:0;width:110px">
+        </div>
+        <button onclick="selectManualAdd()" style="width:100%;margin-top:8px;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--white2);font-size:12px;cursor:pointer">Use this →</button>
+      </div>
+      <button class="modal-cancel" data-close="modal-add">Cancel</button>
     </div>
-    <button class="modal-submit" id="add-save-btn">Add to hive</button>
-    <button class="modal-cancel" data-close="modal-add">Cancel</button>
+    <!-- Step 2: Size & price -->
+    <div id="add-step-2" style="display:none">
+      <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg3);border-radius:2px;margin-bottom:18px;cursor:pointer" id="add-selected-frag" onclick="resetAddStep()">
+        <div id="add-selected-img" style="width:44px;height:56px;background:var(--bg2);border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0">🏺</div>
+        <div style="flex:1;min-width:0">
+          <div id="add-selected-name" style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+          <div id="add-selected-house" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px"></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey)">← change</div>
+      </div>
+      <div class="modal-grid">
+        <div><label class="modal-label">Size (ml)</label><input class="modal-input" id="add-size" type="number" inputmode="decimal" placeholder="100"></div>
+        <div><label class="modal-label">Price paid (€)</label><input class="modal-input" id="add-price" type="number" inputmode="decimal" placeholder="180"></div>
+      </div>
+      <button class="modal-submit" id="add-save-btn">Add to hive 🐝</button>
+      <button class="modal-cancel" data-close="modal-add">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROFILE EDIT MODAL ═══ -->
+<div class="modal-overlay" id="modal-profile-edit">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit profile</div>
+    <div class="modal-sub">How you appear in the community.</div>
+    <label class="modal-label">Display name</label>
+    <input class="modal-input" id="edit-display-name" type="text" placeholder="Your name" maxlength="40" autocomplete="name">
+    <label class="modal-label">Bio <span style="color:var(--grey);font-size:9px">optional</span></label>
+    <textarea class="modal-input" id="edit-bio" placeholder="Two sentences about your nose…" style="height:70px;resize:none;line-height:1.5" maxlength="160"></textarea>
+    <button class="modal-submit" onclick="saveProfileName()">Save changes</button>
+    <button class="modal-cancel" data-close="modal-profile-edit">Cancel</button>
   </div>
 </div>
 
@@ -1220,9 +1290,13 @@ function buildPosterCard(f) {
   const img = f.image_url
     ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;poster-card-emoji&quot;>🏺</div>'">`
     : '<div class="poster-card-emoji">🏺</div>';
+  const actions = `<div class="poster-card-actions">
+      <button class="pca-btn pca-log" data-pca="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}">Log &amp; rate</button>
+      <button class="pca-btn pca-hive" data-pca="hive" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}" data-fid="${escapeAttr(f.fragella_id||'')}">+ Hive</button>
+    </div>`;
   return `
     <div class="poster-card" data-key="${key}">
-      <div class="poster-card-img">${img}</div>
+      <div class="poster-card-img">${img}${actions}</div>
       <div class="poster-card-name">${safeName}</div>
       <div class="poster-card-house">${safeHouse}${f.launch_year ? ' · ' + f.launch_year : ''}</div>
     </div>`;
@@ -1369,7 +1443,7 @@ function openFrag(key) {
         '<div class="frag-hero-meta">' + [f.family, f.oil_type, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' +
         '<div class="frag-actions">' +
           '<button class="frag-btn frag-btn-primary" data-act="log" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '">Log & rate</button>' +
-          '<button class="frag-btn frag-btn-secondary" data-act="add" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-family="' + escapeAttr(f.family||'') + '">+ Hive</button>' +
+          '<button class="frag-btn frag-btn-secondary" data-act="add" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '">+ Hive</button>' +
         '</div>' +
       '</div>' +
     '</div>' +
@@ -1408,7 +1482,7 @@ function openFrag(key) {
       const name = b.getAttribute('data-name');
       const house = b.getAttribute('data-house');
       if (act === 'log') prefillLog(name, house, b.getAttribute('data-img'));
-      else if (act === 'add') quickAdd(name, house);
+      else if (act === 'add') quickAdd(name, house, b.getAttribute('data-img'), b.getAttribute('data-fid'));
     });
   });
   document.querySelectorAll('#frag-content .buy-row').forEach(b => {
@@ -1452,18 +1526,18 @@ function prefillLog(name, house, imageUrl) {
   openLog({ name, house, image_url: imageUrl || null });
 }
 
-async function quickAdd(name, house) {
-  const entry = { name, house, created_at: new Date().toISOString() };
+async function quickAdd(name, house, imageUrl, fragellaId) {
+  const entry = { name, house, image_url: imageUrl || null, fragella_id: fragellaId || null, created_at: new Date().toISOString() };
   if (user) {
     try {
-      const { data } = await sb.from('collection').insert([{ user_id: user.id, name, house }]).select();
+      const { data } = await sb.from('collection').insert([{ user_id: user.id, name, house, image_url: imageUrl || null, fragella_id: fragellaId || null }]).select();
       if (data) collection.unshift(data[0]);
     } catch (e) { collection.unshift(entry); }
   } else {
     collection.unshift(entry);
     saveLocal();
   }
-  toast('✓ Added to your hive');
+  toast('✓ Added to your hive 🐝');
 }
 
 // ═══════ LOG MODAL ═══════
@@ -1474,17 +1548,91 @@ async function quickAdd(name, house) {
 
 // ═══════ ADD COLLECTION ═══════
 function openAdd() {
-  ['add-name', 'add-house', 'add-size', 'add-price'].forEach(id => document.getElementById(id).value = '');
+  selectedAddFrag = null;
+  document.getElementById('add-step-1').style.display = 'block';
+  document.getElementById('add-step-2').style.display = 'none';
+  document.getElementById('add-search').value = '';
+  document.getElementById('add-search-results').innerHTML = '';
+  document.getElementById('add-name-manual').value = '';
+  document.getElementById('add-house-manual').value = '';
+  document.getElementById('add-size').value = '';
+  document.getElementById('add-price').value = '';
   openModal('modal-add');
 }
 
+function resetAddStep() {
+  selectedAddFrag = null;
+  document.getElementById('add-step-1').style.display = 'block';
+  document.getElementById('add-step-2').style.display = 'none';
+  document.getElementById('add-search').focus();
+}
+
+function selectAddFrag(f) {
+  selectedAddFrag = f;
+  document.getElementById('add-step-1').style.display = 'none';
+  document.getElementById('add-step-2').style.display = 'block';
+  document.getElementById('add-selected-name').textContent = f.name || '';
+  document.getElementById('add-selected-house').textContent = f.house || '';
+  const imgWrap = document.getElementById('add-selected-img');
+  if (f.image_url) {
+    imgWrap.innerHTML = makeImg(f.image_url, f.name, '', 'width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;padding:4px') || '🏺';
+  } else {
+    imgWrap.textContent = '🏺';
+  }
+}
+
+function selectManualAdd() {
+  const name = document.getElementById('add-name-manual').value.trim();
+  const house = document.getElementById('add-house-manual').value.trim();
+  if (!name) { toast('Please enter a fragrance name'); return; }
+  selectAddFrag({ name, house, image_url: null, fragella_id: null });
+}
+
+function onAddSearch(q) {
+  clearTimeout(addSearchTimer);
+  const results = document.getElementById('add-search-results');
+  const spinner = document.getElementById('add-search-spinner');
+  if (!q.trim()) { results.innerHTML = ''; return; }
+  spinner.style.display = 'block';
+  addSearchTimer = setTimeout(async () => {
+    const frags = await searchFragella(q);
+    spinner.style.display = 'none';
+    if (!frags.length) {
+      results.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--grey);font-style:italic">No results — try a different spelling or add manually below.</div>';
+      return;
+    }
+    results.innerHTML = frags.slice(0, 6).map((f, i) => {
+      const key = 'as' + i + Math.random().toString(36).slice(2, 6);
+      fragStore[key] = f;
+      const img = f.image_url ? makeImg(f.image_url, f.name) : '🏺';
+      return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
+        '<div style="width:36px;height:46px;background:var(--bg3);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:18px;flex-shrink:0">' + img + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name || '') + '</div>' +
+          '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">' + escapeHtml(f.house || '') + '</div>' +
+        '</div>' +
+        '<span style="color:var(--grey)">›</span>' +
+      '</div>';
+    }).join('');
+    results.querySelectorAll('.log-search-result').forEach(r => {
+      r.addEventListener('click', () => selectAddFrag(fragStore[r.getAttribute('data-key')]));
+    });
+  }, 350);
+}
+
 async function saveCollection() {
-  const name = document.getElementById('add-name').value.trim();
-  const house = document.getElementById('add-house').value.trim();
+  if (!selectedAddFrag) { toast('Search and select a fragrance first'); return; }
   const size = document.getElementById('add-size').value;
   const price = document.getElementById('add-price').value;
-  if (!name) { toast('Please enter a fragrance name'); return; }
-  const entry = { name, house, size_ml: size || null, price_paid: price || null, created_at: new Date().toISOString() };
+  const entry = {
+    name: selectedAddFrag.name || '',
+    house: selectedAddFrag.house || '',
+    image_url: selectedAddFrag.image_url || null,
+    fragella_id: selectedAddFrag.fragella_id || null,
+    size_ml: size || null,
+    price_paid: price || null,
+    created_at: new Date().toISOString()
+  };
   if (user) {
     try {
       const { data, error } = await sb.from('collection').insert([{ user_id: user.id, ...entry }]).select();
@@ -1498,7 +1646,7 @@ async function saveCollection() {
     saveLocal();
   }
   closeModal('modal-add');
-  toast('✓ Added to your hive');
+  toast('✓ Added to your hive 🐝');
   renderCollection();
   updateRightSidebar();
 }
@@ -1635,7 +1783,9 @@ function renderProfile() {
   } else {
     favsGrid.innerHTML = favs.map(f => `
       <div class="fav-cell">
-        <div class="col-cell-emoji">🏺</div>
+        ${f.image_url
+          ? `<img src="${escapeAttr(f.image_url)}" alt="${escapeHtml(f.fragrance_name)}" onerror="this.outerHTML='<div class=&quot;fav-cell-empty&quot;>🏺</div>'">`
+          : '<div class="fav-cell-empty">🏺</div>'}
         <div class="fav-cell-overlay">${escapeHtml(f.fragrance_name)}</div>
       </div>
     `).join('');
@@ -1691,7 +1841,9 @@ function renderProfile() {
   }
 
   // Bio
-  const bio = user ? `"Building my fragrance diary one wear at a time."` : `"Welcome — sign in to save your diary and build your taste profile."`;
+  const bio = user
+    ? (user.user_metadata?.bio || 'Building my fragrance diary one wear at a time.')
+    : 'Welcome — sign in to save your diary and build your taste profile.';
   document.getElementById('prof-bio').textContent = bio;
 }
 
@@ -1863,6 +2015,8 @@ async function cacheFragrances(frags) {
 // ═══════ LOG MODAL — search-first flow ═══════
 let selectedFrag = null;
 let logSearchTimer = null;
+let selectedAddFrag = null;
+let addSearchTimer = null;
 
 function openLog(prefilled) {
   selectedFrag = null;
@@ -1977,6 +2131,32 @@ async function saveLog() {
   renderDiary();
   updateRightSidebar();
   loadCommunityFeed();
+}
+
+// ═══════ PROFILE EDIT ═══════
+function openEditProfile() {
+  if (!user) { toast('Sign in to edit your profile'); return; }
+  const name = user.user_metadata?.name || user.email?.split('@')[0] || '';
+  const bio = user.user_metadata?.bio || '';
+  document.getElementById('edit-display-name').value = name;
+  document.getElementById('edit-bio').value = bio;
+  openModal('modal-profile-edit');
+}
+
+async function saveProfileName() {
+  const name = document.getElementById('edit-display-name').value.trim();
+  const bio = document.getElementById('edit-bio').value.trim();
+  if (!name) { toast('Please enter a name'); return; }
+  try {
+    const { error } = await sb.auth.updateUser({ data: { name, bio } });
+    if (error) throw error;
+    if (user && user.user_metadata) { user.user_metadata.name = name; user.user_metadata.bio = bio; }
+    closeModal('modal-profile-edit');
+    renderProfile();
+    toast('✓ Profile updated');
+  } catch (e) {
+    toast('Could not save — please try again');
+  }
 }
 
 // ═══════ REAL COMMUNITY FEED ═══════
@@ -2186,6 +2366,24 @@ function wireEvents() {
   // Log search
   const ls = document.getElementById('log-search');
   if (ls) ls.addEventListener('input', e => onLogSearch(e.target.value));
+
+  // Add-to-collection search
+  const as = document.getElementById('add-search');
+  if (as) as.addEventListener('input', e => onAddSearch(e.target.value));
+
+  // Poster card quick-action buttons (global delegation)
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.pca-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    const act = btn.getAttribute('data-pca');
+    const name = btn.getAttribute('data-name');
+    const house = btn.getAttribute('data-house');
+    const img = btn.getAttribute('data-img');
+    const fid = btn.getAttribute('data-fid');
+    if (act === 'log') prefillLog(name, house, img);
+    else if (act === 'hive') quickAdd(name, house, img, fid);
+  });
 
   // Star picker
   document.querySelectorAll('#star-picker .star-pick').forEach(s => {
