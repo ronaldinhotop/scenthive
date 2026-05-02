@@ -14,7 +14,8 @@
 <meta property="og:description" content="Log every scent. Rate it. Discover your nose. Join the hive.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://scenthive.app">
-<meta property="og:image" content="https://scenthive.app/og-image.jpg">
+<meta property="og:image" content="https://scenthive.app/icon-512.png">
+<meta name="twitter:image" content="https://scenthive.app/icon-512.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ScentHive — Your Fragrance Diary">
 <meta name="twitter:description" content="Log every scent. Rate it. Discover your nose.">
@@ -656,21 +657,40 @@ img{max-width:100%;display:block}
 
     <div class="search-results-wrap" id="search-results"></div>
 
+    <!-- PWA install banner -->
+    <div id="pwa-banner" style="display:none;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;background:var(--gold-pale);border-bottom:1px solid var(--gold-dim)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">🐝</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--white)">Add ScentHive to your home screen</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:0.06em">Works offline · No app store needed</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="installPWA()" style="font-family:'DM Mono',monospace;font-size:9px;padding:6px 12px;background:var(--gold);color:var(--bg);border-radius:2px;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer">Install</button>
+        <button onclick="dismissPWA()" style="font-family:'DM Mono',monospace;font-size:9px;padding:6px 8px;background:transparent;color:var(--grey);border-radius:2px;letter-spacing:0.06em;cursor:pointer">✕</button>
+      </div>
+    </div>
+
     <div id="home-content">
-      <div class="hero">
+      <div class="hero" id="home-hero">
         <div class="hero-hex-bg"></div>
         <span class="hero-bee bee-1">🐝</span>
         <span class="hero-bee bee-2">🐝</span>
         <span class="hero-bee bee-3">🐝</span>
         <div class="hero-content">
-          <div class="hero-tag">🍯 Welcome to the Hive</div>
-          <div class="hero-title">Your fragrance <em>diary</em></div>
-          <div class="hero-sub">Log every scent. Rate it. Discover your nose. Join the community.</div>
+          <div class="hero-tag" id="hero-tag">🍯 Welcome to the Hive</div>
+          <div class="hero-title" id="hero-title">Your fragrance <em>diary</em></div>
+          <div class="hero-sub" id="hero-sub">Log every scent. Rate it. Discover your nose.</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px">
+            <button onclick="openLog()" style="font-family:'DM Mono',monospace;font-size:11px;padding:10px 22px;background:var(--gold);color:var(--bg);border-radius:2px;letter-spacing:0.07em;text-transform:uppercase;cursor:pointer;font-weight:500">+ Log today's scent</button>
+            <button onclick="showScreen('auth')" id="hero-signin-btn" style="font-family:'DM Mono',monospace;font-size:11px;padding:10px 20px;background:transparent;color:var(--white2);border:1px solid var(--border);border-radius:2px;letter-spacing:0.07em;text-transform:uppercase;cursor:pointer">Join free →</button>
+          </div>
         </div>
       </div>
 
-      <!-- FEATURE GRID -->
-      <div class="features-grid">
+      <!-- FEATURE GRID (shown only to new users) -->
+      <div class="features-grid" id="features-grid">
         <div class="feature-card">
           <div class="feature-icon">🏺</div>
           <div><div class="feature-head">Track every wear</div><div class="feature-body">Log what you spray each day and build a lifetime scent diary.</div></div>
@@ -703,7 +723,7 @@ img{max-width:100%;display:block}
             <div class="section-eyebrow">Popular this week</div>
             <div class="section-title">Most logged <em>right now</em></div>
           </div>
-          <span class="section-more">See all →</span>
+          <span class="section-more" onclick="document.getElementById('search-input').focus();document.getElementById('search-input').scrollIntoView({behavior:'smooth'})">Search all →</span>
         </div>
         <div class="poster-row" id="shelf-popular"><div class="loading-row">Loading…</div></div>
       </div>
@@ -716,7 +736,11 @@ img{max-width:100%;display:block}
           </div>
         </div>
         <div class="review-feed" id="review-feed">
-          <div class="loading-row" style="padding:24px;color:var(--grey);font-size:13px;font-style:italic">No reviews yet — be the first to log a fragrance.</div>
+          <div style="padding:32px 24px;text-align:center;color:var(--grey)">
+            <div style="font-size:28px;opacity:0.4;margin-bottom:10px">📝</div>
+            <div style="font-size:13px;font-style:italic;margin-bottom:6px">No reviews yet</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em">Be the first — log a fragrance and add a note.</div>
+          </div>
         </div>
       </div>
 
@@ -727,7 +751,7 @@ img{max-width:100%;display:block}
             <div class="section-title">Dark & <em>brooding</em></div>
             <div class="section-sub">Oud, tobacco, leather. For the cold months.</div>
           </div>
-          <span class="section-more">See all →</span>
+          <span class="section-more" onclick="triggerSearch('oud tobacco leather')">Explore →</span>
         </div>
         <div class="poster-row" id="shelf-dark"><div class="loading-row">Loading…</div></div>
       </div>
@@ -741,7 +765,7 @@ img{max-width:100%;display:block}
             <div class="section-title">Fresh <em>classics</em></div>
             <div class="section-sub">Office-friendly signatures that never fail.</div>
           </div>
-          <span class="section-more">See all →</span>
+          <span class="section-more" onclick="triggerSearch('fresh aquatic citrus')">Explore →</span>
         </div>
         <div class="poster-row" id="shelf-fresh"><div class="loading-row">Loading…</div></div>
       </div>
@@ -765,7 +789,11 @@ img{max-width:100%;display:block}
           </div>
         </div>
         <div id="community-diary-feed">
-          <div style="padding:20px 24px;font-size:13px;color:var(--grey);font-style:italic">No entries yet — log a fragrance to appear here.</div>
+          <div style="padding:32px 24px;text-align:center;color:var(--grey)">
+            <div style="font-size:28px;opacity:0.4;margin-bottom:10px">🐝</div>
+            <div style="font-size:13px;font-style:italic;margin-bottom:6px">The hive is quiet</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em">Log a fragrance to appear in the community diary.</div>
+          </div>
         </div>
       </div>
 
@@ -879,14 +907,25 @@ img{max-width:100%;display:block}
       <div class="profile-stat"><span class="profile-stat-num" id="prof-avg">—</span><span class="profile-stat-label">Avg</span></div>
     </div>
 
-    <!-- Upgrade strip -->
-    <div class="upgrade-strip" id="upgrade-strip" onclick="openUpgrade()">
+    <!-- Upgrade strip (logged-in only) -->
+    <div class="upgrade-strip" id="upgrade-strip" onclick="openUpgrade()" style="display:none">
       <div class="upgrade-strip-text">Unlock full stats, no ads, and early access — <strong>ScentHive Pro</strong></div>
       <div class="upgrade-strip-btn">👑 Upgrade</div>
     </div>
 
+    <!-- Guest sign-in CTA -->
+    <div id="guest-cta" style="display:none;margin:0;padding:20px;background:var(--bg2);border-bottom:1px solid var(--border2)">
+      <div style="text-align:center;padding:12px 0 20px">
+        <div style="font-size:32px;margin-bottom:10px">🐝</div>
+        <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;margin-bottom:6px">Start your scent diary</div>
+        <div style="font-size:13px;color:var(--grey);line-height:1.6;max-width:280px;margin:0 auto 20px">Create a free account to save your diary, build your collection, and discover your nose.</div>
+        <button onclick="showScreen('auth')" style="font-family:'DM Mono',monospace;font-size:11px;padding:12px 28px;background:var(--gold);color:var(--bg);border-radius:2px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-weight:500;width:100%">Create free account →</button>
+        <button onclick="showScreen('auth')" style="margin-top:10px;font-family:'DM Mono',monospace;font-size:10px;padding:10px;background:transparent;color:var(--grey);border:1px solid var(--border);border-radius:2px;letter-spacing:0.06em;cursor:pointer;width:100%">Already have an account? Sign in</button>
+      </div>
+    </div>
+
     <!-- Favourites -->
-    <div class="profile-section">
+    <div class="profile-section" id="fav-section">
       <div class="profile-sec-header">
         <div class="profile-sec-title">Favourite four</div>
         <span class="profile-sec-more" id="fav-edit-btn" onclick="openPickFav(0)" style="cursor:pointer">Edit →</span>
@@ -1277,8 +1316,11 @@ async function handleAuth() {
       const { error } = await sb.auth.signUp({ email, password, options: { data: { name: name || email.split('@')[0] } } });
       if (error) throw error;
       const { data, error: e2 } = await sb.auth.signInWithPassword({ email, password });
-      if (!e2 && data.user) { user = data.user; await initApp(); }
-      else setMsg('Account created! Please sign in.', 'success');
+      if (!e2 && data.user) {
+        user = data.user;
+        await initApp();
+        setTimeout(() => toast('🐝 Welcome to the hive! Start by logging what you\'re wearing today.'), 800);
+      } else setMsg('Account created! Please sign in.', 'success');
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -1300,6 +1342,7 @@ function enterAsGuest() {
     collection = JSON.parse(localStorage.getItem('sh_collection') || '[]');
   } catch (e) { diary = []; collection = []; }
   showTab('home');
+  updateHero();
   loadCommunityFeed();
   updateRightSidebar();
 }
@@ -1307,6 +1350,7 @@ function enterAsGuest() {
 async function initApp() {
   await Promise.all([loadCollection(), loadDiary()]);
   showTab('home');
+  updateHero();
   if (diary.length === 0) {
     setTimeout(() => toast('🐝 Welcome! Search a fragrance above to get started.'), 900);
   }
@@ -1371,6 +1415,10 @@ async function updateRightSidebar() {
 }
 
 async function renderHome() {
+  updateHero();
+  // Hide features grid for users who already have data
+  const fg = document.getElementById('features-grid');
+  if (fg) fg.style.display = (diary.length > 0 || collection.length > 0) ? 'none' : '';
   loadPopularShelf();
   loadShelf('shelf-dark', ['Tobacco Vanille Tom Ford', 'Encre Noire Lalique', 'Black Orchid Tom Ford', 'Interlude Man Amouage', 'Oud Wood Tom Ford', 'Lost Cherry Tom Ford', 'Dior Homme Intense']);
   loadShelf('shelf-fresh', ['Bleu de Chanel EDP', 'Acqua di Gio Profumo', 'Y EDP YSL', 'Erba Pura Xerjoff', 'Light Blue Dolce', 'Terre Hermes', 'Reflection Man Amouage', 'Viking Creed']);
@@ -2093,6 +2141,15 @@ function renderProfile() {
     document.getElementById('signout-row').style.display = 'none';
     document.getElementById('account-row').setAttribute('data-action', 'signin');
   }
+
+  // Show/hide guest vs member sections
+  const isLoggedIn = !!user;
+  const guestCta = document.getElementById('guest-cta');
+  const upgradeStrip = document.getElementById('upgrade-strip');
+  const favSection = document.getElementById('fav-section');
+  if (guestCta) guestCta.style.display = isLoggedIn ? 'none' : 'block';
+  if (upgradeStrip) upgradeStrip.style.display = isLoggedIn ? 'flex' : 'none';
+  if (favSection) favSection.style.display = isLoggedIn ? 'block' : 'none';
 
   // Stats
   const houses = [...new Set(collection.map(b => b.house).filter(Boolean))];
@@ -3021,6 +3078,65 @@ function wireEvents() {
   if (rpLog) rpLog.addEventListener('click', openLog);
   const rpAdd = document.getElementById('rp-add-btn');
   if (rpAdd) rpAdd.addEventListener('click', openAdd);
+}
+
+// ═══════ HERO PERSONALISATION ═══════
+function updateHero() {
+  const tag = document.getElementById('hero-tag');
+  const title = document.getElementById('hero-title');
+  const sub = document.getElementById('hero-sub');
+  const signinBtn = document.getElementById('hero-signin-btn');
+  if (!tag) return;
+  if (user) {
+    const name = user.user_metadata?.name || user.email?.split('@')[0] || 'there';
+    const firstName = name.split(' ')[0];
+    if (diary.length > 0) {
+      tag.textContent = '🐝 Welcome back, ' + firstName;
+      title.innerHTML = diary.length + ' scents <em>logged</em>';
+      sub.textContent = 'Keep the streak going. What are you wearing today?';
+    } else {
+      tag.textContent = '🍯 Hey ' + firstName + ', welcome';
+      title.innerHTML = 'Log your <em>first</em> scent';
+      sub.textContent = 'Start your fragrance diary — it takes 30 seconds.';
+    }
+    if (signinBtn) signinBtn.style.display = 'none';
+  } else {
+    tag.textContent = '🍯 Welcome to the Hive';
+    title.innerHTML = 'Your fragrance <em>diary</em>';
+    sub.textContent = 'Log every scent. Rate it. Discover your nose.';
+    if (signinBtn) signinBtn.style.display = '';
+  }
+}
+
+// ═══════ SEARCH TRIGGER ═══════
+function triggerSearch(q) {
+  const input = document.getElementById('search-input');
+  if (!input) return;
+  input.value = q;
+  input.dispatchEvent(new Event('input'));
+  input.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => input.focus(), 400);
+}
+
+// ═══════ PWA INSTALL ═══════
+let _pwaPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _pwaPrompt = e;
+  if (!sessionStorage.getItem('pwa-dismissed')) {
+    const banner = document.getElementById('pwa-banner');
+    if (banner) banner.style.display = 'flex';
+  }
+});
+function installPWA() {
+  if (!_pwaPrompt) return;
+  _pwaPrompt.prompt();
+  _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; dismissPWA(); });
+}
+function dismissPWA() {
+  sessionStorage.setItem('pwa-dismissed', '1');
+  const banner = document.getElementById('pwa-banner');
+  if (banner) banner.style.display = 'none';
 }
 
 // ═══════ KEYBOARD ═══════
