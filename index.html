@@ -531,6 +531,14 @@ img{max-width:100%;display:block}
 /* ═══ PROFILE EDIT ═══ */
 .profile-edit-btn{font-family:'DM Mono',monospace;font-size:10px;padding:8px 16px;background:var(--bg2);border:1px solid var(--border);color:var(--white2);letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:border-color 0.2s}
 .profile-edit-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ═══ DELETE BUTTONS ═══ */
+.col-del-btn{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(13,16,24,0.75);color:var(--red);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity 0.15s;z-index:4;border:1px solid rgba(239,68,68,0.3)}
+.col-cell:hover .col-del-btn{opacity:1}
+.col-del-btn:hover{background:rgba(239,68,68,0.25)}
+.diary-del-btn{width:28px;height:28px;border-radius:50%;background:transparent;color:var(--grey);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity 0.15s,color 0.15s;flex-shrink:0}
+.diary-row-item:hover .diary-del-btn{opacity:1}
+.diary-del-btn:hover{color:var(--red)}
 </style>
 </head>
 <body>
@@ -796,7 +804,7 @@ img{max-width:100%;display:block}
     <div class="profile-section">
       <div class="profile-sec-header">
         <div class="profile-sec-title">Favourite four</div>
-        <span class="profile-sec-more" onclick="toast('Favourites coming soon 🌹')">Edit →</span>
+        <span class="profile-sec-more" onclick="showTab('diary')">All →</span>
       </div>
       <div class="favourites-grid" id="favourites-grid"></div>
     </div>
@@ -1743,8 +1751,7 @@ function renderDiary() {
   const months = Object.keys(monthMap).sort().reverse();
   el.innerHTML = months.map(k => {
     const m = monthMap[k];
-    return `
-      <div class="diary-month-group">
+    return `<div class="diary-month-group">
         <div class="diary-month-label">${m.label}</div>
         ${m.entries.map(e => {
           const d = new Date(e.worn_at);
@@ -1752,8 +1759,9 @@ function renderDiary() {
           const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
           const stars = e.rating ? '★'.repeat(e.rating) + '<span class="empty">' + '★'.repeat(5 - e.rating) + '</span>' : '';
           const reviewIcon = e.notes ? '<span class="diary-review-icon">≡</span>' : '';
+          const eid = escapeAttr(String(e.id || ''));
           return `
-            <div class="diary-row-item">
+            <div class="diary-row-item" style="cursor:pointer" data-name="${escapeAttr(e.fragrance_name||'')}" data-house="${escapeAttr(e.house||'')}">
               <div>
                 <div class="diary-day">${day}</div>
                 <div class="diary-day-sub">${dayName}</div>
@@ -1761,18 +1769,36 @@ function renderDiary() {
               <div class="diary-bottle">${e.image_url ? `<img src="${escapeAttr(e.image_url)}" alt="${escapeHtml(e.fragrance_name)}" onerror="this.outerHTML='<div class=&quot;diary-bottle-emoji&quot;>🏺</div>'">` : '<div class="diary-bottle-emoji">🏺</div>'}</div>
               <div class="diary-info">
                 <div class="diary-name">${escapeHtml(e.fragrance_name)}</div>
-                <div class="diary-name-house">${escapeHtml(e.house || '')}</div>
+                <div class="diary-house">${escapeHtml(e.house || '')}</div>
               </div>
               <div class="diary-rating-cell">
-                ${stars ? `<div class="diary-rating-stars">${stars}</div>` : ''}
-                ${reviewIcon}
+                ${stars ? `<div class="diary-stars">${stars}</div>` : ''}
+                <button class="diary-del-btn" title="Remove" onclick="event.stopPropagation();deleteDiaryEntry('${eid}')">×</button>
               </div>
               ${e.notes ? `<div class="diary-review-text">"${escapeHtml(e.notes)}"</div>` : ''}
             </div>`;
         }).join('')}
-      </div>
-    `;
+      </div>`;
   }).join('');
+
+  // Diary row click → open frag detail
+  el.querySelectorAll('.diary-row-item').forEach(row => {
+    row.addEventListener('click', () => {
+      const name = row.getAttribute('data-name');
+      const house = row.getAttribute('data-house');
+      if (!name) return;
+      const cached = Object.keys(fragStore).find(k =>
+        fragStore[k].name && fragStore[k].name.toLowerCase() === name.toLowerCase()
+      );
+      if (cached) { openFrag(cached); return; }
+      searchFragella(name + (house ? ' ' + house : '')).then(frags => {
+        if (!frags.length) return;
+        const key = 'd' + Math.random().toString(36).slice(2, 8);
+        fragStore[key] = frags[0];
+        openFrag(key);
+      });
+    });
+  });
 }
 
 // ═══════ COLLECTION ═══════
@@ -1806,6 +1832,7 @@ function renderCollection() {
           <div class="col-cell-name">${escapeHtml(b.name)}</div>
           <div class="col-cell-house">${escapeHtml(b.house || '')}</div>
         </div>
+        <button class="col-del-btn" onclick="event.stopPropagation();deleteCollectionItem('${escapeAttr(String(b.id||''))}','${escapeAttr(b.name||'')}')">×</button>
       </div>`;
   }).join('');
 
@@ -2310,6 +2337,29 @@ async function saveLog() {
   loadCommunityFeed();
 }
 
+// ═══════ DELETE ENTRIES ═══════
+async function deleteDiaryEntry(id) {
+  if (!id) return;
+  diary = diary.filter(e => String(e.id) !== String(id));
+  if (user) sb.from('journal_entries').delete().eq('id', id).catch(() => {});
+  else saveLocal();
+  renderDiary();
+  updateRightSidebar();
+  toast('Entry removed');
+}
+
+async function deleteCollectionItem(id, name) {
+  if (!id && !name) return;
+  collection = id
+    ? collection.filter(b => String(b.id) !== String(id))
+    : collection.filter(b => b.name !== name);
+  if (user && id) sb.from('collection').delete().eq('id', id).catch(() => {});
+  else saveLocal();
+  renderCollection();
+  updateRightSidebar();
+  toast('Removed from hive');
+}
+
 // ═══════ PROFILE EDIT ═══════
 function openEditProfile() {
   if (!user) { toast('Sign in to edit your profile'); return; }
@@ -2387,8 +2437,10 @@ async function loadArticlesList() {
       .limit(10);
 
     if (!data || data.length === 0) {
-      // Seed articles on first load
+      if (loadArticlesList._seeding) { el.innerHTML = '<div style="padding:20px;color:var(--grey);font-size:12px;font-style:italic">Articles coming soon.</div>'; return; }
+      loadArticlesList._seeding = true;
       await seedArticles();
+      loadArticlesList._seeding = false;
       return loadArticlesList();
     }
 
