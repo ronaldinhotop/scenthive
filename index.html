@@ -1182,6 +1182,17 @@ img{max-width:100%;display:block}
         <div class="occ-chip" data-v="Formal">Formal</div>
       </div>
 
+      <label class="modal-label" style="margin-top:16px">Share with community</label>
+      <div id="log-public-toggle" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;cursor:pointer;margin-bottom:16px" onclick="toggleLogPublic()">
+        <div>
+          <div style="font-size:13px;color:var(--white2)">Make this review public</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-top:2px;letter-spacing:0.04em">Appears in the community feed for others to read</div>
+        </div>
+        <div id="log-public-pill" style="width:38px;height:22px;border-radius:11px;background:var(--bg4);border:1px solid var(--border);position:relative;transition:background 0.2s;flex-shrink:0">
+          <div id="log-public-dot" style="width:16px;height:16px;border-radius:50%;background:var(--grey2);position:absolute;top:2px;left:2px;transition:all 0.2s"></div>
+        </div>
+      </div>
+
       <button class="modal-submit" id="log-save-btn">Save to diary</button>
       <button class="modal-cancel" data-close="modal-log">Cancel</button>
     </div>
@@ -2663,9 +2674,20 @@ let logSearchTimer = null;
 let selectedAddFrag = null;
 let addSearchTimer = null;
 
+let logIsPublic = false;
+
+function toggleLogPublic() {
+  logIsPublic = !logIsPublic;
+  const pill = document.getElementById('log-public-pill');
+  const dot = document.getElementById('log-public-dot');
+  if (pill) pill.style.background = logIsPublic ? 'var(--gold)' : 'var(--bg4)';
+  if (dot) { dot.style.background = logIsPublic ? 'var(--bg)' : 'var(--grey2)'; dot.style.left = logIsPublic ? '20px' : '2px'; }
+}
+
 function openLog(prefilled) {
   selectedFrag = null;
   logRating = 0;
+  logIsPublic = false;
   document.getElementById('log-step-1').style.display = 'block';
   document.getElementById('log-step-2').style.display = 'none';
   document.getElementById('log-search').value = prefilled ? (prefilled.name || '') : '';
@@ -2673,9 +2695,12 @@ function openLog(prefilled) {
   document.getElementById('log-review').value = '';
   document.querySelectorAll('#star-picker .star-pick').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('#log-occ .occ-chip').forEach(c => c.classList.remove('selected'));
-  if (prefilled) {
-    selectFrag(prefilled);
-  }
+  // Reset toggle UI
+  const pill = document.getElementById('log-public-pill');
+  const dot = document.getElementById('log-public-dot');
+  if (pill) pill.style.background = 'var(--bg4)';
+  if (dot) { dot.style.background = 'var(--grey2)'; dot.style.left = '2px'; }
+  if (prefilled) selectFrag(prefilled);
   openModal('modal-log');
 }
 
@@ -2756,7 +2781,8 @@ async function saveLog() {
     occasion: occ,
     image_url: selectedFrag.image_url || null,
     fragella_id: selectedFrag.fragella_id || null,
-    worn_at: new Date().toISOString()
+    worn_at: new Date().toISOString(),
+    is_public: logIsPublic
   };
   if (user) {
     try {
@@ -2772,7 +2798,7 @@ async function saveLog() {
     saveLocal();
   }
   closeModal('modal-log');
-  toast('✓ Logged to diary');
+  toast(logIsPublic ? '✓ Logged & shared with community' : '✓ Logged to diary');
   renderDiary();
   updateRightSidebar();
   loadCommunityFeed();
