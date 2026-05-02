@@ -1564,7 +1564,7 @@ async function loadDiary() {
     return;
   }
   try {
-    const { data } = await sb.from('journal_entries').select('*').eq('user_id', user.id).order('worn_at', { ascending: false }).limit(100);
+    const { data } = await sb.from('journal_entries').select('*').eq('user_id', user.id).order('worn_at', { ascending: false }).limit(500);
     if (data) diary = data;
   } catch (e) { diary = []; }
 }
@@ -2936,8 +2936,10 @@ async function loadCommunityFeed() {
   try {
     const { data } = await sb.from('journal_entries')
       .select('fragrance_name, house, image_url, rating, notes, worn_at')
+      .not('notes', 'is', null)
+      .neq('notes', '')
       .order('worn_at', { ascending: false })
-      .limit(10);
+      .limit(12);
     if (!data || data.length === 0) {
       el.innerHTML = '<div style="padding:20px 24px;font-size:13px;color:var(--grey);font-style:italic">No entries yet — be the first to log a fragrance.</div>';
       return;
