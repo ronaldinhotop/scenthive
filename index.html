@@ -1416,6 +1416,55 @@ function buildHexNotes(notes, tier) {
   }).join('');
 }
 
+// ═══════ FRAGRANCE DETAIL HELPERS ═══════
+const LONGEVITY_MAP = {
+  'extremely long': 100, 'very long lasting': 92, 'long lasting': 75, 'long-lasting': 75,
+  'moderate': 50, 'average': 50, 'weak': 28, 'poor': 20, 'very weak': 10
+};
+const SILLAGE_MAP = {
+  'enormous': 95, 'overwhelming': 100, 'heavy': 80, 'strong': 72,
+  'moderate': 52, 'average': 52, 'light': 32, 'soft': 24, 'intimate': 15, 'very soft': 10
+};
+
+function textToPct(text, map) {
+  if (!text) return 0;
+  const lower = text.toLowerCase();
+  for (const [key, val] of Object.entries(map)) {
+    if (lower.includes(key)) return val;
+  }
+  return 0;
+}
+
+function getSeasons(f) {
+  const src = [f.family, ...(f.accords || []).map(a => typeof a === 'string' ? a : (a.name || ''))].join(' ').toLowerCase();
+  const match = terms => terms.some(t => src.includes(t));
+  return [
+    { label: '☀️ Summer', active: match(['citrus','fresh','aquatic','marine','light','clean','oceanic','green']), cls: 'active-summer' },
+    { label: '🌸 Spring', active: match(['floral','rose','jasmin','violet','iris','lilac','lily','neroli','peony']), cls: 'active-summer' },
+    { label: '🍂 Fall',   active: match(['wood','spic','leather','tobacco','oriental','amber','resin','earthy','vetiver']), cls: 'active-season' },
+    { label: '❄️ Winter', active: match(['oud','incense','vanilla','warm','sweet','gourmand','balsam','smoky','heavy','musk']), cls: 'active-season' }
+  ];
+}
+
+async function loadSimilarFragrances(house, currentName) {
+  const el = document.getElementById('frag-similar');
+  if (!el || !house) return;
+  try {
+    const frags = await searchFragella(house);
+    const filtered = frags
+      .filter(f => f.name && f.name.toLowerCase() !== (currentName || '').toLowerCase())
+      .slice(0, 6);
+    if (!filtered.length) { el.style.display = 'none'; return; }
+    const row = el.querySelector('.poster-row');
+    if (row) {
+      row.innerHTML = filtered.map(f => buildPosterCard(f)).join('');
+      row.querySelectorAll('.poster-card').forEach(card => {
+        card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
+      });
+    }
+  } catch (e) { el.style.display = 'none'; }
+}
+
 // ═══════ FRAGRANCE DETAIL ═══════
 function openFrag(key) {
   const f = fragStore[key];
@@ -1425,14 +1474,26 @@ function openFrag(key) {
   const base = f.notes_base || f['Base Notes'] || [];
   const general = f['General Notes'] || [];
   const hasNotes = top.length || heart.length || base.length || general.length;
-
   const accords = f.accords || [];
   const buyQ = encodeURIComponent((f.name || '') + ' ' + (f.house || ''));
   const safeName = escapeHtml(f.name || '');
   const safeHouse = escapeHtml(f.house || '');
-  const safeFamily = escapeHtml(f.family || '');
 
-  const meta = [f.family, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ');
+  // Season badges
+  const seasons = getSeasons(f);
+  const seasonHtml = '<div class="detail-sec"><div class="detail-label">Best seasons</div>' +
+    '<div class="season-wrap">' +
+    seasons.map(s => '<div class="season-badge ' + (s.active ? s.cls : '') + '">' + s.label + '</div>').join('') +
+    '</div></div>';
+
+  // Performance meters
+  const lPct = textToPct(f.longevity, LONGEVITY_MAP);
+  const sPct = textToPct(f.sillage, SILLAGE_MAP);
+  const perfHtml = (f.longevity || f.sillage) ?
+    '<div class="detail-sec"><div class="detail-label">Performance</div><div style="padding:4px 0">' +
+      (f.longevity ? '<div class="perf-row"><div class="perf-row-label">Longevity</div><div class="perf-track"><div class="perf-fill-gold" style="width:' + (lPct || 60) + '%"></div></div><div class="perf-val">' + escapeHtml(f.longevity) + '</div></div>' : '') +
+      (f.sillage  ? '<div class="perf-row"><div class="perf-row-label">Sillage</div><div class="perf-track"><div class="perf-fill-purple" style="width:' + (sPct || 60) + '%"></div></div><div class="perf-val">' + escapeHtml(f.sillage) + '</div></div>' : '') +
+    '</div></div>' : '';
 
   document.getElementById('frag-content').innerHTML =
     '<div class="frag-hero">' +
@@ -1442,25 +1503,27 @@ function openFrag(key) {
         '<div class="frag-hero-name">' + safeName + '</div>' +
         '<div class="frag-hero-meta">' + [f.family, f.oil_type, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' +
         '<div class="frag-actions">' +
-          '<button class="frag-btn frag-btn-primary" data-act="log" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '">Log & rate</button>' +
+          '<button class="frag-btn frag-btn-primary" data-act="log" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '">Log &amp; rate</button>' +
           '<button class="frag-btn frag-btn-secondary" data-act="add" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '">+ Hive</button>' +
         '</div>' +
       '</div>' +
     '</div>' +
-    ((f.longevity || f.sillage || f.gender || f.launch_year) ?
+    ((f.gender || f.launch_year) ?
       '<div class="frag-stats-grid">' +
-        (f.longevity ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.longevity) + '</span><span class="frag-stat-key">Longevity</span></div>' : '') +
-        (f.sillage ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.sillage) + '</span><span class="frag-stat-key">Sillage</span></div>' : '') +
         (f.gender ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.gender) + '</span><span class="frag-stat-key">Gender</span></div>' : '') +
         (f.launch_year ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + f.launch_year + '</span><span class="frag-stat-key">Year</span></div>' : '') +
+        (f.price_range ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.price_range) + '</span><span class="frag-stat-key">Price</span></div>' : '') +
+        (f.oil_type ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.oil_type) + '</span><span class="frag-stat-key">Type</span></div>' : '') +
       '</div>' : '') +
-    (hasNotes ? '<div class="detail-sec"><div class="detail-label">Fragrance Notes</div><div class="hex-pyramid">' +
+    seasonHtml +
+    perfHtml +
+    (hasNotes ? '<div class="detail-sec"><div class="detail-label">Fragrance notes</div><div class="hex-pyramid">' +
       (top.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-top">Top notes</div><div class="hex-grid">' + buildHexNotes(top, 'top') + '</div></div>' : '') +
       (heart.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-heart">Heart notes</div><div class="hex-grid">' + buildHexNotes(heart, 'heart') + '</div></div>' : '') +
       (base.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-base">Base notes</div><div class="hex-grid">' + buildHexNotes(base, 'base') + '</div></div>' : '') +
       (!top.length && !heart.length && !base.length && general.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-base">Notes</div><div class="hex-grid">' + buildHexNotes(general.slice(0,12), 'base') + '</div></div>' : '') +
     '</div></div>' : '') +
-    (accords && accords.length ? '<div class="detail-sec"><div class="detail-label">Scent Character</div>' +
+    (accords && accords.length ? '<div class="detail-sec"><div class="detail-label">Scent character</div>' +
       accords.slice(0,7).map(function(a, ai) {
         var nm = typeof a === 'string' ? a : (a.name || String(a));
         var pct = typeof a === 'object' ? (a.percentage || a.pct || 70) : 70;
@@ -1468,6 +1531,10 @@ function openFrag(key) {
         return '<div class="accord-bar-wrap"><div class="accord-bar-top"><span class="accord-bar-name">' + escapeHtml(nm) + '</span><span class="accord-bar-pct">' + Math.round(pct) + '%</span></div><div class="accord-track"><div class="' + fillCls + '" style="width:' + pct + '%"></div></div></div>';
       }).join('') + '</div>' : '') +
     '<div class="detail-sec" id="frag-reviews"><div class="detail-label">Reviews from the hive</div><div style="color:var(--grey);font-size:12px;font-style:italic">Loading…</div></div>' +
+    (f.house ? '<div class="detail-sec" id="frag-similar">' +
+      '<div class="detail-label">More from ' + safeHouse + '</div>' +
+      '<div class="poster-row"><div class="loading-row"><div class="spinner"></div></div></div>' +
+    '</div>' : '') +
     '<div class="detail-sec"><div class="detail-label">Buy near you</div>' +
       '<div class="buy-row" data-url="https://www.notino.no/search/?phrase=' + buyQ + '"><div><div class="buy-name">🇳🇴 Notino Norway</div><div class="buy-note">Free shipping over 299 kr</div></div><span style="color:var(--grey)">›</span></div>' +
       '<div class="buy-row" data-url="https://www.kicks.no/search?q=' + buyQ + '"><div><div class="buy-name">🇳🇴 Kicks</div><div class="buy-note">Same day delivery</div></div><span style="color:var(--grey)">›</span></div>' +
@@ -1475,7 +1542,7 @@ function openFrag(key) {
       '<div class="buy-row" data-url="https://www.google.com/search?q=' + buyQ + '+buy"><div><div class="buy-name">🔍 Compare prices</div><div class="buy-note">Google Shopping</div></div><span style="color:var(--grey)">›</span></div>' +
     '</div><div style="height:40px"></div>';
 
-    // Wire up buttons inside the rendered detail
+  // Wire buttons
   document.querySelectorAll('#frag-content .frag-btn').forEach(b => {
     b.addEventListener('click', () => {
       const act = b.getAttribute('data-act');
@@ -1491,6 +1558,7 @@ function openFrag(key) {
 
   showScreen('frag');
   if (f.name) loadFragReviews(f.name);
+  if (f.house) loadSimilarFragrances(f.house, f.name);
 }
 
 async function loadFragReviews(fragName) {
