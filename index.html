@@ -563,6 +563,29 @@ img{max-width:100%;display:block}
 .diary-del-btn{width:28px;height:28px;border-radius:50%;background:transparent;color:var(--grey);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity 0.15s,color 0.15s;flex-shrink:0}
 .diary-row-item:hover .diary-del-btn{opacity:1}
 .diary-del-btn:hover{color:var(--red)}
+
+/* ═══ AI MODAL ═══ */
+.ai-rec-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px}
+.ai-rec-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.ai-rec-name{font-family:'Playfair Display',serif;font-size:16px;font-style:italic;line-height:1.2}
+.ai-rec-house{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.09em;text-transform:uppercase;margin-top:3px}
+.ai-rec-why{font-size:12px;color:var(--white2);line-height:1.55;margin-bottom:8px;font-style:italic}
+.ai-rec-meta{display:flex;gap:6px;flex-wrap:wrap}
+.ai-rec-chip{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:2px;background:var(--bg3);color:var(--grey);letter-spacing:0.06em;text-transform:uppercase}
+.ai-rec-chip.occ{color:var(--purple-light);background:rgba(139,92,246,0.1)}
+.ai-rec-chip.price{color:var(--gold-dim);background:rgba(240,192,64,0.08)}
+.ai-context-chip{font-family:'DM Mono',monospace;font-size:9px;padding:4px 10px;border-radius:2px;background:var(--bg3);color:var(--grey);letter-spacing:0.06em;text-transform:uppercase;cursor:default;border:1px solid var(--border2)}
+.ai-intro{font-size:13px;color:var(--white2);font-style:italic;line-height:1.6;padding:12px 14px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--gold-dim);margin-bottom:14px}
+.ai-dupe-badge{font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;background:rgba(34,197,94,0.12);color:#4ade80;border-radius:2px;letter-spacing:0.06em;text-transform:uppercase;flex-shrink:0}
+
+/* ═══ BUY SECTION ═══ */
+.buy-section-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin:14px 0 8px;padding:0}
+.buy-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0}
+.buy-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:12px 14px;cursor:pointer;transition:border-color 0.2s,background 0.15s;display:flex;flex-direction:column;gap:3px}
+.buy-card:hover{border-color:var(--gold);background:var(--bg3)}
+.buy-card-name{font-size:12px;font-weight:500;color:var(--white)}
+.buy-card-note{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.04em}
+.buy-card-flag{font-size:16px;margin-bottom:2px}
 </style>
 </head>
 <body>
@@ -608,6 +631,10 @@ img{max-width:100%;display:block}
     <div class="sidebar-log-btn" id="sidebar-log-btn">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Log a fragrance
+    </div>
+    <div class="sidebar-item" onclick="openAI()" style="margin-top:8px;color:var(--purple-light)">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      AI Recs
     </div>
     <div class="sidebar-footer">scenthive.app · Beta</div>
   </div>
@@ -660,7 +687,7 @@ img{max-width:100%;display:block}
           <div class="feature-icon">📊</div>
           <div><div class="feature-head">Taste profile</div><div class="feature-body">See your nose broken down — oriental, woody, fresh, floral — by data.</div></div>
         </div>
-        <div class="feature-card">
+        <div class="feature-card clickable" onclick="openAI()">
           <div class="feature-icon">🤖</div>
           <div><div class="feature-head">AI recommendations</div><div class="feature-body">Tell the AI what you love and get personalised picks instantly.</div></div>
         </div>
@@ -1107,6 +1134,23 @@ img{max-width:100%;display:block}
     </div>
     <button class="modal-submit" onclick="toast('🐝 You\'re on the waitlist — we\'ll be in touch!');closeModal('modal-upgrade')">Join the waitlist</button>
     <button class="modal-cancel" data-close="modal-upgrade">Maybe later</button>
+  </div>
+</div>
+
+<!-- ═══ AI RECOMMENDATIONS MODAL ═══ -->
+<div class="modal-overlay" id="modal-ai">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:4px 0 16px">
+      <div style="font-size:30px;margin-bottom:8px">🤖</div>
+      <div class="modal-title" style="font-size:22px">AI Recommendations</div>
+      <div style="font-size:12px;color:var(--grey);margin-top:4px;line-height:1.5">Tell me what you love and I'll find your next obsession.</div>
+    </div>
+    <textarea id="ai-prompt" class="modal-input" rows="3" placeholder="e.g. I love warm oud and vanilla, hate citrus, looking for something to wear in winter evenings…" style="resize:none;line-height:1.55;font-size:13px"></textarea>
+    <div id="ai-context-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px"></div>
+    <button class="modal-submit" id="ai-ask-btn" onclick="askAI()">✨ Get recommendations</button>
+    <div id="ai-results" style="margin-top:16px"></div>
+    <button class="modal-cancel" data-close="modal-ai" style="margin-top:8px">Close</button>
   </div>
 </div>
 
@@ -1644,11 +1688,24 @@ function openFrag(key) {
       '<div class="detail-label">More from ' + safeHouse + '</div>' +
       '<div class="poster-row"><div class="loading-row"><div class="spinner"></div></div></div>' +
     '</div>' : '') +
-    '<div class="detail-sec"><div class="detail-label">Buy near you</div>' +
-      '<div class="buy-row" data-url="https://www.notino.no/search/?phrase=' + buyQ + '"><div><div class="buy-name">🇳🇴 Notino Norway</div><div class="buy-note">Free shipping over 299 kr</div></div><span style="color:var(--grey)">›</span></div>' +
-      '<div class="buy-row" data-url="https://www.kicks.no/search?q=' + buyQ + '"><div><div class="buy-name">🇳🇴 Kicks</div><div class="buy-note">Same day delivery</div></div><span style="color:var(--grey)">›</span></div>' +
-      '<div class="buy-row" data-url="https://www.parfyme.no/?s=' + buyQ + '"><div><div class="buy-name">🇳🇴 Parfyme.no</div><div class="buy-note">Norwegian specialist</div></div><span style="color:var(--grey)">›</span></div>' +
-      '<div class="buy-row" data-url="https://www.google.com/search?q=' + buyQ + '+buy"><div><div class="buy-name">🔍 Compare prices</div><div class="buy-note">Google Shopping</div></div><span style="color:var(--grey)">›</span></div>' +
+    '<div class="detail-sec"><div class="detail-label">Where to buy</div>' +
+      '<div class="buy-section-label">Norway</div>' +
+      '<div class="buy-grid">' +
+        '<div class="buy-card" data-url="https://www.notino.no/search/?phrase=' + buyQ + '"><div class="buy-card-flag">🇳🇴</div><div class="buy-card-name">Notino</div><div class="buy-card-note">Free ship over 299 kr</div></div>' +
+        '<div class="buy-card" data-url="https://www.kicks.no/search?q=' + buyQ + '"><div class="buy-card-flag">🇳🇴</div><div class="buy-card-name">Kicks</div><div class="buy-card-note">Same-day delivery</div></div>' +
+        '<div class="buy-card" data-url="https://www.parfyme.no/?s=' + buyQ + '"><div class="buy-card-flag">🇳🇴</div><div class="buy-card-name">Parfyme.no</div><div class="buy-card-note">Norwegian specialist</div></div>' +
+        '<div class="buy-card" data-url="https://www.parfumo.com/search?q=' + buyQ + '"><div class="buy-card-flag">🇩🇪</div><div class="buy-card-name">Parfumo</div><div class="buy-card-note">Community prices</div></div>' +
+      '</div>' +
+      '<div class="buy-section-label" style="margin-top:14px">Samples &amp; decants</div>' +
+      '<div class="buy-grid">' +
+        '<div class="buy-card" data-url="https://www.luckyscent.com/search?q=' + buyQ + '"><div class="buy-card-flag">🇺🇸</div><div class="buy-card-name">LuckyScent</div><div class="buy-card-note">Authorised samples</div></div>' +
+        '<div class="buy-card" data-url="https://www.theperfumedcourt.com/search.aspx?q=' + buyQ + '"><div class="buy-card-flag">🇺🇸</div><div class="buy-card-name">Perfumed Court</div><div class="buy-card-note">Trusted decants</div></div>' +
+      '</div>' +
+      '<div class="buy-section-label" style="margin-top:14px">Community &amp; info</div>' +
+      '<div class="buy-grid">' +
+        '<div class="buy-card" data-url="https://www.fragrantica.com/search/?query=' + buyQ + '"><div class="buy-card-flag">🌐</div><div class="buy-card-name">Fragrantica</div><div class="buy-card-note">Community ratings</div></div>' +
+        '<div class="buy-card" data-url="https://www.google.com/search?tbm=shop&q=' + buyQ + '"><div class="buy-card-flag">🔍</div><div class="buy-card-name">Google Shopping</div><div class="buy-card-note">Compare all prices</div></div>' +
+      '</div>' +
     '</div><div style="height:40px"></div>';
 
   // Wire buttons
@@ -1661,8 +1718,8 @@ function openFrag(key) {
       else if (act === 'add') quickAdd(name, house, b.getAttribute('data-img'), b.getAttribute('data-fid'));
     });
   });
-  document.querySelectorAll('#frag-content .buy-row').forEach(b => {
-    b.addEventListener('click', () => window.open(b.getAttribute('data-url'), '_blank'));
+  document.querySelectorAll('#frag-content .buy-row, #frag-content .buy-card').forEach(b => {
+    b.addEventListener('click', () => window.open(b.getAttribute('data-url'), '_blank', 'noopener'));
   });
 
   showScreen('frag');
@@ -2752,6 +2809,108 @@ async function seedArticles() {
 // Keep openArticle for backwards compat
 function openArticle(slug) {
   openArticleFromDb(slug);
+}
+
+// ═══════ AI RECOMMENDATIONS ═══════
+const AI_URL = '/api/ai';
+let aiUsageCount = 0;
+const AI_FREE_LIMIT = 3;
+
+function openAI() {
+  const prompt = document.getElementById('ai-prompt');
+  if (prompt) prompt.value = '';
+  const results = document.getElementById('ai-results');
+  if (results) results.innerHTML = '';
+  // Pre-fill context chips from collection + diary
+  const chips = document.getElementById('ai-context-chips');
+  if (chips) {
+    const top = [...collection].slice(0, 4).map(b => b.name).filter(Boolean);
+    chips.innerHTML = top.length
+      ? top.map(n => `<span class="ai-context-chip">🏺 ${escapeHtml(n)}</span>`).join('') +
+        `<span class="ai-context-chip" style="color:var(--grey);border-style:dashed">from your hive</span>`
+      : '';
+  }
+  openModal('modal-ai');
+  setTimeout(() => document.getElementById('ai-prompt')?.focus(), 200);
+}
+
+async function askAI() {
+  if (!user && aiUsageCount >= AI_FREE_LIMIT) {
+    toast('Sign in to get unlimited recommendations');
+    return;
+  }
+  const promptEl = document.getElementById('ai-prompt');
+  const q = (promptEl?.value || '').trim();
+  if (!q) { toast('Describe what you love first'); return; }
+
+  const btn = document.getElementById('ai-ask-btn');
+  const resultsEl = document.getElementById('ai-results');
+  if (btn) { btn.disabled = true; btn.textContent = '✨ Thinking…'; }
+  if (resultsEl) resultsEl.innerHTML = '<div style="text-align:center;padding:24px 0"><div class="spinner"></div><div style="font-size:11px;color:var(--grey);margin-top:10px;font-style:italic">Consulting the nose…</div></div>';
+
+  try {
+    const col = collection.slice(0, 10).map(b => ({ name: b.name, house: b.house }));
+    const diaryCtx = diary.filter(e => e.rating >= 4).slice(0, 6).map(e => e.fragrance_name).filter(Boolean);
+    const prompt = q + (diaryCtx.length ? '\n\nI rate these highly: ' + diaryCtx.join(', ') : '');
+
+    const res = await fetch(AI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, collection: col })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    aiUsageCount++;
+    renderAIResults(data, resultsEl);
+  } catch (e) {
+    if (resultsEl) resultsEl.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--red);font-style:italic">Something went wrong. Check your connection and try again.</div>';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✨ Get recommendations'; }
+  }
+}
+
+function renderAIResults(data, el) {
+  if (!el) return;
+  const intro = data.intro ? `<div class="ai-intro">${escapeHtml(data.intro)}</div>` : '';
+  const recs = Array.isArray(data.recommendations) ? data.recommendations : [];
+  if (!recs.length) {
+    el.innerHTML = intro + '<div style="font-size:12px;color:var(--grey);font-style:italic;padding:8px 0">No recommendations returned — try rephrasing.</div>';
+    return;
+  }
+  el.innerHTML = intro + recs.map(r => {
+    const notes = Array.isArray(r.notes) ? r.notes.slice(0, 4) : [];
+    const notesHtml = notes.map(n => `<span class="ai-rec-chip">${escapeHtml(n)}</span>`).join('');
+    const occ = r.occasion ? `<span class="ai-rec-chip occ">${escapeHtml(r.occasion)}</span>` : '';
+    const price = r.price ? `<span class="ai-rec-chip price">${escapeHtml(r.price)}</span>` : '';
+    const dupe = r.is_dupe ? '<span class="ai-dupe-badge">dupe</span>' : '';
+    const buyQ = encodeURIComponent((r.name || '') + ' ' + (r.house || ''));
+    return `<div class="ai-rec-card">
+      <div class="ai-rec-top">
+        <div>
+          <div class="ai-rec-name">${escapeHtml(r.name || '')}</div>
+          <div class="ai-rec-house">${escapeHtml(r.house || '')}</div>
+        </div>
+        ${dupe}
+      </div>
+      <div class="ai-rec-why">"${escapeHtml(r.why || '')}"</div>
+      <div class="ai-rec-meta">${notesHtml}${occ}${price}</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="frag-btn frag-btn-primary" style="flex:1;font-size:11px;padding:8px 0" onclick="searchAndOpen(${JSON.stringify(r.name)},${JSON.stringify(r.house||'')})">View details</button>
+        <a class="frag-btn frag-btn-secondary" style="flex:1;font-size:11px;padding:8px 0;text-align:center;text-decoration:none" href="https://www.notino.no/search/?phrase=${buyQ}" target="_blank" rel="noopener">Buy →</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function searchAndOpen(name, house) {
+  closeModal('modal-ai');
+  searchFragella(name + (house ? ' ' + house : '')).then(frags => {
+    if (!frags.length) { toast('Searching…'); return; }
+    const key = 'ai' + Math.random().toString(36).slice(2, 8);
+    fragStore[key] = frags[0];
+    openFrag(key);
+  });
 }
 
 // ═══════ EVENT WIRING ═══════
