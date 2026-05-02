@@ -532,6 +532,30 @@ img{max-width:100%;display:block}
 .profile-edit-btn{font-family:'DM Mono',monospace;font-size:10px;padding:8px 16px;background:var(--bg2);border:1px solid var(--border);color:var(--white2);letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:border-color 0.2s}
 .profile-edit-btn:hover{border-color:var(--gold);color:var(--gold)}
 
+/* ═══ FEATURE GRID ═══ */
+.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2)}
+.feature-card{padding:18px 16px;background:var(--bg);display:flex;gap:13px;align-items:flex-start;transition:background 0.15s;cursor:default}
+.feature-card.clickable{cursor:pointer}
+.feature-card.clickable:hover{background:var(--bg2)}
+.feature-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:var(--gold-pale);border:1px solid var(--gold-dim)}
+.feature-icon.purple{background:var(--purple-pale);border-color:var(--purple-dim)}
+.feature-head{font-size:12px;color:var(--white);font-weight:500;margin-bottom:3px;line-height:1.3}
+.feature-body{font-size:11px;color:var(--grey);line-height:1.55}
+@media(min-width:600px){.features-grid{grid-template-columns:repeat(3,1fr)}}
+
+/* ═══ PRO BADGE ═══ */
+.pro-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:var(--bg);border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase}
+.upgrade-strip{margin:0;padding:14px 20px;background:linear-gradient(135deg,var(--purple-pale),var(--gold-pale));border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+.upgrade-strip:hover{background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(240,192,64,0.12))}
+.upgrade-strip-text{font-size:12px;color:var(--white2);line-height:1.5}
+.upgrade-strip-btn{font-family:'DM Mono',monospace;font-size:9px;padding:7px 12px;background:var(--gold);color:var(--bg);border-radius:2px;white-space:nowrap;letter-spacing:0.06em;text-transform:uppercase;font-weight:500}
+
+/* ═══ PRO COMPARE TABLE ═══ */
+.pro-compare{border:1px solid var(--border);border-radius:2px;overflow:hidden;margin-bottom:18px}
+.pro-compare-head{display:grid;grid-template-columns:1fr 80px 80px;gap:0;background:var(--bg3);padding:10px 14px;font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase}
+.pro-compare-row{display:grid;grid-template-columns:1fr 80px 80px;padding:10px 14px;border-top:1px solid var(--border2);align-items:center;font-size:12px;color:var(--white2)}
+.pro-compare-check{text-align:center;font-size:14px}
+
 /* ═══ DELETE BUTTONS ═══ */
 .col-del-btn{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(13,16,24,0.75);color:var(--red);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity 0.15s;z-index:4;border:1px solid rgba(239,68,68,0.3)}
 .col-cell:hover .col-del-btn{opacity:1}
@@ -615,6 +639,34 @@ img{max-width:100%;display:block}
           <div class="hero-tag">🍯 Welcome to the Hive</div>
           <div class="hero-title">Your fragrance <em>diary</em></div>
           <div class="hero-sub">Log every scent. Rate it. Discover your nose. Join the community.</div>
+        </div>
+      </div>
+
+      <!-- FEATURE GRID -->
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🏺</div>
+          <div><div class="feature-head">Track every wear</div><div class="feature-body">Log what you spray each day and build a lifetime scent diary.</div></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⭐</div>
+          <div><div class="feature-head">Rate &amp; review</div><div class="feature-body">Five-star ratings with personal notes. Know exactly what you thought.</div></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🐝</div>
+          <div><div class="feature-head">Build your hive</div><div class="feature-body">Catalogue every bottle you own with size, price, and cover art.</div></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div><div class="feature-head">Taste profile</div><div class="feature-body">See your nose broken down — oriental, woody, fresh, floral — by data.</div></div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <div><div class="feature-head">AI recommendations</div><div class="feature-body">Tell the AI what you love and get personalised picks instantly.</div></div>
+        </div>
+        <div class="feature-card clickable" onclick="openUpgrade()">
+          <div class="feature-icon purple">👑</div>
+          <div><div class="feature-head">Go <em style="color:var(--gold);font-style:italic">Pro</em></div><div class="feature-body">Full stats, no ads, and priority access to every new feature.</div></div>
         </div>
       </div>
 
@@ -800,11 +852,17 @@ img{max-width:100%;display:block}
       <div class="profile-stat"><span class="profile-stat-num" id="prof-avg">—</span><span class="profile-stat-label">Avg</span></div>
     </div>
 
+    <!-- Upgrade strip -->
+    <div class="upgrade-strip" id="upgrade-strip" onclick="openUpgrade()">
+      <div class="upgrade-strip-text">Unlock full stats, no ads, and early access — <strong>ScentHive Pro</strong></div>
+      <div class="upgrade-strip-btn">👑 Upgrade</div>
+    </div>
+
     <!-- Favourites -->
     <div class="profile-section">
       <div class="profile-sec-header">
         <div class="profile-sec-title">Favourite four</div>
-        <span class="profile-sec-more" onclick="showTab('diary')">All →</span>
+        <span class="profile-sec-more" id="fav-edit-btn" onclick="openPickFav(0)" style="cursor:pointer">Edit →</span>
       </div>
       <div class="favourites-grid" id="favourites-grid"></div>
     </div>
@@ -1021,6 +1079,49 @@ img{max-width:100%;display:block}
       </div>
     </div>
     <button class="modal-cancel" data-close="modal-settings" style="margin-top:14px">Close</button>
+  </div>
+</div>
+
+<!-- ═══ UPGRADE MODAL ═══ -->
+<div class="modal-overlay" id="modal-upgrade">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:4px 0 20px">
+      <div style="font-size:36px;margin-bottom:10px">👑</div>
+      <div class="modal-title" style="font-size:26px">ScentHive <em style="color:var(--gold);font-style:italic">Pro</em></div>
+      <div style="font-size:12px;color:var(--grey);margin-top:4px">For serious noses. Cancel anytime.</div>
+    </div>
+    <div class="pro-compare">
+      <div class="pro-compare-head"><span>Feature</span><span style="text-align:center">Free</span><span style="text-align:center;color:var(--gold)">Pro</span></div>
+      <div class="pro-compare-row"><span>Diary entries</span><span class="pro-compare-check">✓</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>Collection</span><span class="pro-compare-check">✓</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>AI recommendations</span><span class="pro-compare-check" style="color:var(--grey)">3/mo</span><span class="pro-compare-check" style="color:var(--gold)">∞</span></div>
+      <div class="pro-compare-row"><span>Full taste analytics</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>Export your data</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>No ads (future)</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>Early feature access</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+    </div>
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-family:'Playfair Display',serif;font-size:34px;line-height:1">€3.99<em style="font-family:'DM Mono',monospace;font-size:13px;color:var(--grey);font-style:normal"> / month</em></div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-top:4px;letter-spacing:0.1em">OR €34.99 / YEAR · SAVE 27%</div>
+    </div>
+    <button class="modal-submit" onclick="toast('🐝 You\'re on the waitlist — we\'ll be in touch!');closeModal('modal-upgrade')">Join the waitlist</button>
+    <button class="modal-cancel" data-close="modal-upgrade">Maybe later</button>
+  </div>
+</div>
+
+<!-- ═══ PICK FAVOURITE MODAL ═══ -->
+<div class="modal-overlay" id="modal-pick-fav">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Pick a favourite</div>
+    <div class="modal-sub">Search for a fragrance to pin to your profile.</div>
+    <div style="position:relative">
+      <input class="modal-input" id="pick-fav-search" type="text" placeholder="Search fragrances…" autocomplete="off" style="padding-right:40px">
+      <div id="pick-fav-spinner" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%)"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div></div>
+    </div>
+    <div id="pick-fav-results" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
+    <button class="modal-cancel" data-close="modal-pick-fav">Cancel</button>
   </div>
 </div>
 
@@ -1947,31 +2048,8 @@ function renderProfile() {
   const avg = rated.length ? (rated.reduce((s, e) => s + e.rating, 0) / rated.length).toFixed(1) : '—';
   document.getElementById('prof-avg').textContent = avg;
 
-  // Favourites — top 4 highest rated
-  const favs = [...rated].sort((a, b) => b.rating - a.rating).slice(0, 4);
-  const favsGrid = document.getElementById('favourites-grid');
-
-  function renderFavsGrid(list) {
-    const cells = list.map(f => `
-      <div class="fav-cell">
-        ${f.image_url
-          ? `<img src="${escapeAttr(f.image_url)}" alt="${escapeHtml(f.fragrance_name)}" onerror="this.outerHTML='<div class=&quot;fav-cell-empty&quot;>🏺</div>'">`
-          : `<div class="fav-cell-empty" style="font-family:'Playfair Display',serif;font-size:24px;color:var(--gold-dim);font-style:italic">${escapeHtml((f.fragrance_name||'?')[0])}</div>`}
-        <div class="fav-cell-overlay">${escapeHtml(f.fragrance_name)}</div>
-      </div>`).join('');
-    const empty = Array(Math.max(0, 4 - list.length)).fill('<div class="fav-cell"><div class="fav-cell-empty">+</div></div>').join('');
-    favsGrid.innerHTML = cells + empty;
-  }
-
-  if (favs.length === 0) {
-    favsGrid.innerHTML = Array(4).fill('<div class="fav-cell"><div class="fav-cell-empty">+</div></div>').join('');
-  } else {
-    renderFavsGrid(favs);
-    // Background enrichment for missing images
-    enrichImages(favs, 'fragrance_name', 'journal_entries').then(changed => {
-      if (changed) renderFavsGrid(favs);
-    });
-  }
+  // Favourites — manual picks stored in user metadata
+  renderFavsGrid(user?.user_metadata?.favourites || null);
 
   // Recent reviews — last 3 with notes
   const recentReviews = diary.filter(e => e.notes).slice(0, 3);
@@ -2337,6 +2415,108 @@ async function saveLog() {
   loadCommunityFeed();
 }
 
+// ═══════ UPGRADE ═══════
+function openUpgrade() { openModal('modal-upgrade'); }
+
+// ═══════ MANUAL FAVOURITES ═══════
+let pickFavSlot = 0;
+let pickFavTimer = null;
+
+function openPickFav(slot) {
+  if (!user) { toast('Sign in to set favourites'); return; }
+  pickFavSlot = slot;
+  document.getElementById('pick-fav-search').value = '';
+  document.getElementById('pick-fav-results').innerHTML = '';
+  openModal('modal-pick-fav');
+  setTimeout(() => document.getElementById('pick-fav-search').focus(), 200);
+}
+
+function onPickFavSearch(q) {
+  clearTimeout(pickFavTimer);
+  const results = document.getElementById('pick-fav-results');
+  const spinner = document.getElementById('pick-fav-spinner');
+  if (!q.trim()) { results.innerHTML = ''; return; }
+  spinner.style.display = 'block';
+  pickFavTimer = setTimeout(async () => {
+    const frags = await searchFragella(q);
+    spinner.style.display = 'none';
+    if (!frags.length) {
+      results.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--grey);font-style:italic">No results found.</div>';
+      return;
+    }
+    results.innerHTML = frags.slice(0, 6).map((f, i) => {
+      const key = 'pf' + i + Math.random().toString(36).slice(2, 5);
+      fragStore[key] = f;
+      const img = f.image_url ? makeImg(f.image_url, f.name) : '🏺';
+      return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
+        '<div style="width:36px;height:46px;background:var(--bg3);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:18px;flex-shrink:0">' + img + '</div>' +
+        '<div style="flex:1;min-width:0"><div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name || '') + '</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">' + escapeHtml(f.house || '') + '</div></div>' +
+        '<span style="color:var(--grey)">+</span></div>';
+    }).join('');
+    results.querySelectorAll('.log-search-result').forEach(r => {
+      r.addEventListener('click', () => setFavourite(fragStore[r.getAttribute('data-key')]));
+    });
+  }, 350);
+}
+
+async function setFavourite(f) {
+  const favs = Array(4).fill(null).map((_, i) => (user?.user_metadata?.favourites || [])[i] || null);
+  favs[pickFavSlot] = { name: f.name, house: f.house, image_url: f.image_url || null, fragella_id: f.fragella_id || null };
+  try {
+    await sb.auth.updateUser({ data: { favourites: favs } });
+    if (user?.user_metadata) user.user_metadata.favourites = favs;
+  } catch (e) {}
+  closeModal('modal-pick-fav');
+  renderFavsGrid(favs);
+  toast('✓ Added to favourites');
+}
+
+async function removeFavourite(slot) {
+  const favs = Array(4).fill(null).map((_, i) => (user?.user_metadata?.favourites || [])[i] || null);
+  favs[slot] = null;
+  try {
+    await sb.auth.updateUser({ data: { favourites: favs } });
+    if (user?.user_metadata) user.user_metadata.favourites = favs;
+  } catch (e) {}
+  renderFavsGrid(favs);
+  toast('Removed from favourites');
+}
+
+function renderFavsGrid(favs) {
+  const grid = document.getElementById('favourites-grid');
+  if (!grid) return;
+  const slots = Array(4).fill(null).map((_, i) => (favs || [])[i] || null);
+  grid.innerHTML = slots.map((f, i) => {
+    if (f && f.name) {
+      const img = f.image_url
+        ? `<img src="${escapeAttr(f.image_url)}" alt="${escapeHtml(f.name)}" onerror="this.outerHTML='<div class=&quot;fav-cell-empty&quot;>🏺</div>'">`
+        : `<div class="fav-cell-empty" style="font-family:'Playfair Display',serif;font-size:24px;color:var(--gold-dim);font-style:italic">${escapeHtml(f.name[0])}</div>`;
+      return `<div class="fav-cell" data-favslot="${i}" data-name="${escapeAttr(f.name)}" data-house="${escapeAttr(f.house||'')}">
+        ${img}
+        <div class="fav-cell-overlay">${escapeHtml(f.name)}</div>
+        <button class="col-del-btn" style="opacity:0.7" onclick="event.stopPropagation();removeFavourite(${i})" title="Remove">×</button>
+      </div>`;
+    }
+    return `<div class="fav-cell" onclick="${user ? 'openPickFav(' + i + ')' : 'toast(\'Sign in to set favourites\')'}"><div class="fav-cell-empty">+</div></div>`;
+  }).join('');
+  // Wire clicks on filled cells → open frag detail
+  grid.querySelectorAll('.fav-cell[data-favslot]').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const name = cell.getAttribute('data-name');
+      const house = cell.getAttribute('data-house');
+      const cached = Object.keys(fragStore).find(k => fragStore[k].name && fragStore[k].name.toLowerCase() === name.toLowerCase());
+      if (cached) { openFrag(cached); return; }
+      searchFragella(name + (house ? ' ' + house : '')).then(frags => {
+        if (!frags.length) return;
+        const key = 'fav' + Math.random().toString(36).slice(2, 8);
+        fragStore[key] = frags[0];
+        openFrag(key);
+      });
+    });
+  });
+}
+
 // ═══════ DELETE ENTRIES ═══════
 async function deleteDiaryEntry(id) {
   if (!id) return;
@@ -2599,6 +2779,10 @@ function wireEvents() {
   // Add-to-collection search
   const as = document.getElementById('add-search');
   if (as) as.addEventListener('input', e => onAddSearch(e.target.value));
+
+  // Pick-favourite search
+  const pfs = document.getElementById('pick-fav-search');
+  if (pfs) pfs.addEventListener('input', e => onPickFavSearch(e.target.value));
 
   // Poster card quick-action buttons (global delegation)
   document.addEventListener('click', function(e) {
