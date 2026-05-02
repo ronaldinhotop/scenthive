@@ -3,7 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ScentHive</title>
+<title>ScentHive — Your Fragrance Diary</title>
+<meta name="description" content="ScentHive — log every fragrance you wear, rate it, discover your nose, and join a community of scent lovers.">
+<meta name="theme-color" content="#0d1018">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ScentHive">
+<link rel="manifest" href="/manifest.json">
+<meta property="og:title" content="ScentHive — Your Fragrance Diary">
+<meta property="og:description" content="Log every scent. Rate it. Discover your nose. Join the hive.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://scenthive.app">
+<meta property="og:image" content="https://scenthive.app/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ScentHive — Your Fragrance Diary">
+<meta name="twitter:description" content="Log every scent. Rate it. Discover your nose.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -532,7 +546,7 @@ img{max-width:100%;display:block}
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Log a fragrance
     </div>
-    <div class="sidebar-footer">scenthive.app · v2.0</div>
+    <div class="sidebar-footer">scenthive.app · Beta</div>
   </div>
   <div class="screen-main">
   <div class="topbar">
@@ -733,7 +747,7 @@ img{max-width:100%;display:block}
         <div class="profile-avatar-ring">
           <div class="profile-avatar" id="prof-avatar">👤</div>
         </div>
-        <button class="profile-edit-btn" onclick="alert('Edit profile coming soon')">Edit profile</button>
+        <button class="profile-edit-btn" onclick="toast('Edit profile coming soon 🐝')">Edit profile</button>
       </div>
       <div class="profile-name" id="prof-name">Guest</div>
       <div class="profile-handle" id="prof-handle">@guest</div>
@@ -751,7 +765,7 @@ img{max-width:100%;display:block}
     <div class="profile-section">
       <div class="profile-sec-header">
         <div class="profile-sec-title">Favourite four</div>
-        <span class="profile-sec-more" onclick="alert('Pick favourites coming soon')">Edit →</span>
+        <span class="profile-sec-more" onclick="toast('Favourites coming soon 🌹')">Edit →</span>
       </div>
       <div class="favourites-grid" id="favourites-grid"></div>
     </div>
@@ -1070,6 +1084,9 @@ function enterAsGuest() {
 async function initApp() {
   await Promise.all([loadCollection(), loadDiary()]);
   showTab('home');
+  if (diary.length === 0) {
+    setTimeout(() => toast('🐝 Welcome! Search a fragrance above to get started.'), 900);
+  }
 }
 
 async function doSignOut() {
@@ -1185,15 +1202,11 @@ async function loadPopularShelf() {
 async function loadShelf(elId, names) {
   const el = document.getElementById(elId);
   if (!el) return;
-  const cards = [];
-  for (const name of names) {
-    try {
-      const frags = await searchFragella(name);
-      if (frags && frags[0]) cards.push(buildPosterCard(frags[0]));
-    } catch (e) {}
-  }
+  const results = await Promise.allSettled(names.map(name => searchFragella(name)));
+  const cards = results
+    .filter(r => r.status === 'fulfilled' && r.value && r.value[0])
+    .map(r => buildPosterCard(r.value[0]));
   el.innerHTML = cards.length ? cards.join('') : '<div class="loading-row">Could not load</div>';
-  // Wire clicks
   el.querySelectorAll('.poster-card').forEach(card => {
     card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
   });
@@ -1227,31 +1240,6 @@ function escapeHtml(s) {
 }
 function escapeAttr(s) {
   return String(s || '').replace(/"/g, '&quot;');
-}
-
-function renderReviews() {
-  const el = document.getElementById('review-feed');
-  if (!el) return;
-  const reviews = [
-    { name: 'Naxos', house: 'Xerjoff', stars: 5, text: 'Honey, lavender, tobacco. Worn to a dinner — three compliments before the starter arrived.', author: '@scentdiarist', emoji: '🟤' },
-    { name: 'Sauvage', house: 'Dior', stars: 3, text: 'I want to be the kind of person who hates this. I am not. The ambroxan is undeniable.', author: '@henrik_oslo', emoji: '🔵' },
-    { name: 'Aventus', house: 'Creed', stars: 4, text: 'The reformulations are real but the magic still remains in the dry-down. Don\'t @ me.', author: '@marina_olfact', emoji: '🟠' },
-    { name: 'Black Orchid', house: 'Tom Ford', stars: 5, text: 'Smells like a velvet curtain in a 1920s opium den. I mean that as a compliment.', author: '@noseknows', emoji: '⚫' }
-  ];
-  el.innerHTML = reviews.map(r => `
-    <div class="review-card">
-      <div class="review-bottle"><div class="review-bottle-emoji">${r.emoji}</div></div>
-      <div class="review-content">
-        <div class="review-top">
-          <div class="review-frag">${r.name}</div>
-          <div class="review-stars">${'★'.repeat(r.stars)}<span style="color:var(--grey2)">${'★'.repeat(5-r.stars)}</span></div>
-        </div>
-        <div class="review-house">${r.house}</div>
-        <div class="review-text">"${r.text}"</div>
-        <div class="review-author">${r.author}</div>
-      </div>
-    </div>
-  `).join('');
 }
 
 // ═══════ SEARCH ═══════
@@ -1495,7 +1483,7 @@ async function saveCollection() {
   const house = document.getElementById('add-house').value.trim();
   const size = document.getElementById('add-size').value;
   const price = document.getElementById('add-price').value;
-  if (!name) { alert('Please enter the fragrance name.'); return; }
+  if (!name) { toast('Please enter a fragrance name'); return; }
   const entry = { name, house, size_ml: size || null, price_paid: price || null, created_at: new Date().toISOString() };
   if (user) {
     try {
@@ -1917,7 +1905,7 @@ function selectFrag(f) {
 function selectManualFrag() {
   const name = document.getElementById('log-name-manual').value.trim();
   const house = document.getElementById('log-house-manual').value.trim();
-  if (!name) { alert('Please enter the fragrance name.'); return; }
+  if (!name) { toast('Please enter a fragrance name'); return; }
   selectFrag({ name, house, image_url: null });
 }
 
@@ -1957,7 +1945,7 @@ function onLogSearch(q) {
 }
 
 async function saveLog() {
-  if (!selectedFrag) { alert('Please search and select a fragrance first.'); return; }
+  if (!selectedFrag) { toast('Search and select a fragrance first'); return; }
   const review = document.getElementById('log-review').value.trim();
   const occChip = document.querySelector('#log-occ .occ-chip.selected');
   const occ = occChip ? occChip.getAttribute('data-v') : '';
@@ -1997,7 +1985,7 @@ async function loadCommunityFeed() {
   if (!el) return;
   try {
     const { data } = await sb.from('journal_entries')
-      .select('*')
+      .select('fragrance_name, house, image_url, rating, notes, worn_at')
       .order('worn_at', { ascending: false })
       .limit(10);
     if (!data || data.length === 0) {
@@ -2165,7 +2153,6 @@ async function seedArticles() {
   ];
   try {
     await sb.from("articles").upsert(articles, { onConflict: "slug", ignoreDuplicates: true });
-    console.log("Articles seeded");
   } catch (e) {
     console.error("Seed error:", e);
   }
@@ -2254,8 +2241,8 @@ function wireEvents() {
       const a = r.getAttribute('data-action');
       if (a === 'signin') { closeModal('modal-settings'); showScreen('auth'); }
       else if (a === 'signout') doSignOut();
-      else if (a === 'privacy') { alert('Privacy: ScentHive only collects data you provide. We never sell it. Email hello@scenthive.app for deletion requests.'); }
-      else if (a === 'about') { alert('ScentHive v2.0\n\nThe Letterboxd of fragrance.\n\nscenthive.app'); }
+      else if (a === 'privacy') { toast('We only store data you provide. Never sold. hello@scenthive.app for deletion.'); }
+      else if (a === 'about') { toast('ScentHive Beta 🐝 · Your fragrance diary · scenthive.app'); }
     });
   });
 
@@ -2265,6 +2252,13 @@ function wireEvents() {
   const rpAdd = document.getElementById('rp-add-btn');
   if (rpAdd) rpAdd.addEventListener('click', openAdd);
 }
+
+// ═══════ KEYBOARD ═══════
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  }
+});
 
 // ═══════ STARTUP ═══════
 (async () => {

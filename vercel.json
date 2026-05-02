@@ -2,6 +2,7 @@
   "version": 2,
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
+    { "src": "manifest.json", "use": "@vercel/static" },
     { "src": "api/*.js", "use": "@vercel/node" }
   ],
   "routes": [
@@ -9,6 +10,7 @@
     { "src": "/.netlify/functions/search", "dest": "/api/search" },
     { "src": "/api/ai", "dest": "/api/ai.js" },
     { "src": "/api/search", "dest": "/api/search.js" },
+    { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
