@@ -2142,9 +2142,8 @@ function renderDiary() {
           const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
           const stars = e.rating ? '★'.repeat(e.rating) + '<span class="empty">' + '★'.repeat(5 - e.rating) + '</span>' : '';
           const reviewIcon = e.notes ? '<span class="diary-review-icon">≡</span>' : '';
-          const eid = escapeAttr(String(e.id || ''));
           return `
-            <div class="diary-row-item" style="cursor:pointer" data-name="${escapeAttr(e.fragrance_name||'')}" data-house="${escapeAttr(e.house||'')}">
+            <div class="diary-row-item" style="cursor:pointer" data-id="${escapeAttr(String(e.id||''))}" data-name="${escapeAttr(e.fragrance_name||'')}" data-house="${escapeAttr(e.house||'')}">
               <div>
                 <div class="diary-day">${day}</div>
                 <div class="diary-day-sub">${dayName}</div>
@@ -2156,13 +2155,23 @@ function renderDiary() {
               </div>
               <div class="diary-rating-cell">
                 ${stars ? `<div class="diary-stars">${stars}</div>` : ''}
-                <button class="diary-del-btn" title="Remove" onclick="event.stopPropagation();deleteDiaryEntry('${eid}')">×</button>
+                <button class="diary-del-btn" title="Remove">×</button>
               </div>
               ${e.notes ? `<div class="diary-review-text">"${escapeHtml(e.notes)}"</div>` : ''}
             </div>`;
         }).join('')}
       </div>`;
   }).join('');
+
+  // Diary delete buttons
+  el.querySelectorAll('.diary-del-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const row = btn.closest('.diary-row-item');
+      const id = row?.getAttribute('data-id');
+      if (id) deleteDiaryEntry(id);
+    });
+  });
 
   // Diary row click → open frag detail
   el.querySelectorAll('.diary-row-item').forEach(row => {
@@ -2204,20 +2213,30 @@ function renderCollection() {
       </div>`;
     return;
   }
-  grid.innerHTML = collection.map(b => {
+  grid.innerHTML = collection.map((b, idx) => {
     const img = b.image_url
       ? `<img src="${escapeAttr(b.image_url)}" alt="${escapeHtml(b.name)}" onerror="this.outerHTML='<div class=&quot;col-cell-emoji&quot;>🏺</div>'">`
       : `<div class="col-cell-emoji" style="font-size:28px;color:var(--gold-dim);font-family:'Playfair Display',serif;font-style:italic">${escapeHtml((b.name||'?')[0])}</div>`;
     return `
-      <div class="col-cell" data-name="${escapeAttr(b.name||'')}" data-house="${escapeAttr(b.house||'')}">
+      <div class="col-cell" data-idx="${idx}" data-name="${escapeAttr(b.name||'')}" data-house="${escapeAttr(b.house||'')}">
         ${img}
         <div class="col-cell-overlay">
           <div class="col-cell-name">${escapeHtml(b.name)}</div>
           <div class="col-cell-house">${escapeHtml(b.house || '')}</div>
         </div>
-        <button class="col-del-btn" onclick="event.stopPropagation();deleteCollectionItem('${escapeAttr(String(b.id||''))}','${escapeAttr(b.name||'')}')">×</button>
+        <button class="col-del-btn" data-del-idx="${idx}" title="Remove">×</button>
       </div>`;
   }).join('');
+
+  // Wire delete buttons
+  grid.querySelectorAll('.col-del-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = parseInt(btn.getAttribute('data-del-idx'));
+      const b = collection[idx];
+      if (b) deleteCollectionItem(String(b.id||''), b.name||'');
+    });
+  });
 
   // Wire clicks: open fragrance detail
   grid.querySelectorAll('.col-cell').forEach(cell => {
@@ -3552,15 +3571,26 @@ function renderWishlist() {
     const img = w.image_url
       ? `<img class="wl-cell-img" src="${escapeAttr(w.image_url)}" alt="${escapeHtml(w.name)}" onerror="this.outerHTML='<div class=&quot;wl-cell-empty&quot;>🏺</div>'">`
       : `<div class="wl-cell-empty">🏺</div>`;
-    return `<div class="wl-cell" onclick="openWishlistFrag(${i})">
+    return `<div class="wl-cell" data-wl-idx="${i}">
       ${img}
       <div class="wl-cell-overlay">
         <div class="wl-cell-house">${escapeHtml(w.house)}</div>
         ${escapeHtml(w.name)}
       </div>
-      <button class="col-del-btn" onclick="event.stopPropagation();removeFromWishlist(${i})" title="Remove">×</button>
+      <button class="col-del-btn" data-wl-del="${i}" title="Remove">×</button>
     </div>`;
   }).join('');
+
+  // Wire events via JS (no inline onclick = no escaping bugs)
+  grid.querySelectorAll('.wl-cell').forEach(cell => {
+    cell.addEventListener('click', () => openWishlistFrag(parseInt(cell.getAttribute('data-wl-idx'))));
+  });
+  grid.querySelectorAll('[data-wl-del]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      removeFromWishlist(parseInt(btn.getAttribute('data-wl-del')));
+    });
+  });
 }
 
 function openWishlistFrag(idx) {
