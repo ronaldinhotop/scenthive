@@ -565,6 +565,74 @@ img{max-width:100%;display:block}
 .diary-row-item:hover .diary-del-btn{opacity:1}
 .diary-del-btn:hover{color:var(--red)}
 
+/* ═══ STREAK BAR ═══ */
+.streak-bar{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;background:var(--bg2);border-bottom:1px solid var(--border2)}
+.streak-block{padding:14px 10px;text-align:center}
+.streak-num{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold);line-height:1}
+.streak-num.fire{color:#fb923c}
+.streak-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.07em;text-transform:uppercase;margin-top:3px}
+.streak-divider{background:var(--border2)}
+
+/* ═══ HEATMAP ═══ */
+.heatmap-outer{padding:16px 20px 12px;border-bottom:1px solid var(--border2);overflow:hidden}
+.heatmap-title{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.heatmap-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.heatmap-inner{display:flex;flex-direction:column;gap:0;min-width:max-content}
+.heatmap-months-row{display:flex;gap:2px;margin-bottom:3px;padding-left:18px}
+.heatmap-month-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--grey2);letter-spacing:0.04em;width:11px;text-align:center;overflow:visible;white-space:nowrap}
+.heatmap-days-wrap{display:flex;gap:0}
+.heatmap-day-labels{display:flex;flex-direction:column;gap:2px;margin-right:4px;padding-top:1px}
+.heatmap-day-label{font-family:'DM Mono',monospace;font-size:7px;color:var(--grey2);line-height:1;height:11px;display:flex;align-items:center}
+.heatmap-cols{display:flex;gap:2px}
+.heatmap-col{display:flex;flex-direction:column;gap:2px}
+.heatmap-cell{width:11px;height:11px;border-radius:2px;flex-shrink:0;cursor:default;transition:opacity 0.1s}
+.heatmap-cell:hover{opacity:0.75}
+.heatmap-cell.lv0{background:var(--bg3)}
+.heatmap-cell.lv1{background:rgba(240,192,64,0.2)}
+.heatmap-cell.lv2{background:rgba(240,192,64,0.45)}
+.heatmap-cell.lv3{background:rgba(240,192,64,0.72)}
+.heatmap-cell.lv4{background:var(--gold)}
+.heatmap-cell.future{background:transparent}
+
+/* ═══ YEAR IN REVIEW ═══ */
+.yr-btn{font-family:'DM Mono',monospace;font-size:9px;padding:6px 12px;background:var(--bg3);color:var(--grey);border:1px solid var(--border);border-radius:2px;letter-spacing:0.07em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.yr-btn:hover{color:var(--gold);border-color:var(--gold-dim)}
+.yr-modal-inner{background:linear-gradient(160deg,var(--bg2) 0%,var(--bg) 100%);border-radius:4px;padding:0;overflow:hidden}
+.yr-hero{padding:28px 24px 20px;text-align:center;background:linear-gradient(135deg,var(--gold-pale),var(--purple-pale))}
+.yr-hero-year{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold-dim);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:6px}
+.yr-hero-num{font-family:'Playfair Display',serif;font-size:64px;color:var(--gold);line-height:1;margin-bottom:4px}
+.yr-hero-label{font-size:13px;color:var(--white2);font-style:italic}
+.yr-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border-top:1px solid var(--border2)}
+.yr-cell{background:var(--bg2);padding:18px 16px}
+.yr-cell-val{font-family:'Playfair Display',serif;font-size:22px;color:var(--white);margin-bottom:3px;font-style:italic;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yr-cell-key{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase}
+.yr-best{background:var(--bg2);padding:18px 20px;border-top:1px solid var(--border2)}
+.yr-best-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.yr-best-name{font-family:'Playfair Display',serif;font-size:20px;font-style:italic;margin-bottom:2px}
+.yr-best-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey)}
+.yr-months{display:flex;gap:2px;padding:16px 20px;background:var(--bg2);border-top:1px solid var(--border2)}
+.yr-month-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.yr-month-track{width:100%;background:var(--bg3);border-radius:2px;overflow:hidden;height:40px;display:flex;align-items:flex-end}
+.yr-month-fill{width:100%;background:linear-gradient(180deg,var(--gold-dim),var(--gold));border-radius:2px 2px 0 0;min-height:2px;transition:height 0.6s ease}
+.yr-month-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--grey);letter-spacing:0.04em;text-transform:uppercase}
+
+/* ═══ COLLECTION TABS ═══ */
+.col-tabs{display:flex;border-bottom:1px solid var(--border2)}
+.col-tab{flex:1;padding:13px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s}
+.col-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.col-tab:hover:not(.active){color:var(--white2)}
+.wishlist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px}
+@media(min-width:600px){.wishlist-grid{grid-template-columns:repeat(4,1fr)}}
+.wl-cell{position:relative;aspect-ratio:2/3;background:var(--bg2);border-radius:2px;overflow:hidden;cursor:pointer}
+.wl-cell-img{width:100%;height:100%;object-fit:cover}
+.wl-cell-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--grey2);background:var(--bg3)}
+.wl-cell-overlay{position:absolute;bottom:0;left:0;right:0;padding:8px 7px 7px;background:linear-gradient(transparent,rgba(13,16,24,0.92));font-size:10px;font-family:'Playfair Display',serif;font-style:italic;line-height:1.2;color:var(--white)}
+.wl-cell-house{font-family:'DM Mono',monospace;font-size:8px;color:var(--gold-dim);font-style:normal;letter-spacing:0.04em;margin-bottom:2px}
+
+/* ═══ SHARE PROFILE ═══ */
+.share-modal-url{font-family:'DM Mono',monospace;font-size:11px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--white2);word-break:break-all;line-height:1.5;margin-bottom:12px;cursor:text;user-select:all}
+.share-card{background:linear-gradient(135deg,var(--gold-pale),var(--purple-pale));border-radius:4px;padding:20px;margin-bottom:14px;text-align:center}
+
 /* ═══ AI MODAL ═══ */
 .ai-rec-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px}
 .ai-rec-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
@@ -841,8 +909,53 @@ img{max-width:100%;display:block}
   </div>
   <div class="diary-screen">
     <div class="diary-header">
-      <h2>Your <em>diary</em></h2>
-      <p>Every fragrance you've worn, rated, remembered.</p>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div>
+          <h2>Your <em>diary</em></h2>
+          <p>Every fragrance you've worn, rated, remembered.</p>
+        </div>
+        <button class="yr-btn" onclick="openYearReview()">📊 Year in review</button>
+      </div>
+    </div>
+    <div class="streak-bar" id="streak-bar">
+      <div class="streak-block">
+        <div class="streak-num fire" id="streak-current">0</div>
+        <div class="streak-label">day streak 🔥</div>
+      </div>
+      <div class="streak-divider"></div>
+      <div class="streak-block">
+        <div class="streak-num" id="streak-longest">0</div>
+        <div class="streak-label">longest streak</div>
+      </div>
+      <div class="streak-divider"></div>
+      <div class="streak-block">
+        <div class="streak-num" id="streak-total">0</div>
+        <div class="streak-label">total logged</div>
+      </div>
+    </div>
+    <div class="heatmap-outer" id="heatmap-outer">
+      <div class="heatmap-title">
+        <span>Activity — last 26 weeks</span>
+        <span id="heatmap-year-count" style="color:var(--gold-dim)"></span>
+      </div>
+      <div class="heatmap-scroll">
+        <div class="heatmap-inner">
+          <div class="heatmap-months-row" id="heatmap-months"></div>
+          <div class="heatmap-days-wrap">
+            <div class="heatmap-day-labels">
+              <div class="heatmap-day-label" style="height:13px"></div><!-- spacer for month row -->
+              <div class="heatmap-day-label">M</div>
+              <div class="heatmap-day-label"></div>
+              <div class="heatmap-day-label">W</div>
+              <div class="heatmap-day-label"></div>
+              <div class="heatmap-day-label">F</div>
+              <div class="heatmap-day-label"></div>
+              <div class="heatmap-day-label">S</div>
+            </div>
+            <div class="heatmap-cols" id="heatmap-cols"></div>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="diary-list"></div>
   </div>
@@ -867,13 +980,28 @@ img{max-width:100%;display:block}
     <button class="tbar-btn" onclick="openAdd()" style="color:var(--gold)">+</button>
   </div>
   <div class="col-screen">
-    <div class="col-stats">
-      <div class="col-stat"><span class="col-stat-num" id="col-count">0</span><span class="col-stat-label">Bottles</span></div>
-      <div class="col-stat"><span class="col-stat-num" id="col-houses">0</span><span class="col-stat-label">Houses</span></div>
-      <div class="col-stat"><span class="col-stat-num" id="col-value">€0</span><span class="col-stat-label">Value</span></div>
+    <div class="col-tabs">
+      <div class="col-tab active" id="tab-hive" onclick="switchColTab('hive')">🐝 My Hive</div>
+      <div class="col-tab" id="tab-wishlist" onclick="switchColTab('wishlist')">✨ Want to Try</div>
     </div>
-    <div class="col-grid" id="col-grid"></div>
-    <button class="col-add-btn" id="col-add-btn">+ Add a bottle to your hive</button>
+    <!-- HIVE VIEW -->
+    <div id="col-hive-view">
+      <div class="col-stats">
+        <div class="col-stat"><span class="col-stat-num" id="col-count">0</span><span class="col-stat-label">Bottles</span></div>
+        <div class="col-stat"><span class="col-stat-num" id="col-houses">0</span><span class="col-stat-label">Houses</span></div>
+        <div class="col-stat"><span class="col-stat-num" id="col-value">€0</span><span class="col-stat-label">Value</span></div>
+      </div>
+      <div class="col-grid" id="col-grid"></div>
+      <button class="col-add-btn" id="col-add-btn">+ Add a bottle to your hive</button>
+    </div>
+    <!-- WISHLIST VIEW -->
+    <div id="col-wishlist-view" style="display:none">
+      <div style="padding:14px 16px 10px;font-size:12px;color:var(--grey);font-style:italic;border-bottom:1px solid var(--border2)">Fragrances you want to try before you buy. Tap to search, long-press to remove.</div>
+      <div class="wishlist-grid" id="wishlist-grid"></div>
+      <div style="padding:16px 16px 24px">
+        <button class="col-add-btn" onclick="openAddWishlist()" style="margin-top:0">+ Add to want-to-try</button>
+      </div>
+    </div>
   </div>
   <div class="bnav" id="nav-collection"></div>
   </div>
@@ -884,7 +1012,10 @@ img{max-width:100%;display:block}
   <div class="topbar">
     <button class="tbar-btn" onclick="goBack()">←</button>
     <div class="logo">Scent<em>Hive</em></div>
-    <button class="tbar-btn" onclick="openModal('modal-settings')">⚙</button>
+    <div style="display:flex;gap:4px">
+      <button class="tbar-btn" onclick="openShareProfile()" title="Share profile">↗</button>
+      <button class="tbar-btn" onclick="openModal('modal-settings')">⚙</button>
+    </div>
   </div>
   <div class="profile-screen">
     <div class="profile-cover"></div>
@@ -1208,6 +1339,49 @@ img{max-width:100%;display:block}
   </div>
 </div>
 
+<!-- ═══ YEAR IN REVIEW MODAL ═══ -->
+<div class="modal-overlay" id="modal-yr">
+  <div class="modal" style="padding:0;overflow:hidden;max-height:92vh;overflow-y:auto">
+    <div class="modal-handle" style="position:sticky;top:0;z-index:2;padding-top:10px;background:var(--bg2)"></div>
+    <div id="yr-content"></div>
+    <div style="padding:16px 20px 24px;background:var(--bg2)">
+      <button class="modal-submit" onclick="shareYearReview()">↗ Share this</button>
+      <button class="modal-cancel" data-close="modal-yr">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SHARE PROFILE MODAL ═══ -->
+<div class="modal-overlay" id="modal-share">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Share your profile</div>
+    <div class="share-card">
+      <div style="font-size:28px;margin-bottom:8px">🐝</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:4px" id="share-card-name">Your profile</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:0.1em" id="share-card-stats"></div>
+    </div>
+    <div class="share-modal-url" id="share-url">scenthive.app</div>
+    <button class="modal-submit" onclick="copyShareUrl()">Copy link</button>
+    <button class="modal-cancel" data-close="modal-share">Done</button>
+  </div>
+</div>
+
+<!-- ═══ WISHLIST ADD MODAL ═══ -->
+<div class="modal-overlay" id="modal-wishlist">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add to want-to-try</div>
+    <div class="modal-sub">Search for a fragrance to add to your wishlist.</div>
+    <div style="position:relative">
+      <input class="modal-input" id="wishlist-search" type="text" placeholder="Search fragrances…" autocomplete="off" style="padding-right:40px">
+      <div id="wishlist-spinner" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%)"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div></div>
+    </div>
+    <div id="wishlist-results" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
+    <button class="modal-cancel" data-close="modal-wishlist">Cancel</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1341,6 +1515,7 @@ function enterAsGuest() {
     diary = JSON.parse(localStorage.getItem('sh_diary') || '[]');
     collection = JSON.parse(localStorage.getItem('sh_collection') || '[]');
   } catch (e) { diary = []; collection = []; }
+  loadWishlist();
   showTab('home');
   updateHero();
   loadCommunityFeed();
@@ -1349,6 +1524,7 @@ function enterAsGuest() {
 
 async function initApp() {
   await Promise.all([loadCollection(), loadDiary()]);
+  loadWishlist();
   showTab('home');
   updateHero();
   if (diary.length === 0) {
@@ -1935,6 +2111,7 @@ async function saveCollection() {
 
 // ═══════ DIARY (Letterboxd table) ═══════
 function renderDiary() {
+  renderDiaryExtras();
   const el = document.getElementById('diary-list');
   if (!el) return;
   if (diary.length === 0) {
@@ -3000,6 +3177,10 @@ function wireEvents() {
   const pfs = document.getElementById('pick-fav-search');
   if (pfs) pfs.addEventListener('input', e => onPickFavSearch(e.target.value));
 
+  // Wishlist search
+  const wls = document.getElementById('wishlist-search');
+  if (wls) wls.addEventListener('input', e => onWishlistSearch(e.target.value));
+
   // Poster card quick-action buttons (global delegation)
   document.addEventListener('click', function(e) {
     const btn = e.target.closest('.pca-btn');
@@ -3078,6 +3259,356 @@ function wireEvents() {
   if (rpLog) rpLog.addEventListener('click', openLog);
   const rpAdd = document.getElementById('rp-add-btn');
   if (rpAdd) rpAdd.addEventListener('click', openAdd);
+}
+
+// ═══════ STREAK & HEATMAP ═══════
+function computeStreak() {
+  if (!diary.length) return { current: 0, longest: 0 };
+  const dateSet = new Set(diary.map(e => (e.worn_at || '').slice(0, 10)).filter(Boolean));
+  const today = new Date(); today.setHours(0,0,0,0);
+  const toStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const todayStr = toStr(today);
+  const yest = new Date(today); yest.setDate(yest.getDate()-1);
+  const yesterdayStr = toStr(yest);
+
+  // Current streak
+  let current = 0;
+  if (dateSet.has(todayStr) || dateSet.has(yesterdayStr)) {
+    const startStr = dateSet.has(todayStr) ? todayStr : yesterdayStr;
+    const d = new Date(startStr);
+    while (dateSet.has(toStr(d))) { current++; d.setDate(d.getDate()-1); }
+  }
+
+  // Longest streak
+  const sorted = [...dateSet].sort();
+  let longest = 0, run = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const diff = (new Date(sorted[i]) - new Date(sorted[i-1])) / 86400000;
+    if (diff === 1) { run++; longest = Math.max(longest, run); }
+    else run = 1;
+  }
+  if (sorted.length) longest = Math.max(longest, run, current);
+  return { current, longest };
+}
+
+function renderStreakBar() {
+  const { current, longest } = computeStreak();
+  const tc = document.getElementById('streak-current');
+  const tl = document.getElementById('streak-longest');
+  const tt = document.getElementById('streak-total');
+  if (tc) tc.textContent = current;
+  if (tl) tl.textContent = longest;
+  if (tt) tt.textContent = diary.length;
+  // colour the current streak number
+  if (tc) tc.className = 'streak-num' + (current >= 3 ? ' fire' : '');
+}
+
+function renderHeatmap() {
+  const colsEl = document.getElementById('heatmap-cols');
+  const monthsEl = document.getElementById('heatmap-months');
+  const yearCountEl = document.getElementById('heatmap-year-count');
+  if (!colsEl) return;
+
+  const WEEKS = 26;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const toStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  // Build count map
+  const dayMap = {};
+  diary.forEach(e => {
+    const k = (e.worn_at||'').slice(0,10);
+    if (k) dayMap[k] = (dayMap[k]||0) + 1;
+  });
+
+  // Year count
+  const thisYear = today.getFullYear();
+  const yearCount = Object.entries(dayMap).filter(([k])=>k.startsWith(thisYear)).reduce((s,[,v])=>s+v,0);
+  if (yearCountEl) yearCountEl.textContent = yearCount ? yearCount + ' logged in ' + thisYear : '';
+
+  // Start: WEEKS*7 days ago, adjusted back to Monday
+  const start = new Date(today);
+  start.setDate(today.getDate() - WEEKS * 7 + 1);
+  const dow = (start.getDay() + 6) % 7;
+  start.setDate(start.getDate() - dow);
+
+  const weeks = [];
+  const cur = new Date(start);
+  while (weeks.length < WEEKS) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const str = toStr(cur);
+      const count = dayMap[str] || 0;
+      const isFuture = cur > today;
+      const lv = isFuture ? 'future' : count === 0 ? 'lv0' : count === 1 ? 'lv1' : count === 2 ? 'lv2' : count < 5 ? 'lv3' : 'lv4';
+      week.push({ str, count, lv, month: cur.getMonth(), date: cur.getDate() });
+      cur.setDate(cur.getDate() + 1);
+    }
+    weeks.push(week);
+  }
+
+  // Month labels — show label when month changes
+  let lastMonth = -1;
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  monthsEl.innerHTML = weeks.map(w => {
+    const m = w[0].month;
+    if (m !== lastMonth) { lastMonth = m; return `<div class="heatmap-month-label" style="min-width:${WEEKS > 0 ? 13 : 11}px">${monthNames[m]}</div>`; }
+    return `<div class="heatmap-month-label"></div>`;
+  }).join('');
+
+  // Cells
+  colsEl.innerHTML = weeks.map(w =>
+    `<div class="heatmap-col">${w.map(c =>
+      `<div class="heatmap-cell ${c.lv}" title="${c.str}: ${c.count} sprayed"></div>`
+    ).join('')}</div>`
+  ).join('');
+
+  // Scroll to end (today)
+  const scroll = colsEl.closest('.heatmap-scroll');
+  if (scroll) setTimeout(() => { scroll.scrollLeft = scroll.scrollWidth; }, 50);
+}
+
+function renderDiaryExtras() {
+  renderStreakBar();
+  renderHeatmap();
+}
+
+// ═══════ YEAR IN REVIEW ═══════
+function openYearReview() {
+  const content = document.getElementById('yr-content');
+  if (!content) return;
+  const year = new Date().getFullYear();
+  const entries = diary.filter(e => (e.worn_at||'').startsWith(year));
+
+  // Totals
+  const total = entries.length;
+  const unique = new Set(entries.map(e=>e.fragrance_name)).size;
+  const rated = entries.filter(e=>e.rating);
+  const avg = rated.length ? (rated.reduce((s,e)=>s+e.rating,0)/rated.length).toFixed(1) : '—';
+  const { current, longest } = computeStreak();
+
+  // Top fragrance
+  const fragCount = {};
+  entries.forEach(e => { fragCount[e.fragrance_name] = (fragCount[e.fragrance_name]||0)+1; });
+  const topFrag = Object.entries(fragCount).sort((a,b)=>b[1]-a[1])[0];
+
+  // Top house
+  const houseCount = {};
+  entries.forEach(e => { if(e.house) houseCount[e.house] = (houseCount[e.house]||0)+1; });
+  const topHouse = Object.entries(houseCount).sort((a,b)=>b[1]-a[1])[0];
+
+  // Monthly bars
+  const months = Array(12).fill(0);
+  entries.forEach(e => { const m = new Date(e.worn_at).getMonth(); if(m>=0) months[m]++; });
+  const maxM = Math.max(...months, 1);
+  const monthNames = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+  const monthLong = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const bestMonthIdx = months.indexOf(Math.max(...months));
+
+  if (total === 0) {
+    content.innerHTML = `<div style="text-align:center;padding:40px 20px">
+      <div style="font-size:40px;margin-bottom:12px">📔</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;margin-bottom:8px">No entries yet in ${year}</div>
+      <div style="font-size:13px;color:var(--grey)">Start logging and come back to see your year unfold.</div>
+    </div>`;
+  } else {
+    content.innerHTML = `
+      <div class="yr-hero">
+        <div class="yr-hero-year">${year} in scent</div>
+        <div class="yr-hero-num">${total}</div>
+        <div class="yr-hero-label">fragrance${total !== 1 ? 's' : ''} logged this year</div>
+      </div>
+      <div class="yr-grid">
+        <div class="yr-cell">
+          <div class="yr-cell-val">${unique}</div>
+          <div class="yr-cell-key">Unique scents</div>
+        </div>
+        <div class="yr-cell">
+          <div class="yr-cell-val">${avg}${avg !== '—' ? ' ★' : ''}</div>
+          <div class="yr-cell-key">Avg rating</div>
+        </div>
+        <div class="yr-cell">
+          <div class="yr-cell-val">${current}${current >= 3 ? ' 🔥' : ''}</div>
+          <div class="yr-cell-key">Current streak</div>
+        </div>
+        <div class="yr-cell">
+          <div class="yr-cell-val">${longest}</div>
+          <div class="yr-cell-key">Best streak</div>
+        </div>
+      </div>
+      ${topFrag ? `<div class="yr-best">
+        <div class="yr-best-label">Most worn this year</div>
+        <div class="yr-best-name">${escapeHtml(topFrag[0])}</div>
+        <div class="yr-best-sub">${topFrag[1]} time${topFrag[1]!==1?'s':''} ${topHouse ? '· ' + escapeHtml(topHouse[0]) : ''}</div>
+      </div>` : ''}
+      <div class="yr-months">
+        ${months.map((n,i)=>`<div class="yr-month-bar">
+          <div class="yr-month-track"><div class="yr-month-fill" style="height:${Math.round((n/maxM)*100)}%"></div></div>
+          <div class="yr-month-name" style="${i===bestMonthIdx?'color:var(--gold)':''}">${monthNames[i]}</div>
+        </div>`).join('')}
+      </div>
+      <div style="padding:14px 20px;background:var(--bg2);border-top:1px solid var(--border2);font-size:11px;color:var(--grey);text-align:center;font-style:italic">
+        ${bestMonthIdx >= 0 && months[bestMonthIdx] > 0 ? `Your most active month: <span style="color:var(--white2)">${monthLong[bestMonthIdx]}</span> with ${months[bestMonthIdx]} logs.` : ''}
+      </div>`;
+  }
+  openModal('modal-yr');
+}
+
+function shareYearReview() {
+  const year = new Date().getFullYear();
+  const entries = diary.filter(e => (e.worn_at||'').startsWith(year));
+  const { current } = computeStreak();
+  const text = `My ${year} in fragrance:\n🏺 ${entries.length} scents logged\n🔥 ${current} day streak\nTracked on ScentHive — scenthive.app`;
+  if (navigator.share) {
+    navigator.share({ title: 'My ScentHive Year in Review', text }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(text).then(() => toast('Copied to clipboard!')).catch(()=>{});
+  }
+}
+
+// ═══════ WISHLIST ═══════
+let wishlist = [];
+let wlSearchTimer = null;
+
+function saveWishlist() {
+  if (user) {
+    sb.auth.updateUser({ data: { wishlist } }).catch(()=>{});
+  } else {
+    try { localStorage.setItem('sh_wishlist', JSON.stringify(wishlist)); } catch(e) {}
+  }
+}
+
+function loadWishlist() {
+  if (user) {
+    wishlist = user.user_metadata?.wishlist || [];
+  } else {
+    try { wishlist = JSON.parse(localStorage.getItem('sh_wishlist') || '[]'); } catch(e) { wishlist = []; }
+  }
+}
+
+function openAddWishlist() {
+  document.getElementById('wishlist-search').value = '';
+  document.getElementById('wishlist-results').innerHTML = '';
+  openModal('modal-wishlist');
+  setTimeout(() => document.getElementById('wishlist-search').focus(), 200);
+}
+
+function onWishlistSearch(q) {
+  clearTimeout(wlSearchTimer);
+  const results = document.getElementById('wishlist-results');
+  const spinner = document.getElementById('wishlist-spinner');
+  if (!q.trim()) { results.innerHTML = ''; return; }
+  spinner.style.display = 'block';
+  wlSearchTimer = setTimeout(async () => {
+    const frags = await searchFragella(q);
+    spinner.style.display = 'none';
+    if (!frags.length) { results.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--grey);font-style:italic">No results found.</div>'; return; }
+    results.innerHTML = frags.slice(0,6).map((f,i) => {
+      const key = 'wl'+i+Math.random().toString(36).slice(2,5);
+      fragStore[key] = f;
+      const img = f.image_url ? makeImg(f.image_url, f.name) : '🏺';
+      return `<div class="log-search-result" data-key="${key}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">
+        <div style="width:36px;height:46px;background:var(--bg3);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:18px;flex-shrink:0">${img}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.name||'')}</div>
+          <div style="font-family:DM Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">${escapeHtml(f.house||'')}</div>
+        </div>
+        <span style="color:var(--grey)">+</span>
+      </div>`;
+    }).join('');
+    results.querySelectorAll('.log-search-result').forEach(r => {
+      r.addEventListener('click', () => addToWishlist(fragStore[r.getAttribute('data-key')]));
+    });
+  }, 350);
+}
+
+function addToWishlist(f) {
+  if (wishlist.some(w => w.name === f.name && w.house === f.house)) { toast('Already on your wishlist'); return; }
+  wishlist.unshift({ name: f.name, house: f.house||'', image_url: f.image_url||null, fragella_id: f.fragella_id||null });
+  saveWishlist();
+  closeModal('modal-wishlist');
+  renderWishlist();
+  toast('✓ Added to want-to-try');
+}
+
+function removeFromWishlist(idx) {
+  wishlist.splice(idx, 1);
+  saveWishlist();
+  renderWishlist();
+  toast('Removed from wishlist');
+}
+
+function renderWishlist() {
+  const grid = document.getElementById('wishlist-grid');
+  if (!grid) return;
+  if (!wishlist.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:48px 20px;text-align:center;color:var(--grey)">
+      <div style="font-size:36px;opacity:0.3;margin-bottom:12px">✨</div>
+      <div style="font-size:13px;font-style:italic;margin-bottom:6px">Your wishlist is empty</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em">Add fragrances you want to try before buying.</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = wishlist.map((w,i) => {
+    const img = w.image_url
+      ? `<img class="wl-cell-img" src="${escapeAttr(w.image_url)}" alt="${escapeHtml(w.name)}" onerror="this.outerHTML='<div class=&quot;wl-cell-empty&quot;>🏺</div>'">`
+      : `<div class="wl-cell-empty">🏺</div>`;
+    return `<div class="wl-cell" onclick="openWishlistFrag(${i})">
+      ${img}
+      <div class="wl-cell-overlay">
+        <div class="wl-cell-house">${escapeHtml(w.house)}</div>
+        ${escapeHtml(w.name)}
+      </div>
+      <button class="col-del-btn" onclick="event.stopPropagation();removeFromWishlist(${i})" title="Remove">×</button>
+    </div>`;
+  }).join('');
+}
+
+function openWishlistFrag(idx) {
+  const w = wishlist[idx];
+  if (!w) return;
+  const cached = Object.keys(fragStore).find(k => fragStore[k].name?.toLowerCase() === w.name?.toLowerCase());
+  if (cached) { openFrag(cached); return; }
+  searchFragella(w.name + (w.house ? ' '+w.house : '')).then(frags => {
+    if (!frags.length) return;
+    const key = 'wl'+Math.random().toString(36).slice(2,8);
+    fragStore[key] = frags[0];
+    openFrag(key);
+  });
+}
+
+function switchColTab(tab) {
+  document.getElementById('tab-hive').classList.toggle('active', tab==='hive');
+  document.getElementById('tab-wishlist').classList.toggle('active', tab==='wishlist');
+  document.getElementById('col-hive-view').style.display = tab==='hive' ? '' : 'none';
+  document.getElementById('col-wishlist-view').style.display = tab==='wishlist' ? '' : 'none';
+  if (tab==='wishlist') { loadWishlist(); renderWishlist(); }
+}
+
+// ═══════ SHARE PROFILE ═══════
+function openShareProfile() {
+  if (!user) { toast('Sign in to share your profile'); return; }
+  const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Scenthead';
+  const handle = user.email?.split('@')[0] || 'user';
+  const url = `https://scenthive.app/?u=${encodeURIComponent(handle)}`;
+  const statsStr = `${diary.length} logged · ${collection.length} in hive`;
+  document.getElementById('share-card-name').textContent = name;
+  document.getElementById('share-card-stats').textContent = statsStr;
+  document.getElementById('share-url').textContent = url;
+  openModal('modal-share');
+}
+
+function copyShareUrl() {
+  const url = document.getElementById('share-url').textContent;
+  if (navigator.share) {
+    navigator.share({ title: 'My ScentHive profile', url }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(url).then(() => toast('Link copied!')).catch(() => {
+      const el = document.getElementById('share-url');
+      const r = document.createRange(); r.selectNode(el);
+      window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+      toast('Select and copy the link above');
+    });
+  }
 }
 
 // ═══════ HERO PERSONALISATION ═══════
