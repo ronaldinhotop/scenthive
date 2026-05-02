@@ -172,7 +172,12 @@ img{max-width:100%;display:block}
 .result-info{flex:1;min-width:0}
 .result-name{font-family:'Playfair Display',serif;font-size:16px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .result-house{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px}
-.result-arrow{color:var(--grey)}
+.result-arrow{color:var(--grey);flex-shrink:0}
+.result-actions{display:flex;gap:6px;flex-shrink:0}
+.result-act-btn{width:30px;height:30px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:background 0.15s;color:var(--grey2);background:var(--bg3);border:1px solid var(--border2)}
+.result-act-btn:hover,.result-act-btn:active{background:var(--bg4);color:var(--gold)}
+.result-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.result-chip{font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;border-radius:2px;background:var(--bg3);color:var(--grey);letter-spacing:0.05em;text-transform:uppercase}
 .search-empty{padding:32px 18px;text-align:center;color:var(--grey);font-size:13px;font-style:italic}
 
 /* ═══ DIARY — Letterboxd table ═══ */
@@ -1646,14 +1651,30 @@ async function loadPopularShelf() {
   loadShelf('shelf-popular', ['Sauvage', 'Aventus', 'Baccarat Rouge 540', 'Naxos', 'Oud Wood', 'Bleu de Chanel']);
 }
 
+const _shelfCache = {};
 async function loadShelf(elId, names) {
   const el = document.getElementById(elId);
   if (!el) return;
-  const results = await Promise.allSettled(names.map(name => searchFragella(name)));
+  // Return cached result immediately on revisits
+  if (_shelfCache[elId]) {
+    el.innerHTML = _shelfCache[elId];
+    el.querySelectorAll('.poster-card').forEach(card => {
+      card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
+    });
+    return;
+  }
+  // Stagger requests slightly to avoid hammering the API
+  const results = [];
+  for (let i = 0; i < names.length; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 80));
+    results.push(await searchFragella(names[i]).then(v => ({ status: 'fulfilled', value: v })).catch(() => ({ status: 'rejected' })));
+  }
   const cards = results
     .filter(r => r.status === 'fulfilled' && r.value && r.value[0])
     .map(r => buildPosterCard(r.value[0]));
-  el.innerHTML = cards.length ? cards.join('') : '<div class="loading-row">Could not load</div>';
+  const html = cards.length ? cards.join('') : '<div class="loading-row" style="color:var(--grey);font-size:12px">Could not load shelf</div>';
+  _shelfCache[elId] = html;
+  el.innerHTML = html;
   el.querySelectorAll('.poster-card').forEach(card => {
     card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
   });
@@ -1668,8 +1689,9 @@ function buildPosterCard(f) {
     ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;poster-card-emoji&quot;>🏺</div>'">`
     : '<div class="poster-card-emoji">🏺</div>';
   const actions = `<div class="poster-card-actions">
-      <button class="pca-btn pca-log" data-pca="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}">Log &amp; rate</button>
-      <button class="pca-btn pca-hive" data-pca="hive" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}" data-fid="${escapeAttr(f.fragella_id||'')}">+ Hive</button>
+      <button class="pca-btn pca-log" data-pca="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}">Log</button>
+      <button class="pca-btn pca-hive" data-pca="hive" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}" data-fid="${escapeAttr(f.fragella_id||'')}">🐝</button>
+      <button class="pca-btn pca-wish" data-pca="wish" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}" data-fid="${escapeAttr(f.fragella_id||'')}">✨</button>
     </div>`;
   return `
     <div class="poster-card" data-key="${key}">
@@ -1719,6 +1741,19 @@ async function doSearch(q) {
     }
     wrap.innerHTML = frags.map(f => buildResultItem(f)).join('');
     wrap.querySelectorAll('.result-item').forEach(item => {
+      // Quick action buttons
+      item.querySelectorAll('.result-act-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const f = fragStore[item.getAttribute('data-key')];
+          if (!f) return;
+          const act = btn.getAttribute('data-act');
+          if (act === 'log') prefillLog(f.name, f.house, f.image_url);
+          else if (act === 'hive') quickAdd(f.name, f.house, f.image_url, f.fragella_id);
+          else if (act === 'wish') { addToWishlist(f); }
+        });
+      });
+      // Row click → detail
       item.addEventListener('click', () => openFrag(item.getAttribute('data-key')));
     });
   } catch (e) {
@@ -1733,14 +1768,30 @@ function buildResultItem(f) {
   const img = f.image_url
     ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;result-img-emoji&quot;>🏺</div>'">`
     : '<div class="result-img-emoji">🏺</div>';
+
+  // Meta chips: family, year, gender
+  const chips = [f.family, f.launch_year, f.gender, f.oil_type]
+    .filter(Boolean).slice(0, 3)
+    .map(v => `<span class="result-chip">${escapeHtml(String(v))}</span>`).join('');
+
+  // Top accords preview
+  const accords = Array.isArray(f.accords) ? f.accords.slice(0, 2).map(a =>
+    `<span class="result-chip" style="color:var(--purple-light)">${escapeHtml(typeof a === 'string' ? a : a.name || '')}</span>`
+  ).join('') : '';
+
   return `
-    <div class="result-item" data-key="${key}">
-      <div class="result-img">${img}</div>
-      <div class="result-info">
+    <div class="result-item" data-key="${key}" style="align-items:flex-start">
+      <div class="result-img" style="margin-top:2px">${img}</div>
+      <div class="result-info" style="flex:1;min-width:0">
         <div class="result-name">${safeName}</div>
         <div class="result-house">${escapeHtml(f.house || '')}</div>
+        ${chips || accords ? `<div class="result-meta">${chips}${accords}</div>` : ''}
       </div>
-      <span class="result-arrow">›</span>
+      <div class="result-actions">
+        <button class="result-act-btn" data-act="log" title="Log it">📝</button>
+        <button class="result-act-btn" data-act="hive" title="Add to hive">🐝</button>
+        <button class="result-act-btn" data-act="wish" title="Want to try">✨</button>
+      </div>
     </div>`;
 }
 
@@ -1882,6 +1933,7 @@ function openFrag(key) {
         '<div class="frag-actions">' +
           '<button class="frag-btn frag-btn-primary" data-act="log" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '">Log &amp; rate</button>' +
           '<button class="frag-btn frag-btn-secondary" data-act="add" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '">+ Hive</button>' +
+          '<button class="frag-btn frag-btn-secondary" data-act="wish" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '" style="flex:0 0 auto;padding:12px 14px">✨</button>' +
         '</div>' +
       '</div>' +
     '</div>' +
@@ -1940,6 +1992,7 @@ function openFrag(key) {
       const house = b.getAttribute('data-house');
       if (act === 'log') prefillLog(name, house, b.getAttribute('data-img'));
       else if (act === 'add') quickAdd(name, house, b.getAttribute('data-img'), b.getAttribute('data-fid'));
+      else if (act === 'wish') addToWishlist({ name, house, image_url: b.getAttribute('data-img'), fragella_id: b.getAttribute('data-fid') });
     });
   });
   document.querySelectorAll('#frag-content .buy-row, #frag-content .buy-card').forEach(b => {
@@ -3212,6 +3265,7 @@ function wireEvents() {
     const fid = btn.getAttribute('data-fid');
     if (act === 'log') prefillLog(name, house, img);
     else if (act === 'hive') quickAdd(name, house, img, fid);
+    else if (act === 'wish') addToWishlist({ name, house, image_url: img || null, fragella_id: fid || null });
   });
 
   // Star picker
