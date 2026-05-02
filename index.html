@@ -1810,6 +1810,59 @@ function renderCollection() {
   }).join('');
 }
 
+// ═══════ TASTE PROFILE COMPUTE ═══════
+function computeTasteProfile() {
+  const CATS = {
+    'Oriental':  ['oud','amber','oriental','incense','tobacco','opium','resin','bakhoor','smoky'],
+    'Woody':     ['wood','cedar','sandalwood','vetiver','patchouli','birch','guaiac','forest','oakmoss'],
+    'Fresh':     ['sauvage','cool water','bleu','aqua','fresh','citrus','lime','lemon','bergamot','marine','ocean','light blue','green','sport'],
+    'Floral':    ['flower','floral','rose','jasmin','iris','violet','lily','neroli','peony','gardenia','ylang','lavender'],
+    'Gourmand':  ['vanilla','chocolate','caramel','honey','sugar','tonka','praline','gourmand','marzipan','coffee'],
+    'Spicy':     ['pepper','spice','cinnamon','cardamom','saffron','clove','ginger','chili','nutmeg']
+  };
+  const scores = Object.fromEntries(Object.keys(CATS).map(k => [k, 0]));
+  const entries = [...diary, ...collection];
+  if (!entries.length) return scores;
+
+  entries.forEach(e => {
+    const name  = (e.fragrance_name || e.name || '').toLowerCase();
+    const house = (e.house || '').toLowerCase();
+    const w     = e.rating || 1;
+    // also check fragStore for richer accord data
+    const cached = e.fragella_id
+      ? Object.values(fragStore).find(fs => fs.fragella_id === e.fragella_id)
+      : null;
+    const extra = cached
+      ? (cached.accords || []).map(a => typeof a === 'string' ? a : (a.name || '')).join(' ').toLowerCase()
+        + ' ' + (cached.family || '').toLowerCase()
+      : '';
+    const text = name + ' ' + house + ' ' + extra;
+    Object.entries(CATS).forEach(([cat, terms]) => {
+      if (terms.some(t => text.includes(t))) scores[cat] += w;
+    });
+  });
+
+  const max = Math.max(...Object.values(scores), 1);
+  return Object.fromEntries(Object.entries(scores).map(([k, v]) => [k, Math.round(v / max * 100)]));
+}
+
+function renderTasteBars() {
+  const el = document.getElementById('taste-bars');
+  if (!el) return;
+  const profile = computeTasteProfile();
+  const sorted  = Object.entries(profile).sort((a, b) => b[1] - a[1]);
+  const hasData  = sorted.some(([, v]) => v > 0);
+  if (!hasData) {
+    el.innerHTML = '<div style="color:var(--grey);font-size:12px;font-style:italic;padding:4px 0">Log more fragrances to build your taste profile.</div>';
+    return;
+  }
+  el.innerHTML = sorted.map(([name, pct]) => `
+    <div class="taste-row">
+      <div class="taste-top"><span class="taste-name">${name}</span><span class="taste-count">${pct}%</span></div>
+      <div class="taste-track"><div class="taste-fill" style="width:${pct}%"></div></div>
+    </div>`).join('');
+}
+
 // ═══════ PROFILE ═══════
 function renderProfile() {
   // Account info
@@ -1913,6 +1966,9 @@ function renderProfile() {
     ? (user.user_metadata?.bio || 'Building my fragrance diary one wear at a time.')
     : 'Welcome — sign in to save your diary and build your taste profile.';
   document.getElementById('prof-bio').textContent = bio;
+
+  // Taste profile
+  renderTasteBars();
 }
 
 // ═══════ ARTICLES ═══════
