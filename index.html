@@ -813,6 +813,18 @@ img{max-width:100%;display:block}
         </div>
       </div>
 
+      <!-- Your recently logged — shown only when logged in + diary not empty -->
+      <div class="section" id="section-recent-yours" style="display:none">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Your diary</div>
+            <div class="section-title">Recently <em>worn</em></div>
+          </div>
+          <span class="section-more" onclick="showTab('diary')">See all →</span>
+        </div>
+        <div class="poster-row" id="shelf-yours"></div>
+      </div>
+
       <div class="section">
         <div class="section-header">
           <div>
@@ -1724,6 +1736,33 @@ async function renderHome() {
   // Hide features grid for users who already have data
   const fg = document.getElementById('features-grid');
   if (fg) fg.style.display = (diary.length > 0 || collection.length > 0) ? 'none' : '';
+  // Show/populate "recently worn by you" shelf
+  const sectionYours = document.getElementById('section-recent-yours');
+  const shelfYours = document.getElementById('shelf-yours');
+  if (sectionYours && shelfYours && user && diary.length > 0) {
+    sectionYours.style.display = '';
+    const unique = [];
+    const seen = new Set();
+    for (const e of diary) {
+      const k = (e.fragrance_name || '').toLowerCase();
+      if (!seen.has(k)) { seen.add(k); unique.push(e); }
+      if (unique.length >= 8) break;
+    }
+    shelfYours.innerHTML = unique.map(e => {
+      const key = 'yo' + Math.random().toString(36).slice(2,7);
+      fragStore[key] = { name: e.fragrance_name, house: e.house, image_url: e.image_url };
+      const nm = escapeHtml(e.fragrance_name || '');
+      const hs = escapeHtml(e.house || '');
+      const imgHtml = e.image_url ? makeImg(e.image_url, nm) : '<div class="poster-card-emoji">🏺</div>';
+      return '<div class="poster-card" data-key="' + key + '">' +
+        '<div class="poster-card-img">' + imgHtml +
+        '<div class="poster-card-info"><div class="poster-card-name">' + nm + '</div><div class="poster-card-house">' + hs + '</div></div>' +
+        '</div></div>';
+    }).join('');
+    shelfYours.querySelectorAll('.poster-card').forEach(c => {
+      c.addEventListener('click', () => openFrag(c.getAttribute('data-key')));
+    });
+  }
   loadPopularShelf();
   loadShelf('shelf-dark', ['Tobacco Vanille Tom Ford', 'Encre Noire Lalique', 'Black Orchid Tom Ford', 'Interlude Man Amouage', 'Oud Wood Tom Ford', 'Lost Cherry Tom Ford', 'Dior Homme Intense']);
   loadShelf('shelf-fresh', ['Bleu de Chanel EDP', 'Acqua di Gio Profumo', 'Y EDP YSL', 'Erba Pura Xerjoff', 'Light Blue Dolce', 'Terre Hermes', 'Reflection Man Amouage', 'Viking Creed']);
