@@ -1015,8 +1015,11 @@ img{max-width:100%;display:block}
         <div class="col-stat"><span class="col-stat-num" id="col-houses">0</span><span class="col-stat-label">Houses</span></div>
         <div class="col-stat"><span class="col-stat-num" id="col-value">€0</span><span class="col-stat-label">Value</span></div>
       </div>
+      <div style="display:flex;gap:8px;padding:0 16px 12px">
+        <button class="col-add-btn" id="col-add-btn" style="flex:1;margin:0">+ Add manually</button>
+        <button onclick="openScan()" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;color:var(--white2);letter-spacing:0.06em;cursor:pointer;text-transform:uppercase">📷 Scan bottle</button>
+      </div>
       <div class="col-grid" id="col-grid"></div>
-      <button class="col-add-btn" id="col-add-btn">+ Add a bottle to your hive</button>
     </div>
     <!-- WISHLIST VIEW -->
     <div id="col-wishlist-view" style="display:none">
@@ -1382,12 +1385,6 @@ img{max-width:100%;display:block}
     <textarea id="ai-prompt" class="modal-input" rows="3" placeholder="e.g. I love warm oud and vanilla, hate citrus, looking for something to wear in winter evenings…" style="resize:none;line-height:1.55;font-size:13px"></textarea>
     <div id="ai-context-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px"></div>
     <button class="modal-submit" id="ai-ask-btn" onclick="askAI()">✨ Get recommendations</button>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
-      <div style="flex:1;height:1px;background:var(--border2)"></div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.08em">OR</div>
-      <div style="flex:1;height:1px;background:var(--border2)"></div>
-    </div>
-    <button class="modal-cancel" style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%" onclick="openScan()">📷 Identify a bottle from photo</button>
     <div id="ai-results" style="margin-top:16px"></div>
     <button class="modal-cancel" data-close="modal-ai" style="margin-top:8px">Close</button>
   </div>
@@ -1399,21 +1396,21 @@ img{max-width:100%;display:block}
     <div class="modal-handle"></div>
     <div style="text-align:center;padding:4px 0 14px">
       <div style="font-size:28px;margin-bottom:6px">📷</div>
-      <div class="modal-title" style="font-size:20px">Identify a Bottle</div>
-      <div style="font-size:12px;color:var(--grey);margin-top:4px;line-height:1.5">Take or upload a photo of any fragrance bottle and AI will identify it.</div>
+      <div class="modal-title" style="font-size:20px">Scan Your Collection</div>
+      <div style="font-size:12px;color:var(--grey);margin-top:4px;line-height:1.5">Point your camera at any bottle — AI identifies it and adds it to your hive instantly.</div>
     </div>
     <div id="scan-preview" style="display:none;margin-bottom:14px;border-radius:4px;overflow:hidden;background:var(--bg3);border:1px solid var(--border2);text-align:center">
-      <img id="scan-img" style="max-width:100%;max-height:240px;object-fit:contain;display:block;margin:0 auto">
+      <img id="scan-img" style="max-width:100%;max-height:200px;object-fit:contain;display:block;margin:0 auto">
     </div>
-    <div id="scan-drop" style="border:2px dashed var(--border);border-radius:4px;padding:32px 20px;text-align:center;cursor:pointer;transition:border-color 0.2s" onclick="document.getElementById('scan-file').click()">
-      <div style="font-size:32px;margin-bottom:8px">🏺</div>
-      <div style="font-size:13px;color:var(--white2);margin-bottom:4px">Tap to choose photo</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.06em">or take a picture with your camera</div>
+    <div id="scan-drop" style="border:2px dashed var(--border);border-radius:4px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color 0.2s" onclick="document.getElementById('scan-file').click()">
+      <div style="font-size:36px;margin-bottom:10px">🏺</div>
+      <div style="font-size:14px;color:var(--white2);margin-bottom:4px;font-weight:500">Tap to photograph a bottle</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.06em">Works with any perfume — just make sure the label is visible</div>
     </div>
     <input type="file" id="scan-file" accept="image/*" capture="environment" style="display:none">
     <div id="scan-result" style="margin-top:14px"></div>
-    <button class="modal-submit" id="scan-btn" style="margin-top:12px;display:none" onclick="runScan()">🔍 Identify this bottle</button>
-    <button class="modal-cancel" data-close="modal-scan" style="margin-top:8px">Cancel</button>
+    <button class="modal-submit" id="scan-btn" style="margin-top:12px;display:none" onclick="runScan()">🔍 Identify &amp; add to hive</button>
+    <button class="modal-cancel" data-close="modal-scan" style="margin-top:8px">Close</button>
   </div>
 </div>
 
@@ -4228,29 +4225,46 @@ async function runScan() {
 
     if (!data.name) {
       resultEl.innerHTML = `<div style="padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
-        <div style="font-size:13px;color:var(--grey);font-style:italic">Couldn't identify this bottle. ${escapeHtml(data.description||'Try a clearer photo showing the label.')}</div>
+        <div style="font-size:13px;color:var(--grey);font-style:italic;margin-bottom:10px">Couldn't identify this bottle. ${escapeHtml(data.description||'Try a clearer photo with the label fully visible.')}</div>
+        <button class="modal-cancel" style="width:100%" onclick="resetScan()">Try another photo</button>
       </div>`;
     } else {
-      const conf = data.confidence === 'high' ? '✓ High confidence' : data.confidence === 'medium' ? '~ Medium confidence' : '? Low confidence';
+      const conf = data.confidence === 'high' ? '✓ Identified' : data.confidence === 'medium' ? '~ Probably' : '? Best guess';
       const confColor = data.confidence === 'high' ? 'var(--gold)' : data.confidence === 'medium' ? 'var(--white2)' : 'var(--grey)';
-      const notes = Array.isArray(data.notes) ? data.notes.slice(0,4).map(n => `<span class="result-chip">${escapeHtml(n)}</span>`).join('') : '';
-      resultEl.innerHTML = `<div style="padding:16px;background:var(--gold-pale);border:1px solid rgba(240,192,64,0.25);border-radius:4px">
+      const alreadyOwned = collection.some(c => c.name?.toLowerCase() === data.name?.toLowerCase());
+      resultEl.innerHTML = `<div style="padding:16px;background:var(--gold-pale);border:1px solid rgba(240,192,64,0.25);border-radius:4px;margin-bottom:10px">
         <div style="font-family:'DM Mono',monospace;font-size:8px;color:${confColor};letter-spacing:0.1em;margin-bottom:8px">${conf}</div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:2px">${escapeHtml(data.name)}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);margin-bottom:8px">${escapeHtml(data.house||'')}${data.family?' · '+escapeHtml(data.family):''}</div>
-        ${data.description ? `<div style="font-size:12px;color:var(--white2);font-style:italic;margin-bottom:10px;line-height:1.5">"${escapeHtml(data.description)}"</div>` : ''}
-        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${notes}</div>
-        <div style="display:flex;gap:8px">
-          <button class="modal-submit" style="flex:1;font-size:11px;padding:8px 0" onclick="searchAndOpen(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')})">View details</button>
-          <button class="frag-btn frag-btn-secondary" style="flex:1;font-size:11px;padding:8px 0" onclick="prefillLog(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')},null);closeModal('modal-scan')">Log it</button>
+        <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;margin-bottom:2px">${escapeHtml(data.name)}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);margin-bottom:10px">${escapeHtml(data.house||'')}${data.family?' · '+escapeHtml(data.family):''}</div>
+        ${alreadyOwned ? '<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--gold);margin-bottom:10px">✓ Already in your hive</div>' : ''}
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button class="modal-submit" style="flex:2;font-size:11px;padding:10px 0" onclick="scanAddToHive(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')},${JSON.stringify(data.image_url||null)})">${alreadyOwned ? '+ Add again' : '🐝 Add to hive'}</button>
+          <button class="frag-btn frag-btn-secondary" style="flex:1;font-size:11px;padding:10px 0" onclick="prefillLog(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')},null);closeModal('modal-scan')">Log it</button>
         </div>
+        <button class="modal-cancel" style="width:100%;margin-top:0" onclick="resetScan()">📷 Scan another bottle</button>
       </div>`;
     }
   } catch (e) {
     resultEl.innerHTML = `<div style="padding:12px;font-size:12px;color:var(--red);font-style:italic">${escapeHtml(e.message||'Something went wrong')}</div>`;
   } finally {
-    btn.disabled = false; btn.textContent = '🔍 Identify this bottle';
+    btn.disabled = false; btn.textContent = '🔍 Identify & add to hive';
   }
+}
+
+function resetScan() {
+  _scanBase64 = null; _scanMediaType = null;
+  document.getElementById('scan-preview').style.display = 'none';
+  document.getElementById('scan-drop').style.display = 'block';
+  document.getElementById('scan-btn').style.display = 'none';
+  document.getElementById('scan-result').innerHTML = '';
+  document.getElementById('scan-file').value = '';
+}
+
+async function scanAddToHive(name, house, imageUrl) {
+  await quickAdd(name, house, imageUrl, null);
+  // Keep modal open so user can scan another
+  document.getElementById('scan-result').innerHTML += `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);padding:8px 0;letter-spacing:0.06em">✓ Added to your hive! Scan another bottle or close.</div>`;
+  setTimeout(resetScan, 1800);
 }
 
 // ═══════ SEARCH TRIGGER ═══════
