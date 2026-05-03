@@ -529,6 +529,25 @@ img{max-width:100%;display:block}
 .season-badge{padding:7px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.04em;display:flex;align-items:center;gap:6px;transition:all 0.2s}
 .season-badge.active-season{background:var(--purple-pale);border-color:var(--purple-dim);color:var(--purple-light)}
 .season-badge.active-summer{background:rgba(240,192,64,0.1);border-color:var(--gold-dim);color:var(--gold-light)}
+/* ═══ SEASON VOTE BUTTONS ═══ */
+.svote-btn{padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.04em;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s}
+.svote-btn:hover{border-color:var(--border2);color:var(--white2)}
+.svote-btn.voted-spring,.svote-btn.voted-summer{background:rgba(240,192,64,0.12);border-color:var(--gold-dim);color:var(--gold-light)}
+.svote-btn.voted-fall,.svote-btn.voted-winter{background:var(--purple-pale);border-color:var(--purple-dim);color:var(--purple-light)}
+.svote-count{font-size:8px;opacity:0.7}
+/* ═══ PERF VOTE BUTTONS ═══ */
+.pvote-row{margin-bottom:14px}
+.pvote-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
+.pvote-opts{display:flex;gap:3px;margin-bottom:8px}
+.pvote-btn{flex:1;padding:6px 2px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;font-family:'DM Mono',monospace;font-size:7.5px;color:var(--grey);letter-spacing:0.02em;cursor:pointer;text-align:center;transition:all 0.15s;line-height:1.4}
+.pvote-btn:hover{border-color:var(--border2);color:var(--white2)}
+.pvote-btn.voted{background:var(--gold-pale);border-color:var(--gold-dim);color:var(--gold-light)}
+.pvote-count{display:block;font-size:9px;color:var(--grey2);margin-top:2px}
+.vote-hint{font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);margin-top:6px;letter-spacing:0.04em}
+/* ═══ NOTE IMAGE CELLS ═══ */
+.hex-cell{overflow:hidden}
+.hex-note-img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;opacity:0.55;mix-blend-mode:luminosity}
+.hex-cell{position:relative}
 
 /* ═══ SIMILAR FRAGRANCES ═══ */
 #frag-similar{overflow:hidden}
@@ -1900,7 +1919,89 @@ function noteEmoji(n) {
   return '';
 }
 
-function buildHexNotes(notes, tier) {
+// ═══════ NOTE IMAGES (Wikipedia thumbnails) ═══════
+const NOTE_WIKI_PAGES = {
+  'bergamot':'Bergamot_orange','lemon':'Lemon','orange':'Orange_(fruit)',
+  'grapefruit':'Grapefruit','lime':'Lime_(fruit)','mandarin':'Mandarin_orange',
+  'mandarine':'Mandarin_orange','yuzu':'Yuzu','tangerine':'Tangerine',
+  'neroli':'Neroli','petitgrain':'Petitgrain','rose':'Rose','jasmine':'Jasmine',
+  'jasmin':'Jasmine','lavender':'Lavender','iris':'Iris_(plant)',
+  'violet':'Violet_(plant)','ylang-ylang':'Ylang-ylang','ylang ylang':'Ylang-ylang',
+  'tuberose':'Polianthes_tuberosa','geranium':'Geranium','peony':'Paeonia_(plant)',
+  'lily':'Lilium','lily of the valley':'Lily_of_the_valley','magnolia':'Magnolia',
+  'freesia':'Freesia','orange blossom':'Orange_blossom','mimosa':'Mimosa',
+  'heliotrope':'Heliotropium','carnation':'Carnation','gardenia':'Gardenia',
+  'hyacinth':'Hyacinth_(plant)','cherry blossom':'Cherry_blossom',
+  'sandalwood':'Sandalwood','cedarwood':'Cedar','cedar':'Cedar',
+  'vetiver':'Vetiver','patchouli':'Patchouli','oud':'Agarwood',
+  'agarwood':'Agarwood','frankincense':'Frankincense','incense':'Incense',
+  'myrrh':'Myrrh','benzoin':'Benzoin_resin','labdanum':'Labdanum',
+  'pine':'Pine','birch':'Birch','oak':'Oak','guaiac wood':'Guaiacum',
+  'musk':'Musk','ambergris':'Ambergris','amber':'Amber','castoreum':'Castoreum',
+  'vanilla':'Vanilla','cinnamon':'Cinnamon','cardamom':'Cardamom',
+  'pepper':'Black_pepper','black pepper':'Black_pepper','ginger':'Ginger',
+  'nutmeg':'Nutmeg','clove':'Clove','saffron':'Saffron',
+  'tonka bean':'Dipteryx_odorata','tonka':'Dipteryx_odorata','star anise':'Illicium_verum',
+  'anise':'Anise','peach':'Peach','apple':'Apple','pear':'Pear',
+  'raspberry':'Raspberry','strawberry':'Strawberry','blackcurrant':'Blackcurrant',
+  'blackberry':'Blackberry','plum':'Plum','cherry':'Cherry','mango':'Mango',
+  'coconut':'Coconut','fig':'Common_fig','lychee':'Lychee',
+  'pomegranate':'Pomegranate','mint':'Mentha','spearmint':'Spearmint',
+  'basil':'Basil','oakmoss':'Evernia_prunastri','eucalyptus':'Eucalyptus',
+  'green tea':'Green_tea','tea':'Tea','coffee':'Coffee','chocolate':'Chocolate',
+  'caramel':'Caramel','honey':'Honey','tobacco':'Tobacco','hay':'Hay',
+  'leather':'Leather','moss':'Moss','fern':'Fern','pine needle':'Pine',
+  'muslin':'Musk','white musk':'Musk','ambrette':'Ambrette_seed',
+  'cistus':'Cistus','orris':'Iris_(plant)','orris root':'Iris_(plant)',
+  'iso e super':'Cedar','hedione':'Jasmine','calone':'Watermelon',
+  'aldehydes':'Aldehydes','aldehyde':'Aldehydes','marine':'Water',
+  'sea salt':'Salt','salt':'Salt','water':'Water','smoke':'Smoke',
+  'birch tar':'Birch','beeswax':'Beeswax','immortelle':'Helichrysum',
+  'helichrysum':'Helichrysum','violet leaf':'Violet_(plant)',
+  'rose water':'Rose','rosewater':'Rose','apple blossom':'Apple',
+  'linden blossom':'Tilia','linden':'Tilia','wisteria':'Wisteria',
+  'cyclamen':'Cyclamen','daffodil':'Narcissus','narcissus':'Narcissus',
+  'muguet':'Lily_of_the_valley','vetivert':'Vetiver','woods':'Wood',
+  'wood':'Wood','mosswood':'Moss','amber wood':'Agarwood','rose wood':'Rosewood',
+  'rosewood':'Rosewood','teak wood':'Teak','teak':'Teak',
+  'ebony':'Ebony_wood','ebony wood':'Ebony_wood',
+};
+
+const _noteImgCache = {};
+
+async function loadNoteImages(noteNames) {
+  const toFetch = [];
+  const results = {};
+
+  for (const raw of noteNames) {
+    const name = (typeof raw === 'string' ? raw : (raw.name || '')).toLowerCase().trim();
+    if (!name) continue;
+    const cached = sessionStorage.getItem('ni_' + name);
+    if (cached) { results[name] = cached === 'none' ? null : cached; continue; }
+    const page = NOTE_WIKI_PAGES[name];
+    if (page) toFetch.push({ name, page });
+    else { results[name] = null; sessionStorage.setItem('ni_' + name, 'none'); }
+  }
+
+  if (!toFetch.length) return results;
+
+  await Promise.allSettled(toFetch.map(async ({ name, page }) => {
+    try {
+      const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(page)}`, { headers: { 'Accept': 'application/json' } });
+      const d = await r.json();
+      const url = d?.thumbnail?.source || null;
+      results[name] = url;
+      sessionStorage.setItem('ni_' + name, url || 'none');
+    } catch {
+      results[name] = null;
+      sessionStorage.setItem('ni_' + name, 'none');
+    }
+  }));
+
+  return results;
+}
+
+function buildHexNotes(notes, tier, noteImgs) {
   if (!notes || !notes.length) return '';
   var items = notes.slice(0, 12);
   var rows = [];
@@ -1909,13 +2010,166 @@ function buildHexNotes(notes, tier) {
     var offset = (ri % 2 === 1) ? ' hex-row-offset' : '';
     var cells = row.map(function(n) {
       var name = typeof n === 'string' ? n : (n.name || String(n));
+      var nameKey = name.toLowerCase().trim();
       var em = noteEmoji(name);
-      return '<div class="hex-cell hex-' + tier + '" title="' + escapeHtml(name) + '">' +
-        (em ? '<div class="hex-emoji">' + em + '</div>' : '') +
+      var imgUrl = noteImgs && noteImgs[nameKey];
+      var imgHtml = imgUrl ? '<img class="hex-note-img" src="' + escapeAttr(imgUrl) + '" alt="" onerror="this.remove()">' : '';
+      return '<div class="hex-cell hex-' + tier + '" data-note="' + escapeAttr(nameKey) + '" title="' + escapeHtml(name) + '">' +
+        imgHtml +
+        (em && !imgUrl ? '<div class="hex-emoji">' + em + '</div>' : '') +
         '<div class="hex-name">' + escapeHtml(name) + '</div></div>';
     }).join('');
     return '<div class="hex-row' + offset + '">' + cells + '</div>';
   }).join('');
+}
+
+// ═══════ COMMUNITY VOTES ═══════
+const LONGEVITY_OPTS = [
+  { v:'weak', label:'Weak' }, { v:'moderate', label:'Moderate' },
+  { v:'long', label:'Long' }, { v:'very_long', label:'Very Long' },
+  { v:'beast', label:'Beast 🔥' }
+];
+const SILLAGE_OPTS = [
+  { v:'intimate', label:'Intimate' }, { v:'soft', label:'Soft' },
+  { v:'moderate', label:'Moderate' }, { v:'strong', label:'Strong' },
+  { v:'beast', label:'Beast 🔥' }
+];
+const SEASON_OPTS = [
+  { v:'spring', label:'🌸 Spring', cls:'voted-spring' },
+  { v:'summer', label:'☀️ Summer', cls:'voted-summer' },
+  { v:'fall',   label:'🍂 Fall',   cls:'voted-fall' },
+  { v:'winter', label:'❄️ Winter', cls:'voted-winter' }
+];
+
+function tallyVotes(rows) {
+  // Returns { season:{spring:N,...}, longevity:{weak:N,...}, sillage:{...} }
+  const t = { season:{spring:0,summer:0,fall:0,winter:0}, longevity:{}, sillage:{} };
+  const my = { season:[], longevity:null, sillage:null };
+  for (const r of rows) {
+    if (r.vote_type.startsWith('season_')) {
+      const s = r.vote_type.slice(7);
+      t.season[s] = (t.season[s]||0) + 1;
+      if (r.is_mine) my.season.push(s);
+    } else if (r.vote_type === 'longevity') {
+      t.longevity[r.vote_value] = (t.longevity[r.vote_value]||0) + 1;
+      if (r.is_mine) my.longevity = r.vote_value;
+    } else if (r.vote_type === 'sillage') {
+      t.sillage[r.vote_value] = (t.sillage[r.vote_value]||0) + 1;
+      if (r.is_mine) my.sillage = r.vote_value;
+    }
+  }
+  return { t, my };
+}
+
+function buildSeasonVoteHtml(tally, my, fragella_id) {
+  const total = Object.values(tally).reduce((s,n)=>s+n,0);
+  const hint = user ? 'Tap to vote' : 'Sign in to vote';
+  const btns = SEASON_OPTS.map(opt => {
+    const n = tally[opt.v] || 0;
+    const voted = my.includes(opt.v);
+    return `<button class="svote-btn${voted?' '+opt.cls:''}" data-fid="${escapeAttr(fragella_id||'')}" data-stype="season_${opt.v}">${opt.label} <span class="svote-count">${n||''}</span></button>`;
+  }).join('');
+  return `<div class="season-wrap">${btns}</div><div class="vote-hint">${total} vote${total!==1?'s':''} · ${hint}</div>`;
+}
+
+function buildPerfVoteHtml(tally, my, fragella_id, apiLongevity, apiSillage) {
+  const lTotal = Object.values(tally.longevity).reduce((s,n)=>s+n,0);
+  const sTotal = Object.values(tally.sillage).reduce((s,n)=>s+n,0);
+
+  const longevityWeights = {weak:1,moderate:2,long:3,very_long:4,beast:5};
+  const sillageWeights   = {intimate:1,soft:2,moderate:3,strong:4,beast:5};
+
+  function weightedPct(t, weights) {
+    let sum = 0, total = 0;
+    for (const [k,n] of Object.entries(t)) { sum += (weights[k]||0)*n; total += n; }
+    return total ? Math.round(((sum/total - 1)/(5-1))*100) : 0;
+  }
+
+  const lPct = lTotal ? weightedPct(tally.longevity, longevityWeights) : textToPct(apiLongevity, LONGEVITY_MAP);
+  const sPct = sTotal ? weightedPct(tally.sillage, sillageWeights) : textToPct(apiSillage, SILLAGE_MAP);
+
+  const lBtns = LONGEVITY_OPTS.map(o => {
+    const n = tally.longevity[o.v]||0;
+    return `<button class="pvote-btn${my.longevity===o.v?' voted':''}" data-fid="${escapeAttr(fragella_id||'')}" data-ptype="longevity" data-pval="${o.v}">${o.label}<span class="pvote-count">${n}</span></button>`;
+  }).join('');
+  const sBtns = SILLAGE_OPTS.map(o => {
+    const n = tally.sillage[o.v]||0;
+    return `<button class="pvote-btn${my.sillage===o.v?' voted':''}" data-fid="${escapeAttr(fragella_id||'')}" data-ptype="sillage" data-pval="${o.v}">${o.label}<span class="pvote-count">${n}</span></button>`;
+  }).join('');
+
+  return `<div class="pvote-row">
+    <div class="pvote-label">Longevity${lTotal?` · ${lTotal} votes`:''}</div>
+    <div class="pvote-opts">${lBtns}</div>
+    <div class="perf-track"><div class="perf-fill-gold" style="width:${lPct}%"></div></div>
+  </div>
+  <div class="pvote-row">
+    <div class="pvote-label">Sillage${sTotal?` · ${sTotal} votes`:''}</div>
+    <div class="pvote-opts">${sBtns}</div>
+    <div class="perf-track"><div class="perf-fill-purple" style="width:${sPct}%"></div></div>
+  </div>
+  <div class="vote-hint">${user?'Tap to cast your vote':'Sign in to vote'}</div>`;
+}
+
+async function loadAndRenderVotes(f) {
+  const fid = f.fragella_id;
+  try {
+    const query = sb.from('frag_votes').select('vote_type,vote_value,user_id');
+    if (fid) query.eq('fragella_id', fid); else return;
+    const { data: rows } = await query;
+    if (!rows) return;
+
+    // Tag which rows are mine
+    const mine = rows.map(r => ({ ...r, is_mine: !!user && r.user_id === user.id }));
+    const { t, my } = tallyVotes(mine);
+
+    const sEl = document.getElementById('frag-seasons-inner');
+    const pEl = document.getElementById('frag-perf-inner');
+    if (sEl) {
+      sEl.innerHTML = buildSeasonVoteHtml(t.season, my.season, fid);
+      sEl.querySelectorAll('.svote-btn').forEach(btn => {
+        btn.addEventListener('click', () => handleSeasonVote(btn, fid, my));
+      });
+    }
+    if (pEl) {
+      pEl.innerHTML = buildPerfVoteHtml(t, my, fid, f.longevity, f.sillage);
+      pEl.querySelectorAll('.pvote-btn').forEach(btn => {
+        btn.addEventListener('click', () => handlePerfVote(btn, fid, f));
+      });
+    }
+  } catch(e) {}
+}
+
+async function handleSeasonVote(btn, fid, my) {
+  if (!user) { toast('Sign in to vote'); return; }
+  const stype = btn.getAttribute('data-stype');
+  const season = stype.replace('season_','');
+  const already = my.season.includes(season);
+  try {
+    if (already) {
+      await sb.from('frag_votes').delete()
+        .eq('user_id', user.id).eq('fragella_id', fid).eq('vote_type', stype);
+    } else {
+      await sb.from('frag_votes').upsert(
+        { user_id: user.id, fragella_id: fid, vote_type: stype, vote_value: '1' },
+        { onConflict: 'user_id,fragella_id,vote_type' }
+      );
+    }
+    const fragKey = Object.keys(fragStore).find(k => fragStore[k]?.fragella_id === fid);
+    if (fragKey) await loadAndRenderVotes(fragStore[fragKey]);
+  } catch(e) { toast('Vote failed'); }
+}
+
+async function handlePerfVote(btn, fid, f) {
+  if (!user) { toast('Sign in to vote'); return; }
+  const ptype = btn.getAttribute('data-ptype');
+  const pval = btn.getAttribute('data-pval');
+  try {
+    await sb.from('frag_votes').upsert(
+      { user_id: user.id, fragella_id: fid, vote_type: ptype, vote_value: pval },
+      { onConflict: 'user_id,fragella_id,vote_type' }
+    );
+    await loadAndRenderVotes(f);
+  } catch(e) { toast('Vote failed'); }
 }
 
 // ═══════ FRAGRANCE DETAIL HELPERS ═══════
@@ -1981,21 +2235,11 @@ function openFrag(key) {
   const safeName = escapeHtml(f.name || '');
   const safeHouse = escapeHtml(f.house || '');
 
-  // Season badges
-  const seasons = getSeasons(f);
-  const seasonHtml = '<div class="detail-sec"><div class="detail-label">Best seasons</div>' +
-    '<div class="season-wrap">' +
-    seasons.map(s => '<div class="season-badge ' + (s.active ? s.cls : '') + '">' + s.label + '</div>').join('') +
-    '</div></div>';
+  // Season badges — community voted
+  const seasonHtml = '<div class="detail-sec"><div class="detail-label">Best seasons <span style="font-size:9px;color:var(--grey);font-weight:400">(community voted)</span></div><div id="frag-seasons-inner"><div class="season-wrap"><div style="color:var(--grey);font-size:11px">Loading votes…</div></div></div></div>';
 
-  // Performance meters
-  const lPct = textToPct(f.longevity, LONGEVITY_MAP);
-  const sPct = textToPct(f.sillage, SILLAGE_MAP);
-  const perfHtml = (f.longevity || f.sillage) ?
-    '<div class="detail-sec"><div class="detail-label">Performance</div><div style="padding:4px 0">' +
-      (f.longevity ? '<div class="perf-row"><div class="perf-row-label">Longevity</div><div class="perf-track"><div class="perf-fill-gold" style="width:' + (lPct || 60) + '%"></div></div><div class="perf-val">' + escapeHtml(f.longevity) + '</div></div>' : '') +
-      (f.sillage  ? '<div class="perf-row"><div class="perf-row-label">Sillage</div><div class="perf-track"><div class="perf-fill-purple" style="width:' + (sPct || 60) + '%"></div></div><div class="perf-val">' + escapeHtml(f.sillage) + '</div></div>' : '') +
-    '</div></div>' : '';
+  // Performance — community voted
+  const perfHtml = '<div class="detail-sec"><div class="detail-label">Performance <span style="font-size:9px;color:var(--grey);font-weight:400">(community voted)</span></div><div id="frag-perf-inner"><div class="pvote-row"><div style="color:var(--grey);font-size:11px">Loading votes…</div></div></div></div>';
 
   document.getElementById('frag-content').innerHTML =
     '<div class="frag-hero">' +
@@ -2020,7 +2264,7 @@ function openFrag(key) {
       '</div>' : '') +
     seasonHtml +
     perfHtml +
-    (hasNotes ? '<div class="detail-sec"><div class="detail-label">Fragrance notes</div><div class="hex-pyramid">' +
+    (hasNotes ? '<div class="detail-sec"><div class="detail-label">Fragrance notes <span style="font-size:9px;color:var(--grey);font-weight:400;cursor:help" title="Notes sourced from community databases — accuracy is similar to Fragrantica. Niche fragrances may have gaps.">ⓘ</span></div><div class="hex-pyramid">' +
       (top.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-top">Top notes</div><div class="hex-grid">' + buildHexNotes(top, 'top') + '</div></div>' : '') +
       (heart.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-heart">Heart notes</div><div class="hex-grid">' + buildHexNotes(heart, 'heart') + '</div></div>' : '') +
       (base.length ? '<div class="hex-tier"><div class="hex-tier-label hex-label-base">Base notes</div><div class="hex-grid">' + buildHexNotes(base, 'base') + '</div></div>' : '') +
@@ -2076,6 +2320,28 @@ function openFrag(key) {
   showScreen('frag');
   if (f.name) loadFragReviews(f.name);
   if (f.house) loadSimilarFragrances(f.house, f.name);
+  // Async: load community votes + note images in parallel
+  const allNotes = [...(f.notes_top||f['Top Notes']||[]), ...(f.notes_heart||f['Middle Notes']||[]), ...(f.notes_base||f['Base Notes']||[]), ...(f['General Notes']||[])];
+  if (f.fragella_id) loadAndRenderVotes(f);
+  if (allNotes.length) {
+    loadNoteImages(allNotes).then(imgs => {
+      document.querySelectorAll('#frag-content .hex-cell[data-note]').forEach(cell => {
+        const name = cell.getAttribute('data-note');
+        const url = imgs[name];
+        if (url && !cell.querySelector('.hex-note-img')) {
+          const img = document.createElement('img');
+          img.className = 'hex-note-img';
+          img.src = url;
+          img.alt = '';
+          img.onerror = () => img.remove();
+          cell.insertBefore(img, cell.firstChild);
+          // Hide emoji if image loaded
+          const em = cell.querySelector('.hex-emoji');
+          if (em) em.style.display = 'none';
+        }
+      });
+    });
+  }
 }
 
 async function loadFragReviews(fragName) {
