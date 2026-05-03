@@ -1018,6 +1018,7 @@ img{max-width:100%;display:block}
     <button class="tbar-btn" onclick="goBack()">←</button>
     <div class="logo">Scent<em>Hive</em></div>
     <div style="display:flex;gap:4px">
+      <button class="tbar-btn" onclick="openYearReview()" title="Year in review" style="font-size:16px">🍯</button>
       <button class="tbar-btn" onclick="openShareProfile()" title="Share profile">↗</button>
       <button class="tbar-btn" onclick="openModal('modal-settings')">⚙</button>
     </div>
@@ -1112,6 +1113,33 @@ img{max-width:100%;display:block}
     <div style="width:34px"></div>
   </div>
   <div class="frag-screen" id="frag-content"></div>
+</div>
+
+<!-- ═══ PUBLIC PROFILE ═══ -->
+<div class="screen" id="screen-public">
+  <div class="topbar">
+    <div class="logo">Scent<em>Hive</em></div>
+    <div style="width:34px"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;max-width:520px;margin:0 auto;width:100%;padding:0 0 80px">
+    <div style="padding:24px 20px 0">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+        <div id="pub-avatar" style="width:52px;height:52px;border-radius:50%;background:var(--gold-pale);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🐝</div>
+        <div>
+          <div id="pub-name" style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;color:var(--white)">Loading…</div>
+          <div id="pub-sub" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.07em;margin-top:2px">SCENTHIVE MEMBER</div>
+        </div>
+      </div>
+      <div id="pub-stats" style="display:flex;gap:2px;margin-bottom:20px"></div>
+    </div>
+    <div style="padding:0 20px">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px">Recent Reviews</div>
+      <div id="pub-reviews"></div>
+    </div>
+    <div style="padding:20px">
+      <button onclick="showScreen('auth')" style="width:100%;padding:14px;background:var(--gold);color:var(--bg);border-radius:2px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-weight:500">Join ScentHive free →</button>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ ARTICLE ═══ -->
@@ -1383,6 +1411,43 @@ img{max-width:100%;display:block}
   </div>
 </div>
 
+<!-- ═══ ONBOARDING MODAL ═══ -->
+<div class="modal-overlay" id="modal-onboard">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:8px 0 20px">
+      <div style="font-size:40px;margin-bottom:10px">🐝</div>
+      <div class="modal-title" style="font-size:22px;margin:0">Welcome to ScentHive</div>
+      <div style="font-size:13px;color:var(--white2);margin-top:6px;line-height:1.5">Your personal fragrance diary. Here's what you can do:</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
+        <div style="font-size:24px;flex-shrink:0">📝</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Log your diary</div>
+          <div style="font-size:12px;color:var(--grey2);line-height:1.5">Track what you wear each day, add ratings and notes. Build your streak.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
+        <div style="font-size:24px;flex-shrink:0">🐝</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Build your hive</div>
+          <div style="font-size:12px;color:var(--grey2);line-height:1.5">Add fragrances you own to your collection. Track what you want to try.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
+        <div style="font-size:24px;flex-shrink:0">🔍</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Discover scents</div>
+          <div style="font-size:12px;color:var(--grey2);line-height:1.5">Search 100k+ fragrances. Get AI recommendations. Read community reviews.</div>
+        </div>
+      </div>
+    </div>
+    <button class="modal-submit" onclick="closeModal('modal-onboard');setTimeout(()=>openLog(),300)">Log my first scent →</button>
+    <button class="modal-cancel" data-close="modal-onboard" style="margin-top:8px">Explore first</button>
+  </div>
+</div>
+
 <!-- ═══ WISHLIST ADD MODAL ═══ -->
 <div class="modal-overlay" id="modal-wishlist">
   <div class="modal">
@@ -1543,9 +1608,7 @@ async function initApp() {
   loadWishlist();
   showTab('home');
   updateHero();
-  if (diary.length === 0) {
-    setTimeout(() => toast('🐝 Welcome! Search a fragrance above to get started.'), 900);
-  }
+  maybeShowOnboarding();
 }
 
 async function doSignOut() {
@@ -3700,8 +3763,7 @@ function switchColTab(tab) {
 function openShareProfile() {
   if (!user) { toast('Sign in to share your profile'); return; }
   const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Scenthead';
-  const handle = user.email?.split('@')[0] || 'user';
-  const url = `https://scenthive.app/?u=${encodeURIComponent(handle)}`;
+  const url = `https://scenthive.app/?u=${encodeURIComponent(user.id)}`;
   const statsStr = `${diary.length} logged · ${collection.length} in hive`;
   document.getElementById('share-card-name').textContent = name;
   document.getElementById('share-card-stats').textContent = statsStr;
@@ -3721,6 +3783,71 @@ function copyShareUrl() {
       toast('Select and copy the link above');
     });
   }
+}
+
+// ═══════ PUBLIC PROFILE ═══════
+async function checkPublicUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const uid = params.get('u');
+  if (!uid) return false;
+  showScreen('public');
+  document.getElementById('pub-name').textContent = 'Loading…';
+  document.getElementById('pub-reviews').innerHTML = '<div style="color:var(--grey);font-size:13px;font-style:italic">Fetching profile…</div>';
+  try {
+    const { data: entries, error } = await sb.from('journal_entries')
+      .select('fragrance_name,house,notes,rating,occasion,worn_at,image_url')
+      .eq('user_id', uid)
+      .eq('is_public', true)
+      .order('worn_at', { ascending: false })
+      .limit(20);
+    if (error) throw error;
+    const count = entries?.length || 0;
+    const handle = uid.slice(0, 8);
+    document.getElementById('pub-name').textContent = 'Scenthead';
+    document.getElementById('pub-avatar').textContent = '🐝';
+    document.getElementById('pub-sub').textContent = `@${handle} · SCENTHIVE MEMBER`;
+    // Mini stats
+    const houses = [...new Set((entries||[]).map(e => e.house).filter(Boolean))];
+    const avgRating = entries?.filter(e=>e.rating).length
+      ? (entries.filter(e=>e.rating).reduce((s,e)=>s+e.rating,0)/entries.filter(e=>e.rating).length).toFixed(1)
+      : null;
+    document.getElementById('pub-stats').innerHTML = [
+      `<div style="flex:1;text-align:center;padding:12px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px"><div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic">${count}</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.07em;margin-top:2px">REVIEWS</div></div>`,
+      `<div style="flex:1;text-align:center;padding:12px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px"><div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic">${houses.length}</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.07em;margin-top:2px">HOUSES</div></div>`,
+      avgRating ? `<div style="flex:1;text-align:center;padding:12px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px"><div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;color:var(--gold)">${avgRating}★</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.07em;margin-top:2px">AVG RATING</div></div>` : ''
+    ].join('');
+    if (!count) {
+      document.getElementById('pub-reviews').innerHTML = '<div style="color:var(--grey);font-size:13px;font-style:italic;padding:20px 0">No public reviews yet.</div>';
+      return true;
+    }
+    document.getElementById('pub-reviews').innerHTML = entries.map(r => {
+      const d = new Date(r.worn_at);
+      const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      const stars = r.rating ? '★'.repeat(r.rating) + '<span style="color:var(--grey2)">' + '★'.repeat(5-r.rating) + '</span>' : '';
+      return `<div style="padding:14px 0;border-bottom:1px solid var(--border2)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:15px;font-style:italic">${escapeHtml(r.fragrance_name||'')}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.07em;margin-top:2px">${escapeHtml(r.house||'')} · ${dateStr}</div>
+          </div>
+          ${stars ? `<div style="font-size:11px;color:var(--gold);flex-shrink:0;padding-top:2px">${stars}</div>` : ''}
+        </div>
+        ${r.notes ? `<div style="font-size:12px;color:var(--white2);font-style:italic;line-height:1.55;margin-top:6px">"${escapeHtml(r.notes)}"</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('pub-reviews').innerHTML = '<div style="color:var(--grey);font-size:13px">Could not load profile.</div>';
+  }
+  return true;
+}
+
+// ═══════ ONBOARDING ═══════
+function maybeShowOnboarding() {
+  if (!user) return;
+  const key = 'sh_onboarded_' + user.id;
+  if (localStorage.getItem(key)) return;
+  localStorage.setItem(key, '1');
+  setTimeout(() => openModal('modal-onboard'), 800);
 }
 
 // ═══════ HERO PERSONALISATION ═══════
@@ -3793,6 +3920,11 @@ document.addEventListener('keydown', function(e) {
 (async () => {
   injectNavs();
   wireEvents();
+
+  // Public profile URL takes priority — show it without auth
+  const isPublic = await checkPublicUrl();
+  if (isPublic) return;
+
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (session?.user) {
