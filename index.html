@@ -3527,7 +3527,7 @@ async function askAI() {
     aiUsageCount++;
     renderAIResults(data, resultsEl);
   } catch (e) {
-    if (resultsEl) resultsEl.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--red);font-style:italic">Something went wrong. Check your connection and try again.</div>';
+    if (resultsEl) resultsEl.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--red);font-style:italic">Error: ' + escapeHtml(e.message || 'Unknown error') + '</div>';
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '✨ Get recommendations'; }
   }
