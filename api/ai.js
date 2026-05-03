@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-haiku-20240307',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1200,
         system: system,
         messages: [{ role: 'user', content: prompt + colCtx }]
@@ -44,8 +44,8 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      const msg = data?.error?.message || JSON.stringify(data);
-      return res.status(502).json({ error: `Anthropic API error ${response.status}: ${msg}` });
+      const msg = data?.error?.message || data?.error?.type || JSON.stringify(data).slice(0, 300);
+      return res.status(502).json({ error: `Anthropic ${response.status}: ${msg}`, full: data });
     }
 
     if (data.error) {
