@@ -375,6 +375,7 @@ async function renderHome() {
   loadShelf('shelf-oriental', shuffle(orientalPool).slice(0, 8));
   loadShelf('shelf-fresh', shuffle(freshPool).slice(0, 8));
   loadCommunityFeed();
+  renderJournalGuides();
   loadArticlesList();
 }
 
@@ -1905,6 +1906,39 @@ function renderTasteBars() {
     </div>`).join('');
 }
 
+function renderProfileTasteIdentity() {
+  const el = document.getElementById('profile-taste-identity');
+  if (!el) return;
+
+  const profile = getTasteProfile();
+  if (!profile) {
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 20px">
+        <span style="font-size:11px;color:var(--grey);font-style:italic">No scent profile yet.</span>
+        <button onclick="openTasteTest()" style="background:none;border:1px solid var(--border);border-radius:20px;color:var(--gold);font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.06em;padding:4px 12px;cursor:pointer;white-space:nowrap">Take taste test →</button>
+      </div>`;
+    return;
+  }
+
+  const traitsHtml = (profile.traits || []).slice(0, 3)
+    .map(t => `<span class="tpc-trait">${escapeHtml(t)}</span>`)
+    .join('');
+
+  el.innerHTML = `
+    <div class="profile-taste-card">
+      <div class="profile-taste-top">
+        <div class="profile-taste-emoji">${profile.emoji}</div>
+        <div class="profile-taste-main">
+          <div class="profile-taste-kicker">Scent identity</div>
+          <div class="profile-taste-name">${escapeHtml(profile.name)}</div>
+          <div class="profile-taste-tagline">${escapeHtml(profile.tagline || '')}</div>
+        </div>
+        <button class="profile-taste-retake" onclick="openTasteTest()">Retake</button>
+      </div>
+      ${traitsHtml ? `<div class="tpc-traits profile-taste-traits">${traitsHtml}</div>` : ''}
+    </div>`;
+}
+
 // ═══════ PROFILE ═══════
 function renderProfile() {
   // Account info
@@ -2008,6 +2042,7 @@ function renderProfile() {
   document.getElementById('prof-bio').textContent = bio;
 
   // Taste profile
+  renderProfileTasteIdentity();
   renderTasteBars();
 }
 
@@ -2563,6 +2598,42 @@ async function loadCommunityFeed() {
 }
 
 // ═══════ ARTICLES — Supabase powered ═══════
+function renderJournalGuides() {
+  const el = document.getElementById('journal-guide-row');
+  if (!el) return;
+  const guides = [
+    {
+      kicker: 'Starter guide',
+      title: 'Find your signature',
+      sub: 'Begin with versatile scents people actually wear daily.',
+      query: 'signature fragrance versatile'
+    },
+    {
+      kicker: 'Work rotation',
+      title: 'Smell expensive at the office',
+      sub: 'Clean, polished picks that stay close and professional.',
+      query: 'office fragrance clean professional'
+    },
+    {
+      kicker: 'Evening picks',
+      title: 'Date-night without shouting',
+      sub: 'Warm, memorable scents with controlled projection.',
+      query: 'date night fragrance warm'
+    }
+  ];
+  el.innerHTML = guides.map(g =>
+    '<div class="journal-guide-card" data-query="' + escapeAttr(g.query) + '">' +
+      '<div class="journal-guide-kicker">' + escapeHtml(g.kicker) + '</div>' +
+      '<div class="journal-guide-title">' + escapeHtml(g.title) + '</div>' +
+      '<div class="journal-guide-sub">' + escapeHtml(g.sub) + '</div>' +
+      '<div class="journal-guide-cta">Open shelf →</div>' +
+    '</div>'
+  ).join('');
+  el.querySelectorAll('.journal-guide-card').forEach(card => {
+    card.addEventListener('click', () => triggerSearch(card.getAttribute('data-query') || 'fragrance guide'));
+  });
+}
+
 async function loadArticlesList() {
   const el = document.getElementById('article-list');
   const featuredEl = document.getElementById('article-featured');

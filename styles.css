@@ -199,6 +199,14 @@ img{max-width:100%;display:block}
 .article-card-source{font-family:'DM Mono',monospace;font-size:9px;color:var(--cobalt);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px}
 .article-card-title{font-family:'Playfair Display',serif;font-size:17px;line-height:1.25;margin-bottom:5px}
 .article-card-meta{font-size:11px;color:var(--grey);line-height:1.5}
+.journal-guide-row{display:flex;gap:10px;overflow-x:auto;padding:0 20px 18px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.journal-guide-row::-webkit-scrollbar{display:none}
+.journal-guide-card{min-width:210px;max-width:240px;flex:0 0 72%;scroll-snap-align:start;background:linear-gradient(145deg,var(--bg3),var(--bg2));border:1px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:transform 0.16s,border-color 0.16s}
+.journal-guide-card:hover{transform:translateY(-3px);border-color:var(--gold-dim)}
+.journal-guide-kicker{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--gold);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:9px}
+.journal-guide-title{font-family:'Playfair Display',serif;font-size:18px;font-style:italic;line-height:1.12;color:var(--white);margin-bottom:7px}
+.journal-guide-sub{font-size:11px;color:var(--white2);line-height:1.5;margin-bottom:14px}
+.journal-guide-cta{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase}
 
 /* SEARCH RESULTS */
 .search-results-wrap{flex:1;overflow-y:auto;display:none}
@@ -303,6 +311,16 @@ img{max-width:100%;display:block}
 .taste-count{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey)}
 .taste-track{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
 .taste-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;transition:width 0.8s ease}
+.profile-taste-card{margin:0 20px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.profile-taste-top{display:flex;align-items:center;gap:12px}
+.profile-taste-emoji{font-size:30px;line-height:1;flex-shrink:0}
+.profile-taste-main{flex:1;min-width:0}
+.profile-taste-kicker{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px}
+.profile-taste-name{font-family:'Playfair Display',serif;font-size:17px;font-style:italic;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-taste-tagline{font-size:11px;color:var(--white2);margin-top:2px;line-height:1.4}
+.profile-taste-retake{background:none;border:1px solid var(--border);border-radius:20px;color:var(--grey);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;padding:4px 10px;cursor:pointer;flex-shrink:0}
+.profile-taste-retake:hover{color:var(--gold);border-color:var(--gold-dim)}
+.profile-taste-traits{flex-wrap:wrap}
 
 /* ── Taste Test modal ── */
 .taste-progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden}
@@ -543,6 +561,7 @@ img{max-width:100%;display:block}
   .taste-cta{margin:0 40px}
   .taste-profile-card{margin:0 40px}
   .review-feed{padding:0 40px}
+  .journal-guide-row{padding:0 40px 18px}
   .article-feature{margin:0 40px}
   .article-card{padding:18px 40px}
   .search-wrap{padding:14px 40px}
@@ -561,6 +580,7 @@ img{max-width:100%;display:block}
   .profile-section{padding:32px 0}
   .profile-sec-header{padding:0 40px 16px}
   .favourites-grid{padding:0 40px}
+  .profile-taste-card{margin:0 40px}
   .taste-bars{padding:0 40px}
   .top-houses{padding:0 40px}
   .detail-sec{padding:24px 40px}
@@ -658,6 +678,7 @@ img{max-width:100%;display:block}
   .taste-cta{margin:0 60px}
   .taste-profile-card{margin:0 60px}
   .review-feed{padding:0 60px}
+  .journal-guide-row{padding:0 60px 18px}
   .article-feature{margin:0 60px}
   .article-card{padding:18px 60px}
   .search-wrap{padding:14px 60px}
@@ -669,6 +690,7 @@ img{max-width:100%;display:block}
   .profile-header{padding:0 60px 24px}
   .profile-sec-header{padding:0 60px 16px}
   .favourites-grid{padding:0 60px}
+  .profile-taste-card{margin:0 60px}
   .taste-bars{padding:0 60px}
   .top-houses{padding:0 60px}
   .poster-card{width:175px}

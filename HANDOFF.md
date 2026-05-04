@@ -62,6 +62,8 @@ ScentHive should move toward a Spotify/Letterboxd/Fragrantica-inspired fragrance
 - ✅ Home v2: New releases shelf.
 - ✅ Home v2: Similar-to-last-viewed shelf powered by recent fragrance signals.
 - ✅ Home v2: Daily recommendations shelf.
+- ✅ Home v2: Editorial guide missions above journal.
+- ✅ Profile: Taste identity card above taste bars.
 
 ---
 
@@ -2355,7 +2357,7 @@ De-dupe key is `(name + "||" + house).toLowerCase()`. When a fragrance is viewed
 ---
 
 ### TASK 13 — Taste Identity Card on Profile Screen
-**Status:** ready for implementation
+**Status:** ✅ DONE
 
 **Why:** The Profile screen shows family-percentage bars (`renderTasteBars`) but nowhere shows the taste test result — the named scent identity (emoji, profile name, tagline, traits) that the user worked to unlock. Users who've taken the taste test should see it on their profile. Users who haven't should see a nudge to take it.
 
@@ -2464,6 +2466,21 @@ Replace with:
 - [ ] Layout is consistent with the dark card aesthetic (bg3 background, border, border-radius 14px).
 - [ ] Existing family percentage bars still render correctly below the identity widget.
 - [ ] No JS errors in console. No layout regressions on other screens.
+
+---
+
+### TASK 14 — Editorial Guide Missions
+**Status:** ✅ DONE
+
+**What shipped:** A compact guide row above the Journal articles so Home has professional, task-based editorial entry points even before the article table is rich.
+
+**Files changed:** `index.html`, `styles.css`, `app.js`
+
+**Behavior:**
+- Adds `#journal-guide-row` above `#article-featured`.
+- `renderJournalGuides()` renders three horizontal cards: signature scent, office-safe, and date-night.
+- Clicking a guide opens a matching search query with `triggerSearch()`.
+- Uses existing dark/gold visual system, responsive horizontal scroll, and desktop padding overrides.
 
 
 ## Workflow
