@@ -2155,7 +2155,7 @@ loadTasteMatches(profile)
 ---
 
 ### TASK 10 — Recently Viewed Fragrances
-**Status:** ready for implementation
+**Status:** ✅ DONE (5f84977)
 
 **Why:** Users browse and compare fragrances but lose track of what they opened. A "Last looked at" shelf on Home gives them a fast way back to anything they were considering — without requiring search, diary, or hive.
 
