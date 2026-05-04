@@ -834,10 +834,7 @@ img{max-width:100%;display:block}
 </div>
 
 <nav id="global-topnav">
-  <div class="gtnav-logo">
-    <svg width="22" height="22" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>
-    Scent<em>Hive</em>
-  </div>
+  <div class="gtnav-logo" onclick="showTab('home')" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg><span>Scent<em>Hive</em></span></div>
   <div class="gtnav-links">
     <button class="gtnav-link active" data-tab="home">Home</button>
     <button class="gtnav-link" data-tab="diary">Diary</button>
@@ -1926,8 +1923,32 @@ async function renderHome() {
     });
   }
   loadPopularShelf();
-  loadShelf('shelf-dark', ['Tobacco Vanille Tom Ford', 'Encre Noire Lalique', 'Black Orchid Tom Ford', 'Interlude Man Amouage', 'Oud Wood Tom Ford', 'Lost Cherry Tom Ford', 'Dior Homme Intense']);
-  loadShelf('shelf-fresh', ['Bleu de Chanel EDP', 'Acqua di Gio Profumo', 'Y EDP YSL', 'Erba Pura Xerjoff', 'Light Blue Dolce', 'Terre Hermes', 'Reflection Man Amouage', 'Viking Creed']);
+
+  // Expanded pools — shuffle and pick 8 randomly each visit so shelves feel fresh
+  const darkPool = [
+    'Tobacco Vanille Tom Ford', 'Encre Noire Lalique', 'Black Orchid Tom Ford',
+    'Interlude Man Amouage', 'Oud Wood Tom Ford', 'Lost Cherry Tom Ford',
+    'Dior Homme Intense', 'Sauvage Elixir Dior', 'Black Afgano Nasomatto',
+    'M7 Oud Absolu YSL', 'Kilian Black Phantom', 'Memoir Man Amouage',
+    'Fahrenheit Dior', 'Sycomore Chanel', 'Jazz Club Maison Margiela',
+    'Herod Parfums de Marly', 'Vetiver Guerlain', 'Pour Homme Yves Saint Laurent'
+  ];
+  const freshPool = [
+    'Bleu de Chanel EDP', 'Acqua di Gio Profumo', 'Y EDP YSL',
+    'Erba Pura Xerjoff', 'Light Blue Dolce', 'Terre Hermes',
+    'Reflection Man Amouage', 'Viking Creed', 'Silver Mountain Water Creed',
+    'Bvlgari Man in Black', 'Mediterraneo Acqua di Parma', 'Neroli Portofino Tom Ford',
+    'Lime Basil Mandarin Jo Malone', 'Sel de Vetiver The Different Company',
+    'Kouros YSL', 'Dior Homme Eau', 'Cool Water Davidoff', 'L\'Eau d\'Issey Issey Miyake'
+  ];
+  const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
+
+  // Clear cache so each home visit gets a fresh random selection
+  delete _shelfCache['shelf-dark'];
+  delete _shelfCache['shelf-fresh'];
+
+  loadShelf('shelf-dark', shuffle(darkPool).slice(0, 8));
+  loadShelf('shelf-fresh', shuffle(freshPool).slice(0, 8));
   loadCommunityFeed();
   loadArticlesList();
 }
@@ -2014,7 +2035,7 @@ function buildPosterCard(f) {
   const safeName = escapeHtml(f.name || '');
   const safeHouse = escapeHtml(f.house || '');
   const img = f.image_url
-    ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;poster-card-emoji&quot;>🏺</div>'">`
+    ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" loading="lazy" onerror="this.style.display='none';var e=document.createElement('div');e.className='poster-card-emoji';e.textContent='🏺';this.parentNode.insertBefore(e,this);">`
     : '<div class="poster-card-emoji">🏺</div>';
   const actions = `<div class="poster-card-actions">
       <button class="pca-btn pca-log" data-pca="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}">Log</button>
@@ -2036,7 +2057,7 @@ function buildPosterCard(f) {
 function makeImg(url, alt, cls, style) {
   if (!url) return '';
   var s = style || 'max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:luminosity;filter:brightness(1.3)';
-  return '<img src="' + escapeAttr(url) + '" alt="' + escapeHtml(alt||'') + '" class="' + (cls||'') + '" style="' + s + '" >';
+  return '<img src="' + escapeAttr(url) + '" alt="' + escapeHtml(alt||'') + '" class="' + (cls||'') + '" style="' + s + '" loading="lazy" onerror="this.style.display=\'none\';var e=document.createElement(\'div\');e.className=\'poster-card-emoji\';e.textContent=\'🏺\';this.parentNode.insertBefore(e,this);">';
 }
 
 function escapeHtml(s) {
