@@ -161,26 +161,40 @@ const SB_HEADERS = (key) => ({
   'Content-Type': 'application/json',
 });
 
-// Query `fragrances_cache` for rows whose name or house contain each word of
-// the query. Returns up to 20 rows already in canonical shape.
-async function searchSupabaseCache(query, sbUrl, sbKey) {
+// Query a Supabase table for rows whose name or house contain the query word.
+async function searchSupabaseTable(table, query, sbUrl, sbKey, mapFn) {
   const words = normalize(query).split(' ').filter(Boolean);
   if (!words.length) return [];
 
-  // Use the first (most significant) word for the ilike filter to keep the
-  // result set broad, then let scoreFragrance handle ranking.
   const word = words[0];
   const filter = `name.ilike.*${word}*,house.ilike.*${word}*`;
-
-  const url = `${sbUrl}/rest/v1/fragrances_cache?or=(${encodeURIComponent(filter)})&limit=20`;
+  const url = `${sbUrl}/rest/v1/${table}?or=(${encodeURIComponent(filter)})&limit=20`;
   try {
     const res = await fetch(url, { headers: SB_HEADERS(sbKey) });
     if (!res.ok) return [];
     const rows = await res.json();
-    return Array.isArray(rows) ? rows.map(mapSupabaseRow) : [];
+    return Array.isArray(rows) ? rows.map(mapFn) : [];
   } catch {
     return [];
   }
+}
+
+// Search both `fragrances_cache` and the main `fragella` table, merge results.
+async function searchSupabase(query, sbUrl, sbKey) {
+  const [cacheRows, fragellaRows] = await Promise.all([
+    searchSupabaseTable('fragrances_cache', query, sbUrl, sbKey, mapSupabaseRow),
+    searchSupabaseTable('fragella', query, sbUrl, sbKey, mapSupabaseRow),
+  ]);
+  // Merge, deduplicate by name+house
+  const seen = new Set();
+  const merged = [];
+  for (const f of [...cacheRows, ...fragellaRows]) {
+    const key = normalize(`${f.name} ${f.house}`);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    merged.push(f);
+  }
+  return merged;
 }
 
 // Upsert canonical rows into `fragrances_cache`. Fire-and-forget — the caller
@@ -236,9 +250,9 @@ async function fetchFragella(query, apiKey) {
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
-// How many Supabase hits (with a decent score) we need before skipping Fragella.
-const CACHE_SUFFICIENT_COUNT = 3;
-const CACHE_SUFFICIENT_SCORE = 35;
+// A single high-confidence Supabase hit is enough to skip Fragella entirely.
+const CACHE_SUFFICIENT_COUNT = 1;
+const CACHE_SUFFICIENT_SCORE = 50;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -264,20 +278,20 @@ export default async function handler(req, res) {
     let cacheRanked = { bestScore: 0, fragrances: [] };
 
     if (sbUrl && sbKey) {
-      const cacheRows = await searchSupabaseCache(query, sbUrl, sbKey);
+      const sbRows = await searchSupabase(query, sbUrl, sbKey);
 
       // For aliases, also search the alias term and merge
       if (alias) {
-        const aliasRows = await searchSupabaseCache(alias, sbUrl, sbKey);
-        const merged = [...cacheRows];
-        const seen = new Set(cacheRows.map(f => normalize(`${f.name} ${f.house}`)));
+        const aliasRows = await searchSupabase(alias, sbUrl, sbKey);
+        const merged = [...sbRows];
+        const seen = new Set(sbRows.map(f => normalize(`${f.name} ${f.house}`)));
         for (const f of aliasRows) {
           const key = normalize(`${f.name} ${f.house}`);
           if (!seen.has(key)) { seen.add(key); merged.push(f); }
         }
         cacheRanked = rankFragrances(merged, alias || query, true);
       } else {
-        cacheRanked = rankFragrances(cacheRows, query, true);
+        cacheRanked = rankFragrances(sbRows, query, true);
       }
     }
 
