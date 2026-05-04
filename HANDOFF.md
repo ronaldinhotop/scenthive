@@ -64,6 +64,7 @@ ScentHive should move toward a Spotify/Letterboxd/Fragrantica-inspired fragrance
 - ✅ Home v2: Daily recommendations shelf.
 - ✅ Home v2: Editorial guide missions above journal.
 - ✅ Profile: Taste identity card above taste bars.
+- ✅ Monetization seed: Taste Intelligence Pro teaser and modal repositioning.
 
 ---
 
@@ -2481,6 +2482,22 @@ Replace with:
 - `renderJournalGuides()` renders three horizontal cards: signature scent, office-safe, and date-night.
 - Clicking a guide opens a matching search query with `triggerSearch()`.
 - Uses existing dark/gold visual system, responsive horizontal scroll, and desktop padding overrides.
+
+---
+
+### TASK 15 — Taste Intelligence Pro Seed
+**Status:** ✅ DONE
+
+**What shipped:** A soft monetization layer that explains Pro as deeper taste intelligence, without adding payments or locking core diary features.
+
+**Files changed:** `index.html`, `styles.css`
+
+**Behavior:**
+- Adds a Home `Taste Intelligence Pro` teaser card after the taste module.
+- The teaser frames Pro around blind spot mapping, sample-set building, and occasion rotation.
+- The existing profile upgrade strip now uses the same product language instead of generic "no ads".
+- The upgrade modal now leads with three concrete Pro promises and a comparison table focused on wardrobe gaps, sample sets, occasion rotation, and full taste analytics.
+- CTA remains a waitlist action; no payment flow added yet.
 
 
 ## Workflow

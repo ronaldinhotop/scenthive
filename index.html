@@ -266,6 +266,24 @@
         </div>
       </div>
 
+      <div class="section" id="section-pro-seed">
+        <div class="pro-seed-card" onclick="openUpgrade()">
+          <div class="pro-seed-top">
+            <div>
+              <div class="pro-seed-kicker">Taste Intelligence Pro</div>
+              <div class="pro-seed-title">Find the gaps in your wardrobe</div>
+            </div>
+            <div class="pro-badge">Pro</div>
+          </div>
+          <div class="pro-seed-grid">
+            <div class="pro-seed-point"><span>01</span>Blind spot map</div>
+            <div class="pro-seed-point"><span>02</span>Sample set builder</div>
+            <div class="pro-seed-point"><span>03</span>Occasion rotation</div>
+          </div>
+          <div class="pro-seed-cta">Preview Pro →</div>
+        </div>
+      </div>
+
       <div class="section">
         <div class="section-header">
           <div>
@@ -487,8 +505,8 @@
 
     <!-- Upgrade strip (logged-in only) -->
     <div class="upgrade-strip" id="upgrade-strip" onclick="openUpgrade()" style="display:none">
-      <div class="upgrade-strip-text">Unlock full stats, no ads, and early access — <strong>ScentHive Pro</strong></div>
-      <div class="upgrade-strip-btn">👑 Upgrade</div>
+      <div class="upgrade-strip-text">Unlock wardrobe gaps, sample-set builder, and deeper taste intelligence — <strong>ScentHive Pro</strong></div>
+      <div class="upgrade-strip-btn">Preview</div>
     </div>
 
     <!-- Guest sign-in CTA -->
@@ -774,20 +792,25 @@
 <div class="modal-overlay" id="modal-upgrade">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div style="text-align:center;padding:4px 0 20px">
-      <div style="font-size:36px;margin-bottom:10px">👑</div>
+    <div style="text-align:center;padding:4px 0 18px">
+      <div style="font-size:34px;margin-bottom:10px">⬡</div>
       <div class="modal-title" style="font-size:26px">ScentHive <em style="color:var(--gold);font-style:italic">Pro</em></div>
-      <div style="font-size:12px;color:var(--grey);margin-top:4px">For serious noses. Cancel anytime.</div>
+      <div style="font-size:12px;color:var(--grey);margin-top:4px;line-height:1.55">Personal taste intelligence for buying fewer wrong bottles.</div>
+    </div>
+    <div class="pro-promise-grid">
+      <div class="pro-promise"><div class="pro-promise-num">01</div><div class="pro-promise-title">Blind spots</div><div class="pro-promise-sub">See the styles your wardrobe is missing.</div></div>
+      <div class="pro-promise"><div class="pro-promise-num">02</div><div class="pro-promise-title">Sample sets</div><div class="pro-promise-sub">Build a 5-sample path before buying full bottles.</div></div>
+      <div class="pro-promise"><div class="pro-promise-num">03</div><div class="pro-promise-title">Wear strategy</div><div class="pro-promise-sub">Rotate by weather, mood, setting, and projection.</div></div>
     </div>
     <div class="pro-compare">
       <div class="pro-compare-head"><span>Feature</span><span style="text-align:center">Free</span><span style="text-align:center;color:var(--gold)">Pro</span></div>
       <div class="pro-compare-row"><span>Diary entries</span><span class="pro-compare-check">✓</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
       <div class="pro-compare-row"><span>Collection</span><span class="pro-compare-check">✓</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
-      <div class="pro-compare-row"><span>AI recommendations</span><span class="pro-compare-check" style="color:var(--grey)">3/mo</span><span class="pro-compare-check" style="color:var(--gold)">∞</span></div>
+      <div class="pro-compare-row"><span>AI recommendations</span><span class="pro-compare-check" style="color:var(--grey)">3/mo</span><span class="pro-compare-check" style="color:var(--gold)">Deep</span></div>
+      <div class="pro-compare-row"><span>Wardrobe gap analysis</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>Sample set builder</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>Occasion rotation</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
       <div class="pro-compare-row"><span>Full taste analytics</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
-      <div class="pro-compare-row"><span>Export your data</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
-      <div class="pro-compare-row"><span>No ads (future)</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
-      <div class="pro-compare-row"><span>Early feature access</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
     </div>
     <div style="text-align:center;margin-bottom:18px">
       <div style="font-family:'Playfair Display',serif;font-size:34px;line-height:1">€3.99<em style="font-family:'DM Mono',monospace;font-size:13px;color:var(--grey);font-style:normal"> / month</em></div>
