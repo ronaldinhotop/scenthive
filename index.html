@@ -473,6 +473,21 @@ img{max-width:100%;display:block}
   .article-page-title{font-size:48px}
   .article-page-body{font-size:17px;max-width:700px}
 
+  /* Search bar larger on desktop */
+  .search-box{padding:14px 20px;border-radius:8px}
+  .search-box input{font-size:15px}
+
+  /* Section spacing */
+  .section{padding:40px 0 8px}
+  .review-card{gap:20px;padding:20px 0}
+  .review-bottle{width:60px;height:80px}
+  .review-frag{font-size:19px}
+  .diary-name{font-size:18px}
+  .diary-day{font-size:30px}
+  .profile-cover{height:180px}
+  .profile-name{font-size:32px}
+  .profile-stat-num{font-size:28px}
+
   /* ── Hero: bigger on desktop ── */
   .hero{height:440px}
   .hero-content{padding:48px 40px}
@@ -490,36 +505,43 @@ img{max-width:100%;display:block}
   .section-eyebrow{font-size:9px}
 
   /* ── Fragrance detail: two-column layout ── */
+  /* Two-column frag detail */
+  #screen-frag{overflow-y:auto;height:100vh}
   .frag-screen{
     display:grid;
-    grid-template-columns:40% 60%;
+    grid-template-columns:38% 62%;
     align-items:start;
-    min-height:calc(100vh - 112px);
+    overflow:visible;
   }
   .frag-hero{
     grid-column:1;
-    grid-row:1;
+    grid-row:1 / 99;
     position:sticky;
-    top:112px; /* 60px topnav + 52px frag topbar */
+    top:112px;
     height:calc(100vh - 112px);
     border-bottom:none;
     border-right:1px solid var(--border2);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
   }
   .frag-hero-img{
-    height:60%;
+    flex:1;
+    height:auto;
     border-bottom:none;
   }
-  .frag-hero-body{padding:28px 32px}
-  .frag-hero-eyebrow{font-size:10px}
-  .frag-hero-name{font-size:42px}
+  .frag-hero-body{padding:28px 28px 24px;flex-shrink:0}
+  .frag-hero-eyebrow{font-size:9px}
+  .frag-hero-name{font-size:38px}
   .frag-actions{flex-direction:column;gap:8px}
   .frag-btn{flex:none;width:100%}
 
-  /* All content sections go to right column */
+  /* Right column: all content after .frag-hero */
   .frag-hero ~ *{
     grid-column:2;
-    border-left:none;
   }
+  .frag-stats-grid{border-top:1px solid var(--border2)}
+  .detail-sec{padding:24px 32px;border-bottom:1px solid var(--border2)}
   .frag-stats-grid{grid-column:2;border-top:none;grid-template-columns:repeat(4,1fr)}
   #frag-seasons{grid-column:2}
   #frag-perf{grid-column:2}
