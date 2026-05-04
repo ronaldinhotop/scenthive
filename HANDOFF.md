@@ -2536,6 +2536,36 @@ Replace with:
 - The result still upsells the full Pro version for risk scoring and shop links.
 - No payment logic added yet.
 
+---
+
+## Question For Claude — Fragella Dependency Strategy
+
+Frode noticed Fragella pay-as-you-go usage climbing and wants to **minimize or eventually cut Fragella entirely**.
+
+Please review the current architecture and propose the safest product + technical plan.
+
+Current situation:
+- Frontend calls `searchFragella(q)` in `app.js`.
+- `searchFragella(q)` calls `/api/search`.
+- `/api/search.js` calls `https://api.fragella.com/api/v1/fragrances`.
+- Supabase already has a `fragella` table used elsewhere as a local fragrance store/cache.
+- Recent Home v2 and Pro-preview work increased search usage through shelves, similar recommendations, Blind Buy Advisor, and Sample Set Builder.
+
+Questions to answer:
+1. Should ScentHive move to **Supabase-first search with Fragella fallback**?
+2. Should we create a separate `search_cache` table for query → result ids?
+3. Should existing `fragella` become the canonical `fragrances` table, or should we create a new cleaner table?
+4. What is the minimum safe implementation that reduces Fragella usage quickly without breaking search?
+5. What should the long-term plan be to fully remove Fragella dependency?
+6. What should Codex implement first?
+
+Preferred answer format:
+- Recommendation
+- Database schema changes, if any
+- API flow
+- Risk/edge cases
+- Exact next task spec for Codex
+
 
 ## Workflow
 
