@@ -65,6 +65,7 @@ ScentHive should move toward a Spotify/Letterboxd/Fragrantica-inspired fragrance
 - ✅ Home v2: Editorial guide missions above journal.
 - ✅ Profile: Taste identity card above taste bars.
 - ✅ Monetization seed: Taste Intelligence Pro teaser and modal repositioning.
+- ✅ Pro preview: Blind Buy Advisor on fragrance detail.
 
 ---
 
@@ -2498,6 +2499,23 @@ Replace with:
 - The existing profile upgrade strip now uses the same product language instead of generic "no ads".
 - The upgrade modal now leads with three concrete Pro promises and a comparison table focused on wardrobe gaps, sample sets, occasion rotation, and full taste analytics.
 - CTA remains a waitlist action; no payment flow added yet.
+
+---
+
+### TASK 16 — Blind Buy Advisor Preview
+**Status:** ✅ DONE
+
+**What shipped:** A Pro-preview decision card on fragrance detail that makes the monetization promise concrete at the purchase moment.
+
+**Files changed:** `app.js`, `styles.css`
+
+**Behavior:**
+- Adds `Blind Buy Advisor` directly below fragrance metadata/stats and above description/notes.
+- `scoreBlindBuyAdvisor(f)` creates a local preview using taste profile, family, accords, and notes.
+- Shows verdict, match score when taste profile exists, risk level, best use, and next move.
+- If no taste profile exists, the card prompts the user to take the taste test.
+- Includes `Build sample set` and `Unlock full advisor` CTAs routed to the existing upgrade modal.
+- No payment logic added yet.
 
 
 ## Workflow

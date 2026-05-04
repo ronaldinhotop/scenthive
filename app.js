@@ -1315,6 +1315,99 @@ function buildWhenHtml(f) {
   '</div>';
 }
 
+function getFragSignalText(f) {
+  const accords = (f.accords || f['Main Accords'] || []).map(getAccordName);
+  const notes = [
+    ...(f.notes_top || f['Top Notes'] || []),
+    ...(f.notes_heart || f['Middle Notes'] || []),
+    ...(f.notes_base || f['Base Notes'] || []),
+    ...(f['General Notes'] || [])
+  ];
+  return [f.name, f.house, f.family, f.gender, f.oil_type, ...accords, ...notes]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+}
+
+function scoreBlindBuyAdvisor(f) {
+  const profile = getTasteProfile();
+  const text = getFragSignalText(f);
+  const contains = terms => terms.some(t => text.includes(t));
+  const matchTerms = {
+    CLEAN_SLATE: ['fresh','aquatic','citrus','bergamot','lemon','clean','marine','green','neroli','office','blue'],
+    SPRING_GARDEN: ['floral','rose','jasmine','gardenia','violet','iris','green','fresh','peony','spring'],
+    NIGHT_WATCH: ['smoke','smoky','leather','incense','dark','vetiver','moss','oud','patchouli','dry'],
+    VELVET_CAVE: ['vanilla','amber','oud','tobacco','sweet','gourmand','cherry','rum','resin','oriental'],
+    GOLDEN_HOUR: ['amber','vanilla','honey','musk','tonka','warm','sweet','saffron','skin','cashmere'],
+    FOREST_WALKER: ['woody','wood','cedar','sandalwood','vetiver','moss','green','earthy','patchouli'],
+    THE_STATEMENT: ['elixir','intense','oud','amber','smoke','leather','saffron','spicy','projection','powerful'],
+    THE_CURATOR: ['woody','aromatic','fresh','amber','citrus','musk','iris','vetiver','balanced','classic']
+  };
+  const riskTerms = [
+    ['oud', 10], ['animalic', 12], ['cumin', 14], ['indolic', 12], ['smoke', 9],
+    ['leather', 8], ['patchouli', 7], ['sweet', 6], ['vanilla', 5], ['powdery', 7],
+    ['aldehydic', 8], ['intense', 7], ['elixir', 9], ['tobacco', 7], ['incense', 7]
+  ];
+  const easyTerms = ['fresh','citrus','clean','musk','aromatic','aquatic','green','office'];
+
+  const profileTerms = profile ? (matchTerms[profile.key] || []) : [];
+  const hits = profileTerms.filter(t => text.includes(t)).length;
+  const easyBonus = easyTerms.filter(t => text.includes(t)).length * 2;
+  const profileScore = profile ? Math.min(34, hits * 7) : 10;
+  let risk = riskTerms.reduce((sum, [term, val]) => sum + (text.includes(term) ? val : 0), 0);
+  risk = Math.max(8, Math.min(84, risk + (contains(['parfum','extrait','elixir','intense']) ? 8 : 0)));
+  const match = Math.max(42, Math.min(94, 58 + profileScore + easyBonus - Math.floor(risk / 6)));
+
+  let verdict = 'Sample first';
+  if (match >= 82 && risk < 42) verdict = 'Safe sample';
+  if (match >= 88 && risk < 30) verdict = 'Low-risk buy';
+  if (risk >= 58) verdict = 'Do not blind buy';
+
+  let riskLabel = 'Moderate';
+  if (risk < 30) riskLabel = 'Low';
+  if (risk >= 58) riskLabel = 'High';
+
+  const occasions = getFamilyOccasions(f.family);
+  const bestUse = occasions[0] || (contains(['fresh','citrus','clean']) ? 'Daytime' : contains(['vanilla','amber','oud','tobacco']) ? 'Evening' : 'Everyday test wear');
+  const reason = profile
+    ? (hits ? 'Matches your ' + profile.name + ' profile through ' + profileTerms.filter(t => text.includes(t)).slice(0, 2).join(' + ') + '.' : 'Your profile has weak overlap here, so test on skin before buying.')
+    : 'Take the taste test to turn this preview into a personal match score.';
+  const caution = contains(['sweet','vanilla','amber']) ? 'May lean sweet.'
+    : contains(['oud','smoke','leather','incense']) ? 'May read dark or polarising.'
+    : contains(['powdery','iris','aldehydic']) ? 'May feel powdery or classic.'
+    : 'Main risk is projection and drydown on skin.';
+
+  return { profile, match, risk, verdict, riskLabel, bestUse, reason, caution };
+}
+
+function buildBlindBuyAdvisorHtml(f) {
+  const a = scoreBlindBuyAdvisor(f);
+  const locked = !a.profile;
+  return '<div class="detail-sec blind-advisor">' +
+    '<div class="blind-advisor-top">' +
+      '<div>' +
+        '<div class="detail-label">Blind Buy Advisor <span class="pro-badge mini">Pro preview</span></div>' +
+        '<div class="blind-advisor-verdict">' + escapeHtml(a.verdict) + '</div>' +
+      '</div>' +
+      '<div class="blind-score ' + (locked ? 'is-locked' : '') + '">' +
+        '<span>' + (locked ? '—' : a.match) + '</span><small>' + (locked ? 'Preview' : '% match') + '</small>' +
+      '</div>' +
+    '</div>' +
+    '<div class="blind-advisor-grid">' +
+      '<div><span>Risk</span><strong>' + escapeHtml(a.riskLabel) + '</strong></div>' +
+      '<div><span>Best use</span><strong>' + escapeHtml(a.bestUse) + '</strong></div>' +
+      '<div><span>Next move</span><strong>' + (a.riskLabel === 'High' ? 'Order sample' : 'Skin test') + '</strong></div>' +
+    '</div>' +
+    '<div class="blind-advisor-copy">' + escapeHtml(a.reason) + ' ' + escapeHtml(a.caution) + '</div>' +
+    '<div class="blind-advisor-actions">' +
+      (locked
+        ? '<button onclick="openTasteTest()">Take taste test</button>'
+        : '<button onclick="openUpgrade()">Unlock full advisor</button>') +
+      '<button onclick="openUpgrade()">Build sample set</button>' +
+    '</div>' +
+  '</div>';
+}
+
 // ═══════ FRAGRANCE DETAIL ═══════
 function openFrag(key) {
   const f = fragStore[key];
@@ -1338,6 +1431,7 @@ function openFrag(key) {
       '</div>'
     : '';
   const whenHtml = buildWhenHtml(f);
+  const blindBuyHtml = buildBlindBuyAdvisorHtml(f);
 
   // Performance — community voted
   const perfHtml = '<div class="detail-sec"><div class="detail-label">Performance <span style="font-size:9px;color:var(--grey);font-weight:400">(community voted)</span></div><div id="frag-perf-inner"><div class="pvote-row"><div style="color:var(--grey);font-size:11px">Loading votes…</div></div></div></div>';
@@ -1360,6 +1454,7 @@ function openFrag(key) {
         (f.price_range ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.price_range) + '</span><span class="frag-stat-key">Price</span></div>' : '') +
         (f.oil_type ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.oil_type) + '</span><span class="frag-stat-key">Type</span></div>' : '') +
       '</div>' : '') +
+    blindBuyHtml +
     descHtml +
     whenHtml +
     perfHtml +

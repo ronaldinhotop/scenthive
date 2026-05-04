@@ -835,6 +835,7 @@ img{max-width:100%;display:block}
 
 /* ═══ PRO BADGE ═══ */
 .pro-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:var(--bg);border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase}
+.pro-badge.mini{padding:2px 7px;font-size:7px;margin-left:6px;vertical-align:1px}
 .upgrade-strip{margin:0;padding:14px 20px;background:linear-gradient(135deg,var(--purple-pale),var(--gold-pale));border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
 .upgrade-strip:hover{background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(240,192,64,0.12))}
 .upgrade-strip-text{font-size:12px;color:var(--white2);line-height:1.5}
@@ -951,3 +952,21 @@ img{max-width:100%;display:block}
 .buy-card-name{font-size:12px;font-weight:500;color:var(--white)}
 .buy-card-note{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.04em}
 .buy-card-flag{font-size:16px;margin-bottom:2px}
+
+/* ═══ BLIND BUY ADVISOR ═══ */
+.blind-advisor{background:linear-gradient(145deg,rgba(240,192,64,0.06),rgba(139,92,246,0.06) 45%,transparent)}
+.blind-advisor-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.blind-advisor-verdict{font-family:'Playfair Display',serif;font-size:24px;font-style:italic;color:var(--white);line-height:1.1}
+.blind-score{width:78px;height:78px;border-radius:50%;border:1px solid var(--gold-dim);background:var(--gold-pale);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.blind-score span{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);line-height:1}
+.blind-score small{font-family:'DM Mono',monospace;font-size:7.5px;color:var(--gold-dim);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px}
+.blind-score.is-locked{border-color:var(--border);background:var(--bg3)}
+.blind-score.is-locked span{color:var(--grey)}
+.blind-advisor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border2);border:1px solid var(--border2);border-radius:4px;overflow:hidden;margin-bottom:14px}
+.blind-advisor-grid div{background:rgba(8,8,16,0.55);padding:11px 10px}
+.blind-advisor-grid span{display:block;font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px}
+.blind-advisor-grid strong{font-size:12px;color:var(--white2);font-weight:500;line-height:1.25}
+.blind-advisor-copy{font-size:12.5px;color:var(--white2);line-height:1.65;font-style:italic;margin-bottom:14px}
+.blind-advisor-actions{display:flex;gap:8px;flex-wrap:wrap}
+.blind-advisor-actions button{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);border-radius:20px;padding:8px 13px;color:var(--gold);cursor:pointer}
+.blind-advisor-actions button:first-child{background:var(--gold);border-color:var(--gold);color:var(--bg)}
