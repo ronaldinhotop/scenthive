@@ -881,6 +881,31 @@
   </div>
 </div>
 
+<!-- ═══ TASTE TEST MODAL ═══ -->
+<div class="modal-overlay" id="modal-taste">
+  <div class="modal" style="max-height:92vh;overflow-y:auto;padding-bottom:40px">
+    <div class="modal-handle"></div>
+
+    <div id="taste-step">
+      <div class="taste-progress-bar">
+        <div class="taste-progress-fill" id="taste-progress-fill" style="width:0%"></div>
+      </div>
+      <div class="taste-progress-label" id="taste-progress-label">1 / 5</div>
+      <div class="taste-question" id="taste-question"></div>
+      <div class="taste-choices" id="taste-choices"></div>
+      <button class="modal-cancel" onclick="closeModal('modal-taste')" style="margin-top:18px">Cancel</button>
+    </div>
+
+    <div id="taste-loading" style="display:none;text-align:center;padding:48px 0">
+      <div class="spinner" style="margin:0 auto 16px"></div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:6px">Reading your nose…</div>
+      <div style="font-size:12px;color:var(--grey)">Building your scent profile</div>
+    </div>
+
+    <div id="taste-result" style="display:none"></div>
+  </div>
+</div>
+
 <div id="entry-sheet" class="entry-sheet" style="display:none">
   <div class="entry-sheet-backdrop" onclick="closeEntrySheet()"></div>
   <div class="entry-sheet-panel">

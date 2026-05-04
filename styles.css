@@ -287,6 +287,27 @@ img{max-width:100%;display:block}
 .taste-count{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey)}
 .taste-track{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
 .taste-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;transition:width 0.8s ease}
+
+/* ── Taste Test modal ── */
+.taste-progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden}
+.taste-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--honey));border-radius:2px;transition:width 0.4s cubic-bezier(0.4,0,0.2,1)}
+.taste-progress-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.14em;text-align:right;margin-bottom:24px}
+.taste-question{font-family:'Playfair Display',serif;font-size:22px;font-style:italic;line-height:1.25;color:var(--white);margin-bottom:20px}
+.taste-choices{display:flex;flex-direction:column;gap:10px}
+.taste-choice-btn{width:100%;text-align:left;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--white);cursor:pointer;line-height:1.35;transition:border-color 0.15s,background 0.15s,transform 0.1s}
+.taste-choice-btn:hover{border-color:var(--gold-dim);background:var(--bg4)}
+.taste-choice-btn:active{transform:scale(0.98)}
+.taste-result-hero{text-align:center;padding:8px 0 20px}
+.taste-result-emoji{font-size:56px;margin-bottom:10px}
+.taste-result-name{font-family:'Playfair Display',serif;font-size:30px;font-style:italic;color:var(--white);line-height:1.1;margin-bottom:8px}
+.taste-result-tagline{font-size:13px;color:var(--white2);line-height:1.65;font-style:italic;max-width:300px;margin:0 auto 18px}
+.taste-result-traits{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:26px}
+.taste-result-trait{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:0.07em;padding:5px 13px;border-radius:20px;background:var(--gold-pale);color:var(--gold);border:1px solid var(--gold-dim)}
+.taste-matches-label{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--grey);letter-spacing:0.14em;text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid var(--border2);margin-bottom:10px}
+.taste-match-btn{width:100%;text-align:left;padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--white2);cursor:pointer;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color 0.15s,color 0.15s}
+.taste-match-btn:hover{border-color:var(--gold-dim);color:var(--white)}
+.taste-match-arrow{color:var(--gold);font-size:14px;flex-shrink:0}
+.taste-result-actions{display:flex;flex-direction:column;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border2)}
 .top-houses{padding:0 20px;display:flex;flex-direction:column;gap:8px}
 .house-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:2px}
 .house-name{font-family:'Playfair Display',serif;font-size:15px;font-style:italic}

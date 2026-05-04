@@ -2435,6 +2435,75 @@ const AI_URL = '/api/ai';
 let aiUsageCount = 0;
 const AI_FREE_LIMIT = 3;
 
+// ── TASTE TEST DATA ──
+const TASTE_QUESTIONS = [
+  {
+    id: 'mood',
+    q: 'What feeling are you chasing when you reach for a fragrance?',
+    choices: [
+      { label: '🌿 Fresh & clean — I want to feel put-together', value: 'fresh', weights: { freshness: 3, darkness: 0, sweetness: 0 } },
+      { label: '🔥 Bold & intense — I want to leave an impression', value: 'bold', weights: { freshness: 0, darkness: 2, sweetness: 0 } },
+      { label: '🌸 Soft & intimate — warm, close, personal', value: 'soft', weights: { freshness: 1, darkness: 0, sweetness: 2 } },
+      { label: '🌙 Dark & mysterious — edgy, complex, unexpected', value: 'dark', weights: { freshness: 0, darkness: 3, sweetness: 1 } }
+    ]
+  },
+  {
+    id: 'season',
+    q: 'Which season feels most like your signature?',
+    choices: [
+      { label: '❄️ Winter — cold air, heavy scents, long nights', value: 'winter', weights: { freshness: 0, darkness: 2, sweetness: 1 } },
+      { label: '🍂 Autumn — warm spice, woodsmoke, falling leaves', value: 'autumn', weights: { freshness: 0, darkness: 1, sweetness: 2 } },
+      { label: '🌸 Spring — green, optimistic, lightly floral', value: 'spring', weights: { freshness: 2, darkness: 0, sweetness: 1 } },
+      { label: '☀️ Summer — clean sweat, citrus, sea breeze', value: 'summer', weights: { freshness: 3, darkness: 0, sweetness: 0 } }
+    ]
+  },
+  {
+    id: 'intensity',
+    q: 'How loud should your fragrance be?',
+    choices: [
+      { label: '🤫 Skin-close — only I can smell it', value: 'quiet', weights: { intensity: 0 } },
+      { label: '💬 Noticeable — people get a hint when close', value: 'moderate', weights: { intensity: 1 } },
+      { label: '📣 Presence — the room knows you\'re wearing it', value: 'loud', weights: { intensity: 2 } },
+      { label: '⚡ Statement — unforgettable, a little dangerous', value: 'beast', weights: { intensity: 3 } }
+    ]
+  },
+  {
+    id: 'sweetness',
+    q: 'How sweet do you like it?',
+    choices: [
+      { label: '🍋 Zero sugar — dry, sharp, mineral', value: 'dry', weights: { sweetness: 0, freshness: 1 } },
+      { label: '🌿 Barely there — a light rounded edge', value: 'light', weights: { sweetness: 1 } },
+      { label: '🍯 Warm & rounded — amber, soft vanilla', value: 'warm', weights: { sweetness: 3 } },
+      { label: '🍫 Full dessert — rich, deep, borderline edible', value: 'sweet', weights: { sweetness: 4, darkness: 1 } }
+    ]
+  },
+  {
+    id: 'memory',
+    q: 'Which smell instantly triggers a memory?',
+    choices: [
+      { label: '🌲 Forests, rain on earth, damp wood', value: 'wood', weights: { freshness: 1, darkness: 2 } },
+      { label: '🌊 Ocean, sea breeze, clean open air', value: 'aquatic', weights: { freshness: 4, darkness: 0 } },
+      { label: '🕯️ Leather, smoke, old books, incense', value: 'leather', weights: { freshness: 0, darkness: 4 } },
+      { label: '🌹 Flowers, clean laundry, garden in the morning', value: 'floral', weights: { freshness: 2, sweetness: 1 } },
+      { label: '🍰 Bakery, vanilla, warm spices, amber', value: 'gourmand', weights: { sweetness: 4, darkness: 1 } }
+    ]
+  }
+];
+
+const TASTE_PROFILES = {
+  CLEAN_SLATE: { name: 'The Clean Slate', emoji: '🌿', tagline: 'Your nose craves clarity. Fresh, crisp, and effortlessly modern.', traits: ['Fresh & aquatic', 'Citrus-forward', 'Office-ready'], queries: ['Acqua di Gio Profumo', 'Bleu de Chanel EDP', 'Light Blue Dolce Gabbana', 'Terre Hermes', 'Reflection Man Amouage'] },
+  SPRING_GARDEN: { name: 'The Spring Garden', emoji: '🌸', tagline: 'Optimistic, approachable, and quietly beautiful.', traits: ['Floral & green', 'Lightly sweet', 'Daytime signature'], queries: ['Chloe EDP', 'Miss Dior Blooming Bouquet', 'Daisy Marc Jacobs', 'Erba Pura Xerjoff', 'Lime Basil Mandarin Jo Malone'] },
+  NIGHT_WATCH: { name: 'The Night Watch', emoji: '🌙', tagline: 'You wear the dark with precision. Intense, dry, and impossible to ignore.', traits: ['Smoky & leathery', 'Low sweetness', 'High projection'], queries: ['Encre Noire Lalique', 'Black Afgano Nasomatto', 'Memoir Man Amouage', 'Sycomore Chanel', 'Fahrenheit Dior'] },
+  VELVET_CAVE: { name: 'The Velvet Cave', emoji: '🖤', tagline: 'Rich, enveloping, and unapologetically seductive. You don\'t walk in — you arrive.', traits: ['Oriental & dark', 'Deeply sweet', 'Long-lasting sillage'], queries: ['Tobacco Vanille Tom Ford', 'Black Phantom Kilian', 'Lost Cherry Tom Ford', 'Interlude Man Amouage', 'Oud Wood Tom Ford'] },
+  GOLDEN_HOUR: { name: 'The Golden Hour', emoji: '🍯', tagline: 'Warm, magnetic, and skin-flattering. The scent people ask about.', traits: ['Warm oriental', 'Amber & vanilla', 'Intimate sillage'], queries: ['Baccarat Rouge 540', 'Naxos Xerjoff', 'Bal d\'Afrique Byredo', 'Portrait of a Lady Frederic Malle', 'Libre YSL'] },
+  FOREST_WALKER: { name: 'The Forest Walker', emoji: '🌲', tagline: 'Grounded, complex, and quietly confident. You earn compliments rather than demanding them.', traits: ['Woody & earthy', 'Balanced intensity', 'All-season'], queries: ['Santal 33 Le Labo', 'Vetiver Guerlain', 'Tam Dao Diptyque', 'Herod Parfums de Marly', 'Terre Hermes EDT'] },
+  THE_STATEMENT: { name: 'The Statement', emoji: '⚡', tagline: 'Your fragrance walks into the room before you do — and that\'s exactly the plan.', traits: ['Maximum projection', 'Complex & unusual', 'Conversation-starter'], queries: ['Aventus Creed', 'Sauvage Elixir Dior', 'Viking Creed', 'Interlude Man Amouage', 'Musc Ravageur Frederic Malle'] },
+  THE_CURATOR: { name: 'The Curator', emoji: '🏺', tagline: 'Refined and versatile. You have strong taste and the restraint not to shout about it.', traits: ['Classic structure', 'Refined balance', 'Occasion-agnostic'], queries: ['Bleu de Chanel EDP', 'Y EDP YSL', 'Oud Wood Tom Ford', 'Naxos Xerjoff', 'Silver Mountain Water Creed'] }
+};
+
+let _tasteAnswers = {};
+let _tasteStep = 0;
+
 function openAI() {
   const prompt = document.getElementById('ai-prompt');
   if (prompt) prompt.value = '';
@@ -2454,14 +2523,150 @@ function openAI() {
 }
 
 function openTasteTest() {
-  const prompt = document.getElementById('ai-prompt') || document.getElementById('ai-input');
-  const results = document.getElementById('ai-results');
-  if (results) results.innerHTML = '';
-  if (prompt) {
-    prompt.value = 'Give me a fragrance taste test. Ask me 5 short questions one at a time about my preferences — season, mood, intensity, favourite smells from memory — then produce a personalised scent profile and 5 recommendations.';
+  _tasteAnswers = {};
+  _tasteStep = 0;
+  const stepEl = document.getElementById('taste-step');
+  const loadEl = document.getElementById('taste-loading');
+  const resEl = document.getElementById('taste-result');
+  if (stepEl) stepEl.style.display = '';
+  if (loadEl) loadEl.style.display = 'none';
+  if (resEl) resEl.style.display = 'none';
+  openModal('modal-taste');
+  renderTasteStep();
+}
+
+function renderTasteStep() {
+  const q = TASTE_QUESTIONS[_tasteStep];
+  const fill = document.getElementById('taste-progress-fill');
+  const label = document.getElementById('taste-progress-label');
+  const qEl = document.getElementById('taste-question');
+  const cEl = document.getElementById('taste-choices');
+  if (!q || !cEl) return;
+
+  const pct = Math.round((_tasteStep / TASTE_QUESTIONS.length) * 100);
+  if (fill) fill.style.width = pct + '%';
+  if (label) label.textContent = (_tasteStep + 1) + ' / ' + TASTE_QUESTIONS.length;
+  if (qEl) qEl.textContent = q.q;
+
+  cEl.innerHTML = q.choices
+    .map(c => `<button class="taste-choice-btn" data-val="${escapeAttr(c.value)}">${c.label}</button>`)
+    .join('');
+
+  cEl.querySelectorAll('.taste-choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _tasteAnswers[q.id] = btn.getAttribute('data-val');
+      _tasteStep++;
+      if (_tasteStep >= TASTE_QUESTIONS.length) finishTasteTest();
+      else renderTasteStep();
+    });
+  });
+}
+
+function deriveTasteProfile(answers) {
+  const s = { freshness: 0, darkness: 0, sweetness: 0, intensity: 0 };
+  for (const [qId, val] of Object.entries(answers)) {
+    const q = TASTE_QUESTIONS.find(q => q.id === qId);
+    const c = q?.choices.find(c => c.value === val);
+    if (c?.weights) {
+      for (const [k, v] of Object.entries(c.weights)) s[k] = (s[k] || 0) + v;
+    }
   }
-  openModal('modal-ai');
-  if (prompt) setTimeout(() => prompt.focus(), 200);
+  const f = s.freshness, d = s.darkness, sw = s.sweetness, i = s.intensity;
+  if (i >= 3) return { key: 'THE_STATEMENT', ...TASTE_PROFILES.THE_STATEMENT };
+  if (f >= 5 && sw <= 2) return { key: 'CLEAN_SLATE', ...TASTE_PROFILES.CLEAN_SLATE };
+  if (f >= 4 && sw >= 3) return { key: 'SPRING_GARDEN', ...TASTE_PROFILES.SPRING_GARDEN };
+  if (d >= 5 && sw <= 2) return { key: 'NIGHT_WATCH', ...TASTE_PROFILES.NIGHT_WATCH };
+  if (d >= 4 && sw >= 5) return { key: 'VELVET_CAVE', ...TASTE_PROFILES.VELVET_CAVE };
+  if (sw >= 5 && d >= 2) return { key: 'GOLDEN_HOUR', ...TASTE_PROFILES.GOLDEN_HOUR };
+  if (d >= 3 && f >= 3) return { key: 'FOREST_WALKER', ...TASTE_PROFILES.FOREST_WALKER };
+  return { key: 'THE_CURATOR', ...TASTE_PROFILES.THE_CURATOR };
+}
+
+async function finishTasteTest() {
+  const stepEl = document.getElementById('taste-step');
+  const loadEl = document.getElementById('taste-loading');
+  const fill = document.getElementById('taste-progress-fill');
+  if (fill) fill.style.width = '100%';
+  if (stepEl) stepEl.style.display = 'none';
+  if (loadEl) loadEl.style.display = '';
+
+  const profile = deriveTasteProfile(_tasteAnswers);
+  try {
+    localStorage.setItem('sh_taste_profile', JSON.stringify({
+      key: profile.key,
+      name: profile.name,
+      traits: profile.traits,
+      queries: profile.queries,
+      answers: _tasteAnswers,
+      createdAt: new Date().toISOString()
+    }));
+  } catch(e) {}
+
+  let aiRecs = null;
+  try {
+    const summary = Object.entries(_tasteAnswers).map(([qId, val]) => {
+      const q = TASTE_QUESTIONS.find(q => q.id === qId);
+      const c = q?.choices.find(c => c.value === val);
+      return c ? c.label.replace(/^[^\w]+\s/, '').replace(/ —.*$/, '') : val;
+    }).join(', ');
+    const aiPrompt = `My scent profile is "${profile.name}". My preferences: ${summary}. Recommend 5 specific fragrances that match this profile. Include the exact house name.`;
+    const col = collection.slice(0, 8).map(b => ({ name: b.name, house: b.house }));
+    const res = await fetch(AI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: aiPrompt, collection: col })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.recommendations) && data.recommendations.length) aiRecs = data.recommendations;
+    }
+  } catch(e) {}
+
+  if (user && sb) {
+    try {
+      const tasteProfile = { key: profile.key, name: profile.name, updatedAt: new Date().toISOString() };
+      await sb.auth.updateUser({ data: { taste_profile: tasteProfile } });
+      if (user.user_metadata) user.user_metadata.taste_profile = tasteProfile;
+    } catch(e) {}
+  }
+
+  if (loadEl) loadEl.style.display = 'none';
+  renderTasteResult(profile, aiRecs);
+}
+
+function renderTasteResult(profile, aiRecs) {
+  const el = document.getElementById('taste-result');
+  if (!el) return;
+
+  const matchRows = aiRecs
+    ? aiRecs.slice(0, 5).map(r => {
+        const n = escapeHtml(r.name || ''), h = escapeHtml(r.house || '');
+        return `<button class="taste-match-btn" onclick="searchAndOpen(${JSON.stringify(r.name || '')},${JSON.stringify(r.house || '')});closeModal('modal-taste')">
+          <span><span style="color:var(--white)">${n}</span>${h ? ` <span style="font-size:11px;color:var(--grey)">${h}</span>` : ''}</span>
+          <span class="taste-match-arrow">→</span></button>`;
+      }).join('')
+    : profile.queries.map(q =>
+        `<button class="taste-match-btn" onclick="triggerSearch(${JSON.stringify(q)});closeModal('modal-taste')">
+          <span style="color:var(--white)">${escapeHtml(q)}</span>
+          <span class="taste-match-arrow">→</span></button>`
+      ).join('');
+
+  el.innerHTML = `
+    <div class="taste-result-hero">
+      <div class="taste-result-emoji">${profile.emoji}</div>
+      <div class="taste-result-name">${escapeHtml(profile.name)}</div>
+      <div class="taste-result-tagline">${escapeHtml(profile.tagline)}</div>
+      <div class="taste-result-traits">
+        ${profile.traits.map(t => `<span class="taste-result-trait">${escapeHtml(t)}</span>`).join('')}
+      </div>
+    </div>
+    <div class="taste-matches-label">Your fragrance matches</div>
+    ${matchRows}
+    <div class="taste-result-actions">
+      <button class="modal-submit" onclick="openTasteTest()">↩ Retake the test</button>
+      <button class="modal-cancel" onclick="closeModal('modal-taste')">Close</button>
+    </div>`;
+  el.style.display = '';
 }
 
 async function askAI() {
