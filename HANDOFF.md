@@ -1349,6 +1349,496 @@ The final string passed to `#frag-content.innerHTML` should be in this order:
 
 ---
 
+---
+
+### TASK 8 — Taste Test v1
+**Status:** ready for implementation
+
+**Why:** The current taste test CTA opens the generic AI chatbot modal with a pre-filled prompt. That feels like a workaround, not a product. A proper guided flow — 5 tappable questions, a local scent profile, and fragrance matches — turns AI from a feature into a taste identity tool.
+
+**Goal:** A dedicated modal with 5 choice-button questions, instant local profile generation from a scoring algorithm, optional AI recs, and a result screen users actually want to see.
+
+**Files:** `index.html` (new modal HTML), `styles.css` (new CSS), `app.js` (all logic)
+
+---
+
+#### A. New modal HTML — add to `index.html`
+
+Add this block alongside the other `modal-overlay` divs (before `</body>`):
+
+```html
+<!-- ═══ TASTE TEST MODAL ═══ -->
+<div class="modal-overlay" id="modal-taste">
+  <div class="modal" style="max-height:92vh;overflow-y:auto;padding-bottom:40px">
+    <div class="modal-handle"></div>
+
+    <!-- Question step (shown by default) -->
+    <div id="taste-step">
+      <div class="taste-progress-bar">
+        <div class="taste-progress-fill" id="taste-progress-fill" style="width:0%"></div>
+      </div>
+      <div class="taste-progress-label" id="taste-progress-label">1 / 5</div>
+      <div class="taste-question" id="taste-question"></div>
+      <div class="taste-choices" id="taste-choices"></div>
+      <button class="modal-cancel" onclick="closeModal('modal-taste')" style="margin-top:18px">Cancel</button>
+    </div>
+
+    <!-- Loading step -->
+    <div id="taste-loading" style="display:none;text-align:center;padding:48px 0">
+      <div class="spinner" style="margin:0 auto 16px"></div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:6px">Reading your nose…</div>
+      <div style="font-size:12px;color:var(--grey)">Building your scent profile</div>
+    </div>
+
+    <!-- Result step -->
+    <div id="taste-result" style="display:none"></div>
+  </div>
+</div>
+```
+
+---
+
+#### B. New CSS — add to `styles.css`
+
+Add after the existing `.taste-bars` / `.taste-fill` rules:
+
+```css
+/* ── Taste Test modal ── */
+.taste-progress-bar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.taste-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--honey));
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.taste-progress-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--grey);
+  letter-spacing: 0.14em;
+  text-align: right;
+  margin-bottom: 24px;
+}
+.taste-question {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-style: italic;
+  line-height: 1.25;
+  color: var(--white);
+  margin-bottom: 20px;
+}
+.taste-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.taste-choice-btn {
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--white);
+  cursor: pointer;
+  line-height: 1.35;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.taste-choice-btn:hover { border-color: var(--gold-dim); background: var(--bg4); }
+.taste-choice-btn:active { transform: scale(0.98); }
+
+/* ── Taste result ── */
+.taste-result-hero { text-align: center; padding: 8px 0 20px; }
+.taste-result-emoji { font-size: 56px; margin-bottom: 10px; }
+.taste-result-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-style: italic;
+  color: var(--white);
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.taste-result-tagline {
+  font-size: 13px;
+  color: var(--white2);
+  line-height: 1.65;
+  font-style: italic;
+  max-width: 300px;
+  margin: 0 auto 18px;
+}
+.taste-result-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  justify-content: center;
+  margin-bottom: 26px;
+}
+.taste-result-trait {
+  font-family: 'DM Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  padding: 5px 13px;
+  border-radius: 20px;
+  background: var(--gold-pale);
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+}
+.taste-matches-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  color: var(--grey);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 10px;
+}
+.taste-match-btn {
+  width: 100%;
+  text-align: left;
+  padding: 11px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--white2);
+  cursor: pointer;
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.taste-match-btn:hover { border-color: var(--gold-dim); color: var(--white); }
+.taste-match-arrow { color: var(--gold); font-size: 14px; flex-shrink: 0; }
+.taste-result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border2);
+}
+```
+
+---
+
+#### C. All JS — add to `app.js`
+
+Add this entire block near the `openAI()` function. It **replaces** the `openTasteTest()` stub added in Task 5.
+
+**Part 1 — constants** (add before the functions, near `AI_URL`):
+
+```javascript
+// ── TASTE TEST DATA ──
+
+const TASTE_QUESTIONS = [
+  {
+    id: 'mood',
+    q: 'What feeling are you chasing when you reach for a fragrance?',
+    choices: [
+      { label: '🌿 Fresh & clean — I want to feel put-together', value: 'fresh',
+        weights: { freshness: 3, darkness: 0, sweetness: 0 } },
+      { label: '🔥 Bold & intense — I want to leave an impression', value: 'bold',
+        weights: { freshness: 0, darkness: 2, sweetness: 0 } },
+      { label: '🌸 Soft & intimate — warm, close, personal', value: 'soft',
+        weights: { freshness: 1, darkness: 0, sweetness: 2 } },
+      { label: '🌙 Dark & mysterious — edgy, complex, unexpected', value: 'dark',
+        weights: { freshness: 0, darkness: 3, sweetness: 1 } },
+    ]
+  },
+  {
+    id: 'season',
+    q: 'Which season feels most like your signature?',
+    choices: [
+      { label: '❄️ Winter — cold air, heavy scents, long nights', value: 'winter',
+        weights: { freshness: 0, darkness: 2, sweetness: 1 } },
+      { label: '🍂 Autumn — warm spice, woodsmoke, falling leaves', value: 'autumn',
+        weights: { freshness: 0, darkness: 1, sweetness: 2 } },
+      { label: '🌸 Spring — green, optimistic, lightly floral', value: 'spring',
+        weights: { freshness: 2, darkness: 0, sweetness: 1 } },
+      { label: '☀️ Summer — clean sweat, citrus, sea breeze', value: 'summer',
+        weights: { freshness: 3, darkness: 0, sweetness: 0 } },
+    ]
+  },
+  {
+    id: 'intensity',
+    q: 'How loud should your fragrance be?',
+    choices: [
+      { label: '🤫 Skin-close — only I can smell it', value: 'quiet',
+        weights: { intensity: 0 } },
+      { label: '💬 Noticeable — people get a hint when close', value: 'moderate',
+        weights: { intensity: 1 } },
+      { label: '📣 Presence — the room knows you\'re wearing it', value: 'loud',
+        weights: { intensity: 2 } },
+      { label: '⚡ Statement — unforgettable, a little dangerous', value: 'beast',
+        weights: { intensity: 3 } },
+    ]
+  },
+  {
+    id: 'sweetness',
+    q: 'How sweet do you like it?',
+    choices: [
+      { label: '🍋 Zero sugar — dry, sharp, mineral', value: 'dry',
+        weights: { sweetness: 0, freshness: 1 } },
+      { label: '🌿 Barely there — a light rounded edge', value: 'light',
+        weights: { sweetness: 1 } },
+      { label: '🍯 Warm & rounded — amber, soft vanilla', value: 'warm',
+        weights: { sweetness: 3 } },
+      { label: '🍫 Full dessert — rich, deep, borderline edible', value: 'sweet',
+        weights: { sweetness: 4, darkness: 1 } },
+    ]
+  },
+  {
+    id: 'memory',
+    q: 'Which smell instantly triggers a memory?',
+    choices: [
+      { label: '🌲 Forests, rain on earth, damp wood', value: 'wood',
+        weights: { freshness: 1, darkness: 2 } },
+      { label: '🌊 Ocean, sea breeze, clean open air', value: 'aquatic',
+        weights: { freshness: 4, darkness: 0 } },
+      { label: '🕯️ Leather, smoke, old books, incense', value: 'leather',
+        weights: { freshness: 0, darkness: 4 } },
+      { label: '🌹 Flowers, clean laundry, garden in the morning', value: 'floral',
+        weights: { freshness: 2, sweetness: 1 } },
+      { label: '🍰 Bakery, vanilla, warm spices, amber', value: 'gourmand',
+        weights: { sweetness: 4, darkness: 1 } },
+    ]
+  }
+];
+
+const TASTE_PROFILES = {
+  CLEAN_SLATE:   { name: 'The Clean Slate',   emoji: '🌿', tagline: 'Your nose craves clarity. Fresh, crisp, and effortlessly modern.',                       traits: ['Fresh & aquatic', 'Citrus-forward', 'Office-ready'],          queries: ['Acqua di Gio Profumo', 'Bleu de Chanel EDP', 'Light Blue Dolce Gabbana', 'Terre Hermes', 'Reflection Man Amouage'] },
+  SPRING_GARDEN: { name: 'The Spring Garden',  emoji: '🌸', tagline: 'Optimistic, approachable, and quietly beautiful.',                                         traits: ['Floral & green', 'Lightly sweet', 'Daytime signature'],       queries: ['Chloe EDP', 'Miss Dior Blooming Bouquet', 'Daisy Marc Jacobs', 'Erba Pura Xerjoff', 'Lime Basil Mandarin Jo Malone'] },
+  NIGHT_WATCH:   { name: 'The Night Watch',    emoji: '🌙', tagline: 'You wear the dark with precision. Intense, dry, and impossible to ignore.',                traits: ['Smoky & leathery', 'Low sweetness', 'High projection'],       queries: ['Encre Noire Lalique', 'Black Afgano Nasomatto', 'Memoir Man Amouage', 'Sycomore Chanel', 'Fahrenheit Dior'] },
+  VELVET_CAVE:   { name: 'The Velvet Cave',    emoji: '🖤', tagline: 'Rich, enveloping, and unapologetically seductive. You don\'t walk in — you arrive.',       traits: ['Oriental & dark', 'Deeply sweet', 'Long-lasting sillage'],    queries: ['Tobacco Vanille Tom Ford', 'Black Phantom Kilian', 'Lost Cherry Tom Ford', 'Interlude Man Amouage', 'Oud Wood Tom Ford'] },
+  GOLDEN_HOUR:   { name: 'The Golden Hour',    emoji: '🍯', tagline: 'Warm, magnetic, and skin-flattering. The scent people ask about.',                         traits: ['Warm oriental', 'Amber & vanilla', 'Intimate sillage'],       queries: ['Baccarat Rouge 540', 'Naxos Xerjoff', 'Bal d\'Afrique Byredo', 'Portrait of a Lady Frederic Malle', 'Libre YSL'] },
+  FOREST_WALKER: { name: 'The Forest Walker',  emoji: '🌲', tagline: 'Grounded, complex, and quietly confident. You earn compliments rather than demanding them.', traits: ['Woody & earthy', 'Balanced intensity', 'All-season'],         queries: ['Santal 33 Le Labo', 'Vetiver Guerlain', 'Tam Dao Diptyque', 'Herod Parfums de Marly', 'Terre Hermes EDT'] },
+  THE_STATEMENT: { name: 'The Statement',      emoji: '⚡', tagline: 'Your fragrance walks into the room before you do — and that\'s exactly the plan.',          traits: ['Maximum projection', 'Complex & unusual', 'Conversation-starter'], queries: ['Aventus Creed', 'Sauvage Elixir Dior', 'Viking Creed', 'Interlude Man Amouage', 'Musc Ravageur Frederic Malle'] },
+  THE_CURATOR:   { name: 'The Curator',        emoji: '🏺', tagline: 'Refined and versatile. You have strong taste and the restraint not to shout about it.',      traits: ['Classic structure', 'Refined balance', 'Occasion-agnostic'],   queries: ['Bleu de Chanel EDP', 'Y EDP YSL', 'Oud Wood Tom Ford', 'Naxos Xerjoff', 'Silver Mountain Water Creed'] }
+};
+```
+
+**Part 2 — state** (add near `aiUsageCount`):
+
+```javascript
+let _tasteAnswers = {};
+let _tasteStep = 0;
+```
+
+**Part 3 — functions** (replace existing `openTasteTest()` stub):
+
+```javascript
+function openTasteTest() {
+  _tasteAnswers = {};
+  _tasteStep = 0;
+  const stepEl = document.getElementById('taste-step');
+  const loadEl = document.getElementById('taste-loading');
+  const resEl  = document.getElementById('taste-result');
+  if (stepEl) stepEl.style.display = '';
+  if (loadEl) loadEl.style.display = 'none';
+  if (resEl)  resEl.style.display  = 'none';
+  openModal('modal-taste');
+  renderTasteStep();
+}
+
+function renderTasteStep() {
+  const q     = TASTE_QUESTIONS[_tasteStep];
+  const fill  = document.getElementById('taste-progress-fill');
+  const label = document.getElementById('taste-progress-label');
+  const qEl   = document.getElementById('taste-question');
+  const cEl   = document.getElementById('taste-choices');
+  if (!q || !cEl) return;
+
+  const pct = Math.round((_tasteStep / TASTE_QUESTIONS.length) * 100);
+  if (fill)  fill.style.width = pct + '%';
+  if (label) label.textContent = (_tasteStep + 1) + ' / ' + TASTE_QUESTIONS.length;
+  if (qEl)   qEl.textContent = q.q;
+
+  cEl.innerHTML = q.choices
+    .map(c => `<button class="taste-choice-btn" data-val="${escapeAttr(c.value)}">${c.label}</button>`)
+    .join('');
+
+  cEl.querySelectorAll('.taste-choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _tasteAnswers[q.id] = btn.getAttribute('data-val');
+      _tasteStep++;
+      if (_tasteStep >= TASTE_QUESTIONS.length) {
+        finishTasteTest();
+      } else {
+        renderTasteStep();
+      }
+    });
+  });
+}
+
+function deriveTasteProfile(answers) {
+  const s = { freshness: 0, darkness: 0, sweetness: 0, intensity: 0 };
+  for (const [qId, val] of Object.entries(answers)) {
+    const q = TASTE_QUESTIONS.find(q => q.id === qId);
+    const c = q?.choices.find(c => c.value === val);
+    if (c?.weights) {
+      for (const [k, v] of Object.entries(c.weights)) s[k] = (s[k] || 0) + v;
+    }
+  }
+  const f = s.freshness, d = s.darkness, sw = s.sweetness, i = s.intensity;
+
+  if (f >= 5 && sw <= 2) return { key: 'CLEAN_SLATE',    ...TASTE_PROFILES.CLEAN_SLATE };
+  if (f >= 4 && sw >= 3) return { key: 'SPRING_GARDEN',  ...TASTE_PROFILES.SPRING_GARDEN };
+  if (d >= 5 && sw <= 2) return { key: 'NIGHT_WATCH',    ...TASTE_PROFILES.NIGHT_WATCH };
+  if (d >= 4 && sw >= 5) return { key: 'VELVET_CAVE',    ...TASTE_PROFILES.VELVET_CAVE };
+  if (sw >= 5 && d >= 2) return { key: 'GOLDEN_HOUR',    ...TASTE_PROFILES.GOLDEN_HOUR };
+  if (d >= 3 && f >= 3)  return { key: 'FOREST_WALKER',  ...TASTE_PROFILES.FOREST_WALKER };
+  if (i >= 5)            return { key: 'THE_STATEMENT',  ...TASTE_PROFILES.THE_STATEMENT };
+  return                        { key: 'THE_CURATOR',    ...TASTE_PROFILES.THE_CURATOR };
+}
+
+async function finishTasteTest() {
+  const stepEl = document.getElementById('taste-step');
+  const loadEl = document.getElementById('taste-loading');
+  if (stepEl) stepEl.style.display = 'none';
+  if (loadEl) loadEl.style.display = '';
+
+  const profile = deriveTasteProfile(_tasteAnswers);
+
+  // Persist locally
+  try {
+    localStorage.setItem('sh_taste_profile', JSON.stringify({
+      key: profile.key, name: profile.name, traits: profile.traits,
+      queries: profile.queries, answers: _tasteAnswers,
+      createdAt: new Date().toISOString()
+    }));
+  } catch(e) {}
+
+  // Optional AI call
+  let aiRecs = null;
+  try {
+    const summary = Object.entries(_tasteAnswers).map(([qId, val]) => {
+      const q = TASTE_QUESTIONS.find(q => q.id === qId);
+      const c = q?.choices.find(c => c.value === val);
+      return c ? c.label.replace(/^[^\w]+\s/, '').replace(/ —.*$/, '') : val;
+    }).join(', ');
+    const aiPrompt = `My scent profile is "${profile.name}". My preferences: ${summary}. Recommend 5 specific fragrances that match this profile. Include the exact house name.`;
+    const col = collection.slice(0, 8).map(b => ({ name: b.name, house: b.house }));
+    const res = await fetch(AI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: aiPrompt, collection: col })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.recommendations) && data.recommendations.length) aiRecs = data.recommendations;
+    }
+  } catch(e) {}
+
+  // Persist to user_metadata if signed in
+  if (user && sb) {
+    try {
+      await sb.auth.updateUser({
+        data: { taste_profile: { key: profile.key, name: profile.name, updatedAt: new Date().toISOString() } }
+      });
+      if (user.user_metadata) user.user_metadata.taste_profile = { key: profile.key, name: profile.name };
+    } catch(e) {}
+  }
+
+  if (loadEl) loadEl.style.display = 'none';
+  renderTasteResult(profile, aiRecs);
+}
+
+function renderTasteResult(profile, aiRecs) {
+  const el = document.getElementById('taste-result');
+  if (!el) return;
+
+  const matchRows = aiRecs
+    ? aiRecs.slice(0, 5).map(r => {
+        const n = escapeHtml(r.name || ''), h = escapeHtml(r.house || '');
+        return `<button class="taste-match-btn"
+          onclick="searchAndOpen(${JSON.stringify(r.name)},${JSON.stringify(r.house||'')}); closeModal('modal-taste')">
+          <span><span style="color:var(--white)">${n}</span>${h ? ` <span style="font-size:11px;color:var(--grey)">${h}</span>` : ''}</span>
+          <span class="taste-match-arrow">→</span></button>`;
+      }).join('')
+    : profile.queries.map(q =>
+        `<button class="taste-match-btn"
+          onclick="triggerSearch(${JSON.stringify(q)}); closeModal('modal-taste')">
+          <span style="color:var(--white)">${escapeHtml(q)}</span>
+          <span class="taste-match-arrow">→</span></button>`
+      ).join('');
+
+  el.innerHTML = `
+    <div class="taste-result-hero">
+      <div class="taste-result-emoji">${profile.emoji}</div>
+      <div class="taste-result-name">${escapeHtml(profile.name)}</div>
+      <div class="taste-result-tagline">${escapeHtml(profile.tagline)}</div>
+      <div class="taste-result-traits">
+        ${profile.traits.map(t => `<span class="taste-result-trait">${escapeHtml(t)}</span>`).join('')}
+      </div>
+    </div>
+    <div class="taste-matches-label">Your fragrance matches</div>
+    ${matchRows}
+    <div class="taste-result-actions">
+      <button class="modal-submit" onclick="openTasteTest()">↩ Retake the test</button>
+      <button class="modal-cancel" onclick="closeModal('modal-taste')">Close</button>
+    </div>`;
+  el.style.display = '';
+}
+```
+
+---
+
+#### D. Profile decision tree
+
+Each answer adds points to four dimensions: `freshness`, `darkness`, `sweetness`, `intensity`.
+
+| Condition | Profile |
+|-----------|---------|
+| freshness ≥ 5 AND sweetness ≤ 2 | The Clean Slate |
+| freshness ≥ 4 AND sweetness ≥ 3 | The Spring Garden |
+| darkness ≥ 5 AND sweetness ≤ 2 | The Night Watch |
+| darkness ≥ 4 AND sweetness ≥ 5 | The Velvet Cave |
+| sweetness ≥ 5 AND darkness ≥ 2 | The Golden Hour |
+| darkness ≥ 3 AND freshness ≥ 3 | The Forest Walker |
+| intensity ≥ 5 | The Statement |
+| fallback | The Curator |
+
+Max scores: freshness ~10, darkness ~10, sweetness ~10, intensity ~3.
+
+---
+
+#### E. Wire-up check
+
+`openTasteTest()` is called by `onclick="openTasteTest()"` on the `.taste-cta` div (added in Task 5). After this task, that call opens `#modal-taste` instead of `#modal-ai`. The existing `openAI()` and `#modal-ai` are untouched.
+
+---
+
+#### F. Acceptance criteria
+
+- [ ] `.taste-cta` card and `openTasteTest()` open `#modal-taste`, not `#modal-ai`.
+- [ ] Progress bar animates from 0% to 100% across 5 questions.
+- [ ] Progress label reads "1 / 5" → "5 / 5" correctly.
+- [ ] Each question renders as tappable choice buttons — no free text inputs.
+- [ ] Tapping a choice immediately advances without delay or animation glitch.
+- [ ] After Q5, the question view hides, the loading spinner appears.
+- [ ] Result shows: profile emoji, name, italic tagline, 3 trait chips, 5 match buttons.
+- [ ] If AI returns recs, match buttons show fragrance name + house, call `searchAndOpen()`.
+- [ ] If AI fails, match buttons show local query strings, call `triggerSearch()`.
+- [ ] Tapping a match navigates to the fragrance/search AND closes the modal.
+- [ ] "Retake the test" resets and shows Q1 cleanly.
+- [ ] "Close" dismisses the modal.
+- [ ] `localStorage.getItem('sh_taste_profile')` returns valid JSON after completing the test.
+- [ ] For signed-in users, `user.user_metadata.taste_profile` is populated after the test.
+- [ ] All 8 profile paths are reachable — no answer combination causes an error.
+- [ ] No JS errors in console at any step.
+- [ ] Existing `openAI()` / `#modal-ai` flow is completely unchanged.
+
+
 ## Workflow
 
 ```
