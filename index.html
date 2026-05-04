@@ -729,6 +729,8 @@ img{max-width:100%;display:block}
 
 /* ═══ DELETE BUTTONS ═══ */
 .col-del-btn{position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(13,16,24,0.82);color:var(--red);font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0.55;transition:opacity 0.15s,background 0.15s;z-index:4;border:1px solid rgba(239,68,68,0.35)}
+.col-quick-btn{position:absolute;top:5px;left:5px;width:28px;height:28px;border-radius:50%;background:rgba(13,16,24,0.86);color:var(--gold);font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0.72;transition:opacity 0.15s,background 0.15s,transform 0.15s;z-index:4;border:1px solid var(--gold-dim)}
+.col-quick-btn:hover,.col-quick-btn:active{background:rgba(240,192,64,0.18);opacity:1;transform:scale(1.04)}
 .col-cell:hover .col-del-btn{opacity:1}
 .col-del-btn:hover,.col-del-btn:active{background:rgba(239,68,68,0.3);opacity:1}
 .diary-del-btn{width:28px;height:28px;border-radius:50%;background:transparent;color:var(--grey2);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0.5;transition:opacity 0.15s,color 0.15s;flex-shrink:0}
@@ -2916,9 +2918,20 @@ function renderCollection() {
           <div class="col-cell-name">${escapeHtml(b.name)}</div>
           <div class="col-cell-house">${escapeHtml(b.house || '')}</div>
         </div>
+        <button class="col-quick-btn" data-quick-idx="${idx}" title="Quick log wear">⏱</button>
         <button class="col-del-btn" data-del-idx="${idx}" title="Remove">×</button>
       </div>`;
   }).join('');
+
+  // Wire quick wear buttons
+  grid.querySelectorAll('.col-quick-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = parseInt(btn.getAttribute('data-quick-idx'));
+      const b = collection[idx];
+      if (b) quickLog(b.name || '', b.house || '', b.image_url || null, b.fragella_id || null);
+    });
+  });
 
   // Wire delete buttons
   grid.querySelectorAll('.col-del-btn').forEach(btn => {
@@ -3471,6 +3484,42 @@ async function saveLog() {
   closeModal('modal-log');
   toast(logIsPublic ? '✓ Logged & shared with community' : '✓ Logged to diary');
   renderDiary();
+  updateRightSidebar();
+  loadCommunityFeed();
+}
+
+async function quickLog(name, house, imageUrl, fragellaId) {
+  if (!name) { toast('Choose a fragrance first'); return; }
+  const entry = {
+    fragrance_name: name,
+    house: house || '',
+    notes: '',
+    rating: 0,
+    occasion: '',
+    image_url: imageUrl || null,
+    fragella_id: fragellaId || null,
+    worn_at: new Date().toISOString(),
+    is_public: false
+  };
+
+  if (user) {
+    try {
+      const { data, error } = await sb.from('journal_entries')
+        .insert([{ user_id: user.id, ...entry }]).select();
+      if (error) throw error;
+      diary.unshift(data?.[0] || { ...entry, id: 'local_' + Date.now() });
+    } catch (e) {
+      diary.unshift({ ...entry, id: 'local_' + Date.now() });
+    }
+  } else {
+    diary.unshift({ ...entry, id: 'local_' + Date.now() });
+    saveLocal();
+  }
+
+  toast('Logged: ' + name);
+  renderDiary();
+  renderDiaryExtras();
+  updateHero();
   updateRightSidebar();
   loadCommunityFeed();
 }
