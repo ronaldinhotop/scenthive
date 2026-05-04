@@ -2152,6 +2152,170 @@ loadTasteMatches(profile)
 - [ ] No JS errors in console.
 
 
+---
+
+### TASK 10 — Recently Viewed Fragrances
+**Status:** ready for implementation
+
+**Why:** Users browse and compare fragrances but lose track of what they opened. A "Last looked at" shelf on Home gives them a fast way back to anything they were considering — without requiring search, diary, or hive.
+
+**Goal:** Track every `openFrag()` call, persist the last 12 unique fragrances to localStorage, and render them as a horizontal poster shelf on Home between the Continue strip and the For You shelf.
+
+**Files:** `index.html` (one new section), `app.js` (three additions), `styles.css` (zero — reuses existing classes)
+
+---
+
+#### A. `index.html` — one new section
+
+Insert this block between `#section-continue` and `#section-foryou`:
+
+```html
+<!-- Recently viewed (hidden when empty) -->
+<div class="section" id="section-recents" style="display:none">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Last looked at</div>
+      <div class="section-title">Recently <em>viewed</em></div>
+    </div>
+    <span class="section-more" id="recents-clear" style="color:var(--grey);font-size:9px;cursor:pointer">Clear</span>
+  </div>
+  <div class="poster-row" id="shelf-recents"></div>
+</div>
+```
+
+No CSS changes needed — `.section`, `.section-header`, `.section-eyebrow`, `.section-title`, `.section-more`, and `.poster-row` all already exist.
+
+---
+
+#### B. `app.js` — three additions
+
+**1. Helper functions** — add near the other localStorage helpers (`saveLocal`, etc.):
+
+```javascript
+const RECENTS_KEY = 'sh_recents';
+const RECENTS_MAX = 12;
+
+function saveRecent(f) {
+  if (!f || !f.name) return;
+  try {
+    const stored = JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]');
+    // De-dupe: remove any existing entry with the same name+house
+    const key = (f.name + '||' + (f.house || '')).toLowerCase();
+    const filtered = stored.filter(r =>
+      (r.name + '||' + (r.house || '')).toLowerCase() !== key
+    );
+    // Prepend latest, trim to max
+    const slim = { name: f.name, house: f.house || '', image_url: f.image_url || null, fragella_id: f.fragella_id || null };
+    filtered.unshift(slim);
+    localStorage.setItem(RECENTS_KEY, JSON.stringify(filtered.slice(0, RECENTS_MAX)));
+  } catch (e) {}
+}
+
+function loadRecents() {
+  try {
+    return JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]');
+  } catch (e) { return []; }
+}
+
+function clearRecents() {
+  try { localStorage.removeItem(RECENTS_KEY); } catch (e) {}
+}
+```
+
+**2. Call `saveRecent(f)` inside `openFrag()`** — add as the second line of the function, right after the guard that returns early if `!f`:
+
+```javascript
+function openFrag(key) {
+  const f = fragStore[key];
+  if (!f) return;
+  saveRecent(f);          // ← add this line
+  // ... rest of function unchanged
+```
+
+**3. `renderRecentsShelf()` function** — add near the other home render helpers (`renderContinueStrip`, `renderTasteModule`, `renderForYouShelf`):
+
+```javascript
+function renderRecentsShelf() {
+  const section = document.getElementById('section-recents');
+  const shelf   = document.getElementById('shelf-recents');
+  const clearBtn = document.getElementById('recents-clear');
+  if (!section || !shelf) return;
+
+  const recents = loadRecents();
+
+  if (!recents.length) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = '';
+  shelf.innerHTML = recents.map(f => buildPosterCard(f)).join('');
+  shelf.querySelectorAll('.poster-card').forEach(card =>
+    card.addEventListener('click', () => openFrag(card.getAttribute('data-key')))
+  );
+
+  if (clearBtn) {
+    clearBtn.onclick = () => {
+      clearRecents();
+      section.style.display = 'none';
+    };
+  }
+}
+```
+
+**4. Call `renderRecentsShelf()` from `renderHome()`** — add after `renderContinueStrip()` and before `renderTasteModule()`:
+
+```javascript
+async function renderHome() {
+  updateHero();
+  renderContinueStrip();
+  renderRecentsShelf();    // ← add this line
+  renderTasteModule();
+  renderForYouShelf();
+  // ... rest unchanged
+}
+```
+
+---
+
+#### C. Data shape stored in localStorage
+
+Key: `sh_recents`
+Value: JSON array of up to 12 objects, newest first:
+
+```json
+[
+  { "name": "Tobacco Vanille", "house": "Tom Ford", "image_url": "https://…", "fragella_id": "abc123" },
+  { "name": "Aventus", "house": "Creed", "image_url": null, "fragella_id": null }
+]
+```
+
+Only the four fields above are stored — no notes, accords, or other fragella data. `buildPosterCard()` only needs `name`, `house`, and `image_url` to render a poster card, so this is sufficient.
+
+---
+
+#### D. De-dupe logic
+
+De-dupe key is `(name + "||" + house).toLowerCase()`. When a fragrance is viewed again, the old entry is removed and the fresh entry is prepended — so the most recently viewed always appears first.
+
+---
+
+#### E. Acceptance criteria
+
+- [ ] `openFrag()` calls `saveRecent(f)` on every successful open, even when called from search results, shelf cards, diary entries, or AI recommendations.
+- [ ] `localStorage.getItem('sh_recents')` returns a valid JSON array after viewing a fragrance.
+- [ ] Viewing the same fragrance twice does not create duplicate entries — the existing one is removed and a fresh entry is prepended.
+- [ ] The array never exceeds 12 items.
+- [ ] On home load, `renderRecentsShelf()` is called and renders a `.poster-row` with `buildPosterCard()` for each recent.
+- [ ] `#section-recents` is `display:none` when the recents array is empty (first-time users, after clearing).
+- [ ] `#section-recents` appears between `#section-continue` and `#section-foryou` in the DOM.
+- [ ] Clicking "Clear" removes all recents from localStorage and hides the section immediately without a page reload.
+- [ ] Clicking a poster card in the recents shelf opens the fragrance detail (calls `openFrag`).
+- [ ] Items in the recents shelf support all existing poster card hover states and quick-action buttons (Log, Hive, Wish).
+- [ ] Diary, search, hive, and fragrance detail screens are unaffected.
+- [ ] No JS errors in console.
+
+
 ## Workflow
 
 ```
