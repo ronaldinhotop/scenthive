@@ -2352,6 +2352,120 @@ De-dupe key is `(name + "||" + house).toLowerCase()`. When a fragrance is viewed
 - Existing shelves and personalization modules are unaffected.
 
 
+---
+
+### TASK 13 — Taste Identity Card on Profile Screen
+**Status:** ready for implementation
+
+**Why:** The Profile screen shows family-percentage bars (`renderTasteBars`) but nowhere shows the taste test result — the named scent identity (emoji, profile name, tagline, traits) that the user worked to unlock. Users who've taken the taste test should see it on their profile. Users who haven't should see a nudge to take it.
+
+**Goal:** Insert a compact taste identity widget inside the "Your taste" section of the Profile screen, directly above the existing family-bars block. Keep the style consistent with the existing `.taste-profile-card` component used on Home.
+
+---
+
+#### Files to edit
+- `index.html` — add `#profile-taste-identity` element inside the "Taste breakdown" section
+- `app.js` — add `renderProfileTasteIdentity()` function, call it from `renderProfile()`
+
+---
+
+#### 1. `index.html` change — inside the "Taste breakdown" profile section
+
+Find this block (around line 529):
+```html
+<!-- Taste breakdown -->
+<div class="profile-section">
+  <div class="profile-sec-header">
+    <div class="profile-sec-title">Your <em style="font-style:italic;color:var(--gold-light)">taste</em></div>
+  </div>
+  <div class="taste-bars" id="taste-bars">
+```
+
+Add `#profile-taste-identity` directly after the `</div>` that closes `profile-sec-header` and before the `taste-bars` div:
+
+```html
+<!-- Taste breakdown -->
+<div class="profile-section">
+  <div class="profile-sec-header">
+    <div class="profile-sec-title">Your <em style="font-style:italic;color:var(--gold-light)">taste</em></div>
+  </div>
+  <div id="profile-taste-identity" style="margin-bottom:16px"></div>
+  <div class="taste-bars" id="taste-bars">
+```
+
+---
+
+#### 2. `app.js` — add `renderProfileTasteIdentity()` function
+
+Add this function immediately before the `renderTasteBars()` function (around line 1891):
+
+```javascript
+function renderProfileTasteIdentity() {
+  const el = document.getElementById('profile-taste-identity');
+  if (!el) return;
+
+  const profile = getTasteProfile();
+
+  if (!profile) {
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0">
+        <span style="font-size:11px;color:var(--grey);font-style:italic">No scent profile yet.</span>
+        <button onclick="openTasteTest()" style="background:none;border:1px solid var(--border);border-radius:20px;color:var(--gold);font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.06em;padding:4px 12px;cursor:pointer;white-space:nowrap">Take taste test →</button>
+      </div>`;
+    return;
+  }
+
+  const traitsHtml = (profile.traits || []).slice(0, 3)
+    .map(t => `<span class="tpc-trait">${escapeHtml(t)}</span>`)
+    .join('');
+
+  el.innerHTML = `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:30px;line-height:1;flex-shrink:0">${profile.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px">Scent identity</div>
+          <div style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;color:var(--white)">${escapeHtml(profile.name)}</div>
+          <div style="font-size:11px;color:var(--white2);margin-top:2px">${escapeHtml(profile.tagline || '')}</div>
+        </div>
+        <button onclick="openTasteTest()" style="background:none;border:1px solid var(--border);border-radius:20px;color:var(--grey);font-size:9px;font-family:'DM Mono',monospace;letter-spacing:0.06em;padding:4px 10px;cursor:pointer;flex-shrink:0">Retake</button>
+      </div>
+      ${traitsHtml ? `<div class="tpc-traits" style="flex-wrap:wrap">${traitsHtml}</div>` : ''}
+    </div>`;
+}
+```
+
+---
+
+#### 3. `app.js` — call `renderProfileTasteIdentity()` from `renderProfile()`
+
+Find this near the bottom of `renderProfile()` (around line 2010):
+```javascript
+  // Taste profile
+  renderTasteBars();
+}
+```
+
+Replace with:
+```javascript
+  // Taste profile
+  renderProfileTasteIdentity();
+  renderTasteBars();
+}
+```
+
+---
+
+#### Acceptance criteria
+- [ ] Profile screen "Your taste" section shows the identity widget above the family bars.
+- [ ] If user has taken the taste test (key stored in `user_metadata.taste_profile.key` or `localStorage sh_taste_profile`): shows emoji + serif name + tagline + up to 3 trait pills + "Retake" button.
+- [ ] If user has NOT taken the taste test: shows "No scent profile yet." text + "Take taste test →" button that opens the taste test modal.
+- [ ] "Retake" and "Take taste test →" buttons both call `openTasteTest()`.
+- [ ] Layout is consistent with the dark card aesthetic (bg3 background, border, border-radius 14px).
+- [ ] Existing family percentage bars still render correctly below the identity widget.
+- [ ] No JS errors in console. No layout regressions on other screens.
+
+
 ## Workflow
 
 ```
