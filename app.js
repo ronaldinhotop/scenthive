@@ -216,10 +216,10 @@ async function updateRightSidebar() {
 
 async function renderHome() {
   updateHero();
-  // Hide features grid for users who already have data
-  const fg = document.getElementById('features-grid');
-  if (fg) fg.style.display = (diary.length > 0 || collection.length > 0) ? 'none' : '';
-  // Show/populate "recently worn by you" shelf
+  renderContinueStrip();
+  renderForYouShelf();
+
+  // Recently worn by you
   const sectionYours = document.getElementById('section-recent-yours');
   const shelfYours = document.getElementById('shelf-yours');
   if (sectionYours && shelfYours && user && diary.length > 0) {
@@ -242,13 +242,15 @@ async function renderHome() {
         '<div class="poster-card-info"><div class="poster-card-name">' + nm + '</div><div class="poster-card-house">' + hs + '</div></div>' +
         '</div></div>';
     }).join('');
-    shelfYours.querySelectorAll('.poster-card').forEach(c => {
-      c.addEventListener('click', () => openFrag(c.getAttribute('data-key')));
-    });
+    shelfYours.querySelectorAll('.poster-card').forEach(c =>
+      c.addEventListener('click', () => openFrag(c.getAttribute('data-key')))
+    );
+  } else if (sectionYours) {
+    sectionYours.style.display = 'none';
   }
+
   loadPopularShelf();
 
-  // Expanded pools — shuffle and pick 8 randomly each visit so shelves feel fresh
   const darkPool = [
     'Tobacco Vanille Tom Ford', 'Encre Noire Lalique', 'Black Orchid Tom Ford',
     'Interlude Man Amouage', 'Oud Wood Tom Ford', 'Lost Cherry Tom Ford',
@@ -257,24 +259,132 @@ async function renderHome() {
     'Fahrenheit Dior', 'Sycomore Chanel', 'Jazz Club Maison Margiela',
     'Herod Parfums de Marly', 'Vetiver Guerlain', 'Pour Homme Yves Saint Laurent'
   ];
+  const orientalPool = [
+    'Baccarat Rouge 540 Maison Francis Kurkdjian', 'Love Don\'t Be Shy Kilian',
+    'Good Girl Carolina Herrera', 'La Nuit de l\'Homme YSL',
+    'Black Opium YSL', 'Elixir Tom Ford',
+    'Bal d\'Afrique Byredo', 'Portrait of a Lady Frederic Malle',
+    'Libre YSL', 'Flowerbomb Viktor Rolf',
+    'Shalimar Guerlain', 'Opium YSL',
+    'Musc Ravageur Frederic Malle', 'Ambre Nuit Dior',
+    'Spicebomb Viktor Rolf', 'Kenzo Amour'
+  ];
   const freshPool = [
     'Bleu de Chanel EDP', 'Acqua di Gio Profumo', 'Y EDP YSL',
     'Erba Pura Xerjoff', 'Light Blue Dolce', 'Terre Hermes',
     'Reflection Man Amouage', 'Viking Creed', 'Silver Mountain Water Creed',
-    'Bvlgari Man in Black', 'Mediterraneo Acqua di Parma', 'Neroli Portofino Tom Ford',
-    'Lime Basil Mandarin Jo Malone', 'Sel de Vetiver The Different Company',
-    'Kouros YSL', 'Dior Homme Eau', 'Cool Water Davidoff', 'L\'Eau d\'Issey Issey Miyake'
+    'Bvlgari Man in Black', 'Neroli Portofino Tom Ford',
+    'Lime Basil Mandarin Jo Malone', 'Kouros YSL', 'Dior Homme Eau',
+    'Cool Water Davidoff', 'L\'Eau d\'Issey Issey Miyake'
   ];
   const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
 
-  // Clear cache so each home visit gets a fresh random selection
   delete _shelfCache['shelf-dark'];
+  delete _shelfCache['shelf-oriental'];
   delete _shelfCache['shelf-fresh'];
 
   loadShelf('shelf-dark', shuffle(darkPool).slice(0, 8));
+  loadShelf('shelf-oriental', shuffle(orientalPool).slice(0, 8));
   loadShelf('shelf-fresh', shuffle(freshPool).slice(0, 8));
   loadCommunityFeed();
   loadArticlesList();
+}
+
+function renderContinueStrip() {
+  const section = document.getElementById('section-continue');
+  const strip = document.getElementById('continue-strip');
+  if (!section || !strip) return;
+
+  if (!user || diary.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  const unique = [];
+  const seen = new Set();
+  for (const e of diary) {
+    const k = (e.fragrance_name || '').toLowerCase();
+    if (!seen.has(k)) { seen.add(k); unique.push(e); }
+    if (unique.length >= 4) break;
+  }
+
+  strip.innerHTML = unique.map(e => {
+    const nm = escapeHtml(e.fragrance_name || '');
+    const hs = escapeHtml(e.house || '');
+    const img = e.image_url
+      ? `<img src="${escapeAttr(e.image_url)}" alt="${nm}" loading="lazy" onerror="this.style.display='none'">`
+      : '<span style="font-size:20px">🏺</span>';
+    const ago = timeAgo(e.worn_at);
+    return `<div class="continue-item" onclick="triggerSearch(${JSON.stringify(e.fragrance_name || '')})">
+      <div class="continue-item-img">${img}</div>
+      <div class="continue-item-info">
+        <div class="continue-item-name">${nm}</div>
+        <div class="continue-item-house">${hs}</div>
+        <div class="continue-item-ago">${ago}</div>
+      </div>
+      <button class="continue-item-btn" title="Quick log" onclick="event.stopPropagation();quickLog(${JSON.stringify(e.fragrance_name||'')},${JSON.stringify(e.house||'')},${JSON.stringify(e.image_url||null)},${JSON.stringify(e.fragella_id||null)})">⏱</button>
+    </div>`;
+  }).join('');
+
+  section.style.display = '';
+}
+
+const _nicheGatewayPool = [
+  'Aventus Creed', 'Baccarat Rouge 540 Maison Francis Kurkdjian',
+  'Santal 33 Le Labo', 'Oud Wood Tom Ford', 'Naxos Xerjoff',
+  'Portrait of a Lady Frederic Malle', 'Bal d\'Afrique Byredo',
+  'Viking Creed', 'Tobacco Vanille Tom Ford', 'Erba Pura Xerjoff',
+  'Lost Cherry Tom Ford', 'Black Orchid Tom Ford'
+];
+
+async function renderForYouShelf() {
+  const section = document.getElementById('section-foryou');
+  const el = document.getElementById('shelf-foryou');
+  const eyebrow = document.getElementById('foryou-eyebrow');
+  const title = document.getElementById('foryou-title');
+  const sub = document.getElementById('foryou-sub');
+  if (!section || !el) return;
+
+  let sourceName = '';
+  let sourceHouse = '';
+  if (collection.length > 0) {
+    sourceName = collection[0].name || '';
+    sourceHouse = collection[0].house || '';
+  } else if (diary.length > 0) {
+    sourceName = diary[0].fragrance_name || '';
+    sourceHouse = diary[0].house || '';
+  }
+
+  if (!sourceName) {
+    if (eyebrow) eyebrow.textContent = 'Crowd favourites';
+    if (title) title.innerHTML = 'Where to <em>start</em>';
+    if (sub) sub.textContent = 'The fragrances everyone should smell at least once.';
+    loadShelf('shelf-foryou', _nicheGatewayPool.slice().sort(() => Math.random() - 0.5).slice(0, 8));
+    section.style.display = '';
+    return;
+  }
+
+  const firstName = user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || '';
+  if (eyebrow) eyebrow.textContent = 'Tuned to your taste';
+  if (title) title.innerHTML = firstName ? `Picked for <em>${escapeHtml(firstName)}</em>` : 'Picked <em>for you</em>';
+  if (sub) sub.textContent = `Because you have ${[sourceHouse, sourceName].filter(Boolean).join(' ')}`;
+  section.style.display = '';
+  el.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+
+  try {
+    const results = await searchFragella(sourceName);
+    const hiveNames = new Set(collection.map(c => (c.name || '').toLowerCase()));
+    const filtered = (results || [])
+      .filter(r => !hiveNames.has((r.name || '').toLowerCase()))
+      .slice(0, 8);
+    if (!filtered.length) throw new Error('no results');
+    el.innerHTML = filtered.map(f => buildPosterCard(f)).join('');
+    el.querySelectorAll('.poster-card').forEach(c =>
+      c.addEventListener('click', () => openFrag(c.getAttribute('data-key')))
+    );
+  } catch (e) {
+    loadShelf('shelf-foryou', _nicheGatewayPool.slice().sort(() => Math.random() - 0.5).slice(0, 8));
+  }
 }
 
 async function loadPopularShelf() {
@@ -389,6 +499,20 @@ function escapeHtml(s) {
 }
 function escapeAttr(s) {
   return String(s || '').replace(/"/g, '&quot;');
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const then = new Date(dateStr).getTime();
+  if (!Number.isFinite(then)) return '';
+  const diff = Date.now() - then;
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (h < 1) return 'just now';
+  if (h < 24) return h + 'h ago';
+  if (d === 1) return 'yesterday';
+  if (d < 7) return d + ' days ago';
+  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
 // ═══════ SEARCH ═══════
@@ -2185,6 +2309,17 @@ function openAI() {
   setTimeout(() => document.getElementById('ai-prompt')?.focus(), 200);
 }
 
+function openTasteTest() {
+  const prompt = document.getElementById('ai-prompt') || document.getElementById('ai-input');
+  const results = document.getElementById('ai-results');
+  if (results) results.innerHTML = '';
+  if (prompt) {
+    prompt.value = 'Give me a fragrance taste test. Ask me 5 short questions one at a time about my preferences — season, mood, intensity, favourite smells from memory — then produce a personalised scent profile and 5 recommendations.';
+  }
+  openModal('modal-ai');
+  if (prompt) setTimeout(() => prompt.focus(), 200);
+}
+
 async function askAI() {
   if (!user && aiUsageCount >= AI_FREE_LIMIT) {
     toast('Sign in to get unlimited recommendations');
@@ -2816,36 +2951,32 @@ function maybeShowOnboarding() {
 
 // ═══════ HERO PERSONALISATION ═══════
 function updateHero() {
-  const tag = document.getElementById('hero-tag');
-  const title = document.getElementById('hero-title');
-  const sub = document.getElementById('hero-sub');
-  const signinBtn = document.getElementById('hero-signin-btn');
-  const proofLogged = document.getElementById('hero-proof-logged');
-  const proofHive = document.getElementById('hero-proof-hive');
-  const proofStreak = document.getElementById('hero-proof-streak');
-  const streak = computeStreak();
-  if (proofLogged) proofLogged.textContent = diary.length;
-  if (proofHive) proofHive.textContent = collection.length;
-  if (proofStreak) proofStreak.textContent = streak.current;
-  if (!tag) return;
+  const greeting = document.getElementById('home-greeting');
+  const greetingName = document.getElementById('greeting-name');
+  const greetingStats = document.getElementById('greeting-stats');
+  const greetingStreak = document.getElementById('greeting-streak');
+  const greetingStreakNum = document.getElementById('greeting-streak-num');
+  if (!greeting) return;
+
   if (user) {
     const name = user.user_metadata?.name || user.email?.split('@')[0] || 'there';
     const firstName = name.split(' ')[0];
-    if (diary.length > 0) {
-      tag.textContent = 'Welcome back, ' + firstName;
-      title.innerHTML = diary.length + ' scents <em>logged</em>';
-      sub.textContent = 'Your archive is starting to say something. Keep it honest: log what you actually wore today.';
+    const hour = new Date().getHours();
+    const timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+    const streak = computeStreak();
+
+    if (greetingName) greetingName.textContent = `Good ${timeOfDay}, ${firstName}`;
+    if (greetingStats) greetingStats.textContent = `${diary.length} logged · ${collection.length} in hive`;
+
+    if (greetingStreak && greetingStreakNum && streak.current >= 2) {
+      greetingStreak.style.display = '';
+      greetingStreakNum.textContent = streak.current;
     } else {
-      tag.textContent = 'Hey ' + firstName + ', welcome';
-      title.innerHTML = 'Log your <em>first</em> scent';
-      sub.textContent = 'Start with the fragrance on your skin right now. One rating is enough.';
+      if (greetingStreak) greetingStreak.style.display = 'none';
     }
-    if (signinBtn) signinBtn.style.display = 'none';
+    greeting.style.display = '';
   } else {
-    tag.textContent = 'Personal scent archive';
-    title.innerHTML = 'Your fragrance <em>diary</em>';
-    sub.textContent = 'Remember what you wore, how it performed, and which bottles actually deserve a place on your shelf.';
-    if (signinBtn) signinBtn.style.display = '';
+    greeting.style.display = 'none';
   }
 }
 

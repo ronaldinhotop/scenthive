@@ -126,57 +126,38 @@
     </div>
 
     <div id="home-content">
-      <div class="hero" id="home-hero">
-        <div class="hero-hex-bg"></div>
-        <span class="hero-bee bee-1">🐝</span>
-        <span class="hero-bee bee-2">🐝</span>
-        <span class="hero-bee bee-3">🐝</span>
-        <div class="hero-content">
-          <div class="hero-tag" id="hero-tag">Personal scent archive</div>
-          <div class="hero-title" id="hero-title">Your fragrance <em>diary</em></div>
-          <div class="hero-sub" id="hero-sub">Remember what you wore, how it performed, and which bottles actually deserve a place on your shelf.</div>
-          <div class="hero-actions">
-            <button class="hero-primary" onclick="openLog()">Log today's scent</button>
-            <button class="hero-secondary" onclick="openAdd()">Add a bottle</button>
-            <button class="hero-secondary" onclick="showScreen('auth')" id="hero-signin-btn">Create account</button>
-          </div>
-          <div class="hero-proof">
-            <div class="hero-proof-item"><div class="hero-proof-num" id="hero-proof-logged">0</div><div class="hero-proof-label">logged</div></div>
-            <div class="hero-proof-item"><div class="hero-proof-num" id="hero-proof-hive">0</div><div class="hero-proof-label">in hive</div></div>
-            <div class="hero-proof-item"><div class="hero-proof-num" id="hero-proof-streak">0</div><div class="hero-proof-label">day streak</div></div>
-          </div>
+      <div class="home-greeting" id="home-greeting" style="display:none">
+        <div class="home-greeting-text">
+          <span class="home-greeting-name" id="greeting-name"></span>
+          <span class="home-greeting-stats" id="greeting-stats"></span>
+        </div>
+        <div class="home-greeting-streak" id="greeting-streak" style="display:none">
+          <span class="greeting-streak-num" id="greeting-streak-num">0</span>
+          <span class="greeting-streak-label">day streak 🔥</span>
         </div>
       </div>
 
-      <!-- FEATURE GRID (shown only to new users) -->
-      <div class="features-grid" id="features-grid">
-        <div class="feature-card primary">
-          <div class="feature-icon">🏺</div>
-          <div><div class="feature-head">Start with today</div><div class="feature-body">One quick log turns ScentHive into a personal memory bank for scent.</div></div>
+      <div class="section" id="section-continue" style="display:none">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Pick up where you left off</div>
+            <div class="section-title">Continue <em>wearing</em></div>
+          </div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">⭐</div>
-          <div><div class="feature-head">Rate with context</div><div class="feature-body">Track ratings, occasions and notes so your taste becomes visible.</div></div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🐝</div>
-          <div><div class="feature-head">Know your shelf</div><div class="feature-body">Catalogue bottles, wishlist samples, and see what you actually wear.</div></div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <div><div class="feature-head">Taste profile</div><div class="feature-body">See your nose broken down — oriental, woody, fresh, floral — by data.</div></div>
-        </div>
-        <div class="feature-card clickable" onclick="openAI()">
-          <div class="feature-icon">🤖</div>
-          <div><div class="feature-head">AI recommendations</div><div class="feature-body">Tell the AI what you love and get personalised picks instantly.</div></div>
-        </div>
-        <div class="feature-card clickable" onclick="openUpgrade()">
-          <div class="feature-icon purple">👑</div>
-          <div><div class="feature-head">Go <em style="color:var(--gold);font-style:italic">Pro</em></div><div class="feature-body">Full stats, no ads, and priority access to every new feature.</div></div>
-        </div>
+        <div class="continue-strip" id="continue-strip"></div>
       </div>
 
-      <!-- Your recently logged — shown only when logged in + diary not empty -->
+      <div class="section" id="section-foryou">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow" id="foryou-eyebrow">Tuned to your taste</div>
+            <div class="section-title" id="foryou-title">Picked <em>for you</em></div>
+            <div class="section-sub" id="foryou-sub"></div>
+          </div>
+        </div>
+        <div class="poster-row" id="shelf-foryou"><div class="loading-row">Loading…</div></div>
+      </div>
+
       <div class="section" id="section-recent-yours" style="display:none">
         <div class="section-header">
           <div>
@@ -199,22 +180,6 @@
         <div class="poster-row" id="shelf-popular"><div class="loading-row">Loading…</div></div>
       </div>
 
-      <div class="section tinted">
-        <div class="section-header">
-          <div>
-            <div class="section-eyebrow">From the community</div>
-            <div class="section-title">Recent <em>reviews</em></div>
-          </div>
-        </div>
-        <div class="review-feed" id="review-feed">
-          <div style="padding:32px 24px;text-align:center;color:var(--grey)">
-            <div style="font-size:28px;opacity:0.4;margin-bottom:10px">📝</div>
-            <div style="font-size:13px;font-style:italic;margin-bottom:6px">No reviews yet</div>
-            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em">Be the first — log a fragrance and add a note.</div>
-          </div>
-        </div>
-      </div>
-
       <div class="section">
         <div class="section-header">
           <div>
@@ -227,7 +192,29 @@
         <div class="poster-row" id="shelf-dark"><div class="loading-row">Loading…</div></div>
       </div>
 
-      <div class="section"><div id="article-featured"></div></div>
+      <div class="section tinted">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Curated shelf</div>
+            <div class="section-title">Warm & <em>oriental</em></div>
+            <div class="section-sub">Amber, vanilla, oud. Skin-close and seductive.</div>
+          </div>
+          <span class="section-more" onclick="triggerSearch('amber vanilla oriental')">Explore →</span>
+        </div>
+        <div class="poster-row" id="shelf-oriental"><div class="loading-row">Loading…</div></div>
+      </div>
+
+      <div class="section">
+        <div class="taste-cta" id="taste-cta" onclick="openTasteTest()">
+          <div class="taste-cta-hex"></div>
+          <div class="taste-cta-body">
+            <div class="taste-cta-eyebrow">Taste intelligence</div>
+            <div class="taste-cta-title">What does your nose actually want?</div>
+            <div class="taste-cta-sub">Answer 5 quick questions and get a personalised scent profile.</div>
+            <div class="taste-cta-btn">Take the taste test →</div>
+          </div>
+        </div>
+      </div>
 
       <div class="section">
         <div class="section-header">
@@ -249,6 +236,7 @@
             <div class="section-title"><em>Latest</em> articles</div>
           </div>
         </div>
+        <div id="article-featured"></div>
         <div class="article-row" id="article-list"><div class="loading-row">Loading articles…</div></div>
       </div>
 
