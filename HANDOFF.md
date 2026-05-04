@@ -43,6 +43,9 @@ Human owner: Frode. Push via GitHub Desktop when terminal auth is unavailable.
 - ✅ Image error handling: broken images swap to 🏺 emoji fallback.
 - ✅ Bottle image auto-fetch on scan add (looks up Fragella DB by name/house).
 - ✅ mix-blend-mode changed from `screen` → `luminosity` so white bottles are visible.
+- ✅ Empty states: diary 📖, hive 🐝, wishlist ✨ all show friendly messages when empty.
+- ✅ Quick wear: ⏱ button on hive cards logs a wear instantly with a toast, no modal.
+- ✅ Search aliases: alias results now always surface first and merge with direct results.
 
 ---
 
@@ -53,7 +56,7 @@ Tasks are ordered by priority. Codex should pick **Task 1** unless told otherwis
 ---
 
 ### TASK 1 — Better empty states
-**Status:** ready for implementation
+**Status:** ✅ DONE (ccec6e2)
 
 **Why:** When a new user opens the app for the first time (no diary, no hive, no wishlist), every section shows a loading spinner or blank space. This feels broken.
 
@@ -145,31 +148,133 @@ Tasks are ordered by priority. Codex should pick **Task 1** unless told otherwis
 ---
 
 ### TASK 2 — Faster log flow
-**Status:** planned (do after Task 1)
+**Status:** ✅ DONE (724d13c)
 
-**Why:** Logging a daily wear currently requires: open modal → search → pick result → fill date/time → tap Save. That's 5+ steps. Should be 2.
-
-**What to build:** "Quick wear" button on collection items — one tap to log "I wore this today".
-
-**Spec:**
-- On each collection card in `#screen-col`, add a small ⏱ button alongside the existing ones.
-- Tapping it calls `quickLog(name, house, image_url)`:
-  ```javascript
-  async function quickLog(name, house, imageUrl) {
-    // Insert journal_entries row with worn_at = now(), no extra fields required
-    // Show a brief toast: "Logged: [name]" for 2 seconds
-  }
-  ```
-- No modal needed. Just tap → toast → done.
-
-**Acceptance criteria:**
-- [ ] Tapping ⏱ on a hive item logs it instantly with today's timestamp.
-- [ ] Toast appears and disappears automatically.
-- [ ] Entry appears in diary on next render.
+Quick wear ⏱ button added to hive cards. Logs instantly, shows toast, updates diary in memory.
+Known minor issue: calls `loadCommunityFeed()` on every quick log — unnecessary network call, can be removed later.
 
 ---
 
-### TASK 3 — Split index.html into css + js files
+### TASK 3 — Diary entry detail view
+**Status:** ready for implementation
+
+**Why:** Tapping a diary entry does nothing. Users want to see what they wrote, edit the rating, or delete an entry.
+
+**What to build:** A slide-up bottom sheet (mobile) / modal (desktop) that shows the full entry when a diary card is tapped.
+
+**Files:** `index.html` only.
+
+**Spec:**
+
+#### Trigger
+- Tapping anywhere on a `.diary-card` element opens the sheet for that entry.
+- `e.stopPropagation()` so nested buttons (delete, etc.) don't also open it.
+
+#### Sheet HTML (append once to `<body>`, toggle visibility)
+```html
+<div id="entry-sheet" class="entry-sheet" style="display:none">
+  <div class="entry-sheet-backdrop" onclick="closeEntrySheet()"></div>
+  <div class="entry-sheet-panel">
+    <button class="entry-sheet-close" onclick="closeEntrySheet()">✕</button>
+    <div id="entry-sheet-body"></div>
+  </div>
+</div>
+```
+
+#### Sheet content (rendered into `#entry-sheet-body`)
+```
+[Bottle image or emoji — 80px]
+[Fragrance name — Playfair Display, italic, 22px]
+[House name — DM Mono, uppercase, gold-dim, 11px]
+[Date worn — e.g. "Monday 4 May 2026"]
+[Star rating — read-only display: ★★★☆☆]
+[Occasion badge — e.g. "Evening"]
+[Notes — full text, white2, 14px, line-height 1.6]
+[Delete button — red, bottom of panel]
+```
+
+#### CSS
+```css
+.entry-sheet { position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;justify-content:flex-end }
+.entry-sheet-backdrop { position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px) }
+.entry-sheet-panel {
+  position:relative;z-index:1;
+  background:var(--bg2);border-top:1px solid var(--border);
+  border-radius:16px 16px 0 0;
+  padding:24px 24px 40px;
+  max-height:80vh;overflow-y:auto;
+  animation: slideUp 0.22s ease;
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.entry-sheet-close { position:absolute;top:16px;right:16px;background:none;border:none;color:var(--white2);font-size:18px;cursor:pointer }
+.entry-sheet-img { width:80px;height:80px;object-fit:contain;mix-blend-mode:luminosity;filter:brightness(1.3);margin-bottom:12px }
+.entry-sheet-name { font-family:'Playfair Display',serif;font-size:22px;font-style:italic;color:var(--white);line-height:1.2 }
+.entry-sheet-house { font-family:'DM Mono',monospace;font-size:11px;color:var(--gold-dim);letter-spacing:0.08em;text-transform:uppercase;margin:4px 0 12px }
+.entry-sheet-meta { display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px }
+.entry-sheet-date { font-size:12px;color:var(--white2) }
+.entry-sheet-stars { font-size:15px;color:var(--gold) }
+.entry-sheet-occasion { font-size:11px;background:var(--purple-pale);color:var(--purple-light);border-radius:10px;padding:2px 10px }
+.entry-sheet-notes { font-size:14px;color:var(--white2);line-height:1.6;white-space:pre-wrap;margin-bottom:20px }
+.entry-sheet-delete { background:none;border:1px solid var(--red);color:var(--red);border-radius:20px;padding:8px 20px;font-size:13px;cursor:pointer }
+.entry-sheet-delete:hover { background:rgba(248,113,113,0.1) }
+```
+
+#### JS functions
+```javascript
+function openEntrySheet(entry) {
+  const b = document.getElementById('entry-sheet-body');
+  const img = entry.image_url
+    ? `<img class="entry-sheet-img" src="${escapeAttr(entry.image_url)}" onerror="this.style.display='none'">`
+    : '<div style="font-size:48px;margin-bottom:12px">🏺</div>';
+  const stars = '★'.repeat(entry.rating || 0) + '☆'.repeat(5 - (entry.rating || 0));
+  const date = new Date(entry.worn_at).toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  b.innerHTML = `
+    ${img}
+    <div class="entry-sheet-name">${escapeHtml(entry.fragrance_name || '')}</div>
+    <div class="entry-sheet-house">${escapeHtml(entry.house || '')}</div>
+    <div class="entry-sheet-meta">
+      <span class="entry-sheet-date">${date}</span>
+      ${entry.rating ? `<span class="entry-sheet-stars">${stars}</span>` : ''}
+      ${entry.occasion ? `<span class="entry-sheet-occasion">${escapeHtml(entry.occasion)}</span>` : ''}
+    </div>
+    ${entry.notes ? `<div class="entry-sheet-notes">${escapeHtml(entry.notes)}</div>` : ''}
+    <button class="entry-sheet-delete" onclick="deleteEntry('${entry.id}')">Delete entry</button>
+  `;
+  document.getElementById('entry-sheet').style.display = 'flex';
+}
+
+function closeEntrySheet() {
+  document.getElementById('entry-sheet').style.display = 'none';
+}
+```
+
+#### Wire up in `renderDiary()`
+After rendering diary cards, add:
+```javascript
+document.querySelectorAll('.diary-card').forEach(card => {
+  card.style.cursor = 'pointer';
+  card.addEventListener('click', e => {
+    if (e.target.closest('button')) return; // don't open if tapping a button
+    const idx = parseInt(card.getAttribute('data-idx'));
+    if (!isNaN(idx) && diary[idx]) openEntrySheet(diary[idx]);
+  });
+});
+```
+Each `.diary-card` needs `data-idx="${index}"` added to its HTML during render.
+
+**Acceptance criteria:**
+- [ ] Tapping a diary card opens the bottom sheet with full entry details.
+- [ ] Date is formatted nicely (e.g. "Monday 4 May 2026").
+- [ ] Rating shows stars if present, hidden if 0.
+- [ ] Occasion badge shows if present, hidden if empty.
+- [ ] Notes show if present, hidden if empty.
+- [ ] Delete button removes the entry (calls existing `deleteEntry()` function or equivalent).
+- [ ] Backdrop tap and ✕ button both close the sheet.
+- [ ] Tapping action buttons on cards (edit, delete, etc.) does NOT open the sheet.
+
+---
+
+### TASK 4 — Split index.html into css + js files
 **Status:** planned (do last, after UX is stable)
 
 **Why:** At ~4 700 lines the single file is getting hard to navigate.
