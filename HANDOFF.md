@@ -66,6 +66,7 @@ ScentHive should move toward a Spotify/Letterboxd/Fragrantica-inspired fragrance
 - ✅ Profile: Taste identity card above taste bars.
 - ✅ Monetization seed: Taste Intelligence Pro teaser and modal repositioning.
 - ✅ Pro preview: Blind Buy Advisor on fragrance detail.
+- ✅ Pro preview: Sample Set Builder guided flow.
 
 ---
 
@@ -2515,6 +2516,24 @@ Replace with:
 - Shows verdict, match score when taste profile exists, risk level, best use, and next move.
 - If no taste profile exists, the card prompts the user to take the taste test.
 - Includes `Build sample set` and `Unlock full advisor` CTAs routed to the existing upgrade modal.
+- No payment logic added yet.
+
+---
+
+### TASK 17 — Sample Set Builder Preview
+**Status:** ✅ DONE
+
+**What shipped:** A guided Pro-preview modal that turns the Blind Buy Advisor's "sample first" advice into a concrete 5-sample path.
+
+**Files changed:** `index.html`, `app.js`, `styles.css`
+
+**Behavior:**
+- Adds `#modal-sample-builder` with mission and budget choices.
+- Home Pro teaser now opens `openSampleBuilder()` instead of the generic upgrade modal.
+- Blind Buy Advisor's `Build sample set` CTA now opens the builder.
+- `SAMPLE_SET_POOLS` provides curated 5-fragrance paths for signature, office, date night, summer daily, and wildcard missions.
+- `buildSampleSet()` resolves each pick through existing `searchFragella()`, renders clickable sample cards, and opens fragrance detail on tap.
+- The result still upsells the full Pro version for risk scoring and shop links.
 - No payment logic added yet.
 
 

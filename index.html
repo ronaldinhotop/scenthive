@@ -267,7 +267,7 @@
       </div>
 
       <div class="section" id="section-pro-seed">
-        <div class="pro-seed-card" onclick="openUpgrade()">
+        <div class="pro-seed-card" onclick="openSampleBuilder()">
           <div class="pro-seed-top">
             <div>
               <div class="pro-seed-kicker">Taste Intelligence Pro</div>
@@ -280,7 +280,7 @@
             <div class="pro-seed-point"><span>02</span>Sample set builder</div>
             <div class="pro-seed-point"><span>03</span>Occasion rotation</div>
           </div>
-          <div class="pro-seed-cta">Preview Pro →</div>
+          <div class="pro-seed-cta">Build sample set →</div>
         </div>
       </div>
 
@@ -818,6 +818,36 @@
     </div>
     <button class="modal-submit" onclick="toast('🐝 You\'re on the waitlist — we\'ll be in touch!');closeModal('modal-upgrade')">Join the waitlist</button>
     <button class="modal-cancel" data-close="modal-upgrade">Maybe later</button>
+  </div>
+</div>
+
+<!-- ═══ SAMPLE SET BUILDER MODAL ═══ -->
+<div class="modal-overlay" id="modal-sample-builder">
+  <div class="modal" style="max-height:92vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-kicker">Taste Intelligence Pro · Preview</div>
+    <div class="modal-title">Build a sample set</div>
+    <div class="modal-sub">Pick a mission and ScentHive will create a 5-sample path before you buy a full bottle.</div>
+
+    <label class="modal-label">Mission</label>
+    <div class="sample-options" id="sample-vibe-options">
+      <button class="sample-option active" data-value="signature">Signature scent</button>
+      <button class="sample-option" data-value="office">Office-safe</button>
+      <button class="sample-option" data-value="date">Date night</button>
+      <button class="sample-option" data-value="summer">Summer daily</button>
+      <button class="sample-option" data-value="wildcard">Surprise me</button>
+    </div>
+
+    <label class="modal-label">Budget</label>
+    <div class="sample-options compact" id="sample-budget-options">
+      <button class="sample-option active" data-value="35">Under €35</button>
+      <button class="sample-option" data-value="60">Under €60</button>
+      <button class="sample-option" data-value="100">No limit</button>
+    </div>
+
+    <button class="modal-submit" onclick="buildSampleSet()">Build my 5 samples</button>
+    <div id="sample-builder-results" class="sample-builder-results"></div>
+    <button class="modal-cancel" data-close="modal-sample-builder">Close</button>
   </div>
 </div>
 

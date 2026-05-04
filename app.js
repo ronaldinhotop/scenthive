@@ -1403,7 +1403,7 @@ function buildBlindBuyAdvisorHtml(f) {
       (locked
         ? '<button onclick="openTasteTest()">Take taste test</button>'
         : '<button onclick="openUpgrade()">Unlock full advisor</button>') +
-      '<button onclick="openUpgrade()">Build sample set</button>' +
+      '<button onclick="openSampleBuilder()">Build sample set</button>' +
     '</div>' +
   '</div>';
 }
@@ -2969,6 +2969,123 @@ function openAI() {
   }
   openModal('modal-ai');
   setTimeout(() => document.getElementById('ai-prompt')?.focus(), 200);
+}
+
+let _sampleVibe = 'signature';
+let _sampleBudget = '35';
+
+const SAMPLE_SET_POOLS = {
+  signature: [
+    ['Bleu de Chanel EDP', 'Control: polished designer benchmark'],
+    ['Gris Charnel BDK', 'Modern woody comfort with niche character'],
+    ['Naxos Xerjoff', 'Warm statement without going fully loud'],
+    ['Terre Hermes EDT', 'Dry citrus/wood classic with grown-up structure'],
+    ['Gentle Fluidity Silver Maison Francis Kurkdjian', 'Clean metallic-musky daily signature']
+  ],
+  office: [
+    ['Prada L Homme', 'Clean iris and soap, easy professional wear'],
+    ['Reflection Man Amouage', 'Polished white floral freshness'],
+    ['Molecule 01 Escentric Molecules', 'Minimal skin scent benchmark'],
+    ['Grey Vetiver Tom Ford', 'Dry vetiver, crisp shirt energy'],
+    ['L Eau d Issey Pour Homme Issey Miyake', 'Transparent citrus-aquatic classic']
+  ],
+  date: [
+    ['La Nuit de l Homme YSL', 'Cardamom warmth, intimate and familiar'],
+    ['Grand Soir Maison Francis Kurkdjian', 'Amber glow with dressed-up confidence'],
+    ['Angels Share Kilian', 'Boozy cinnamon sweetness for evening'],
+    ['Musc Ravageur Frederic Malle', 'Warm musk and spice, sensual but adult'],
+    ['Dior Homme Intense', 'Iris, woods, and soft projection']
+  ],
+  summer: [
+    ['Imagination Louis Vuitton', 'Premium citrus tea freshness'],
+    ['Wulong Cha Nishane', 'Tea-citrus lift with niche polish'],
+    ['Light Blue Eau Intense Dolce Gabbana', 'Salty summer freshness benchmark'],
+    ['Neroli Portofino Tom Ford', 'Clean Mediterranean neroli'],
+    ['Virgin Island Water Creed', 'Lime coconut vacation profile']
+  ],
+  wildcard: [
+    ['Ganymede Marc-Antoine Barrois', 'Mineral leather wildcard'],
+    ['Philosykos Diptyque', 'Green fig and woody milkiness'],
+    ['Portrait of a Lady Frederic Malle', 'Rose-patchouli power reference'],
+    ['Mojave Ghost Byredo', 'Soft musky floral with easy niche appeal'],
+    ['Hacivat Nishane', 'Bright mossy pineapple structure']
+  ]
+};
+
+function setupSampleBuilderOptions() {
+  document.querySelectorAll('#sample-vibe-options .sample-option').forEach(btn => {
+    btn.onclick = () => {
+      _sampleVibe = btn.getAttribute('data-value') || 'signature';
+      document.querySelectorAll('#sample-vibe-options .sample-option').forEach(b => b.classList.toggle('active', b === btn));
+    };
+  });
+  document.querySelectorAll('#sample-budget-options .sample-option').forEach(btn => {
+    btn.onclick = () => {
+      _sampleBudget = btn.getAttribute('data-value') || '35';
+      document.querySelectorAll('#sample-budget-options .sample-option').forEach(b => b.classList.toggle('active', b === btn));
+    };
+  });
+}
+
+function openSampleBuilder(vibe) {
+  if (vibe && SAMPLE_SET_POOLS[vibe]) _sampleVibe = vibe;
+  const results = document.getElementById('sample-builder-results');
+  if (results) {
+    results.innerHTML = '<div class="sample-builder-empty">Choose a mission, then build your 5-sample path.</div>';
+  }
+  openModal('modal-sample-builder');
+  setupSampleBuilderOptions();
+  document.querySelectorAll('#sample-vibe-options .sample-option').forEach(b => b.classList.toggle('active', b.getAttribute('data-value') === _sampleVibe));
+  document.querySelectorAll('#sample-budget-options .sample-option').forEach(b => b.classList.toggle('active', b.getAttribute('data-value') === _sampleBudget));
+}
+
+async function buildSampleSet() {
+  const el = document.getElementById('sample-builder-results');
+  if (!el) return;
+  const profile = getTasteProfile();
+  const pool = SAMPLE_SET_POOLS[_sampleVibe] || SAMPLE_SET_POOLS.signature;
+  const profileExtra = profile?.queries?.[0] ? [[profile.queries[0], 'Personal taste-profile anchor']] : [];
+  const plan = [...profileExtra, ...pool].slice(0, 5);
+  const budgetLabel = _sampleBudget === '100' ? 'flexible budget' : 'target under €' + _sampleBudget;
+
+  el.innerHTML = '<div class="sample-builder-empty"><div class="spinner" style="margin:0 auto 10px"></div>Building your set…</div>';
+  const cards = [];
+  for (const [query, reason] of plan) {
+    try {
+      const results = await searchFragella(query);
+      const f = results?.[0];
+      if (!f) continue;
+      const key = 'ss' + Math.random().toString(36).slice(2, 8);
+      fragStore[key] = f;
+      cards.push({ key, f, reason });
+    } catch (e) {}
+  }
+
+  if (!cards.length) {
+    el.innerHTML = '<div class="sample-builder-empty">Could not build the set right now. Try again in a moment.</div>';
+    return;
+  }
+
+  el.innerHTML =
+    '<div class="sample-builder-summary">' +
+      '<strong>5-sample path</strong><span>' + escapeHtml(budgetLabel) + ' · sample before bottle</span>' +
+    '</div>' +
+    cards.map(({ key, f, reason }, i) => `
+      <div class="sample-set-card" data-key="${key}">
+        <div class="sample-set-num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="sample-set-body">
+          <div class="sample-set-name">${escapeHtml(f.name || '')}</div>
+          <div class="sample-set-house">${escapeHtml(f.house || '')}</div>
+          <div class="sample-set-reason">${escapeHtml(reason)}</div>
+        </div>
+        <button class="sample-set-open">Open</button>
+      </div>
+    `).join('') +
+    '<button class="sample-builder-pro" onclick="openUpgrade()">Unlock full Pro set with blind-buy risk and shop links</button>';
+
+  el.querySelectorAll('.sample-set-card').forEach(card => {
+    card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
+  });
 }
 
 function openTasteTest() {
