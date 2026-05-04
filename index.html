@@ -369,11 +369,12 @@ img{max-width:100%;display:block}
 .log-search-result:active{background:var(--bg3)}
 
 /* ═══ EMPTY STATE ═══ */
-.empty-state{padding:64px 24px;text-align:center}
-.empty-state-icon{font-size:44px;margin-bottom:16px;opacity:0.4}
-.empty-state-title{font-family:'Playfair Display',serif;font-size:24px;font-style:italic;margin-bottom:8px}
-.empty-state-text{font-size:13px;color:var(--grey);line-height:1.65;max-width:280px;margin:0 auto}
-.empty-state-text span{color:var(--gold);font-weight:500}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:64px 24px;text-align:center;color:var(--white2)}
+.empty-state-emoji,.empty-state-icon{font-size:48px;margin-bottom:4px;opacity:1}
+.empty-state-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--white);font-style:italic;margin-bottom:0}
+.empty-state-sub,.empty-state-text{font-size:13px;max-width:260px;line-height:1.5;color:var(--white2);margin:0 auto}
+.empty-state-sub span,.empty-state-text span{color:var(--gold);font-weight:500}
+.empty-state .btn-primary{margin-top:12px;background:var(--gold);color:#080810;border:none;border-radius:20px;padding:10px 22px;font-size:13px;font-weight:600;cursor:pointer}
 
 /* UTILS */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--bg);padding:10px 20px;border-radius:2px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;z-index:500;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
@@ -2806,9 +2807,10 @@ function renderDiary() {
   if (diary.length === 0) {
     el.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">📔</div>
+        <div class="empty-state-emoji">📖</div>
         <div class="empty-state-title">Your diary is empty</div>
-        <div class="empty-state-text">Tap the <span>+</span> button to log what you're wearing today.</div>
+        <div class="empty-state-sub">Every fragrance you wear gets logged here. Tap + Log to start.</div>
+        <button class="btn-primary" onclick="openLog()">+ Log a fragrance</button>
       </div>`;
     return;
   }
@@ -2895,9 +2897,10 @@ function renderCollection() {
     grid.innerHTML = `
       <div style="grid-column:1/-1">
         <div class="empty-state">
-          <div class="empty-state-icon">🏺</div>
+          <div class="empty-state-emoji">🐝</div>
           <div class="empty-state-title">Your hive is empty</div>
-          <div class="empty-state-text">Tap <span>+</span> in the top right to add a bottle you own.</div>
+          <div class="empty-state-sub">Add fragrances you own to keep track of your collection.</div>
+          <button class="btn-primary" onclick="showTab('home')">Browse &amp; add</button>
         </div>
       </div>`;
     return;
@@ -4318,10 +4321,12 @@ function renderWishlist() {
   const grid = document.getElementById('wishlist-grid');
   if (!grid) return;
   if (!wishlist.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;padding:48px 20px;text-align:center;color:var(--grey)">
-      <div style="font-size:36px;opacity:0.3;margin-bottom:12px">✨</div>
-      <div style="font-size:13px;font-style:italic;margin-bottom:6px">Your wishlist is empty</div>
-      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em">Add fragrances you want to try before buying.</div>
+    grid.innerHTML = `<div style="grid-column:1/-1">
+      <div class="empty-state">
+        <div class="empty-state-emoji">✨</div>
+        <div class="empty-state-title">Nothing on your wishlist yet</div>
+        <div class="empty-state-sub">Tap ✨ Wish on any fragrance to save it here.</div>
+      </div>
     </div>`;
     return;
   }
