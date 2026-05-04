@@ -288,17 +288,706 @@ Each `.diary-card` needs `data-idx="${index}"` added to its HTML during render.
 ---
 
 ### TASK 4 — Split index.html into css + js files
-**Status:** planned (do last, after UX is stable)
+**Status:** ✅ DONE (already split — project now has `index.html`, `styles.css`, `app.js`)
 
-**Why:** At ~4 700 lines the single file is getting hard to navigate.
+Update coding rules: CSS goes in `styles.css`, JS goes in `app.js`, HTML shell in `index.html`.
 
-**What to build:**
-- Extract all `<style>` content → `styles.css`
-- Extract all `<script>` content → `app.js`
-- `index.html` keeps only the HTML skeleton + `<link>` / `<script src>` tags
-- Update `vercel.json` builds to include the new static files
+---
 
-**Important:** Do NOT change any logic or CSS during the split. Purely mechanical extraction.
+### TASK 5 — Home v1: Spotify/Letterboxd feed
+**Status:** ready for implementation
+
+**Why:** The current home is a marketing landing page with a big hero, generic copy, and only two curated shelves. It should feel like an actual product: dense, discoverable, personal.
+
+**Goal:** Multiple scrollable shelf rows, a slim greeting bar, a "Continue" strip, a personalised "For You" shelf, a new Warm & Oriental shelf, and a Taste Test CTA card. No marketing hero. No features grid.
+
+**Files:** `index.html`, `styles.css`, `app.js`
+
+---
+
+#### A. Remove and replace in `index.html`
+
+**Remove** the entire `<div class="hero" id="home-hero">…</div>` block (including the hex bg and bees).
+
+**Remove** the `<div class="features-grid" id="features-grid">…</div>` block.
+
+**Replace `#home-content` with this structure** (put it inside `.home-screen`, after the search wrap and PWA banner):
+
+```html
+<div id="home-content">
+
+  <!-- Greeting bar (slim, replaces hero) -->
+  <div class="home-greeting" id="home-greeting" style="display:none">
+    <div class="home-greeting-text">
+      <span class="home-greeting-name" id="greeting-name"></span>
+      <span class="home-greeting-stats" id="greeting-stats"></span>
+    </div>
+    <div class="home-greeting-streak" id="greeting-streak" style="display:none">
+      <span class="greeting-streak-num" id="greeting-streak-num">0</span>
+      <span class="greeting-streak-label">day streak 🔥</span>
+    </div>
+  </div>
+
+  <!-- Continue: last worn (logged-in + diary > 0) -->
+  <div class="section" id="section-continue" style="display:none">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">Pick up where you left off</div>
+        <div class="section-title">Continue <em>wearing</em></div>
+      </div>
+    </div>
+    <div class="continue-strip" id="continue-strip"></div>
+  </div>
+
+  <!-- For You: personalised from hive/diary, or curated for guests -->
+  <div class="section" id="section-foryou">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow" id="foryou-eyebrow">Tuned to your taste</div>
+        <div class="section-title" id="foryou-title">Picked <em>for you</em></div>
+        <div class="section-sub" id="foryou-sub"></div>
+      </div>
+    </div>
+    <div class="poster-row" id="shelf-foryou"><div class="loading-row">Loading…</div></div>
+  </div>
+
+  <!-- Recently worn by you -->
+  <div class="section" id="section-recent-yours" style="display:none">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">Your diary</div>
+        <div class="section-title">Recently <em>worn</em></div>
+      </div>
+      <span class="section-more" onclick="showTab('diary')">See all →</span>
+    </div>
+    <div class="poster-row" id="shelf-yours"></div>
+  </div>
+
+  <!-- Popular: community-driven -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">Popular this week</div>
+        <div class="section-title">Most logged <em>right now</em></div>
+      </div>
+      <span class="section-more" onclick="document.getElementById('search-input').focus();document.getElementById('search-input').scrollIntoView({behavior:'smooth'})">Search all →</span>
+    </div>
+    <div class="poster-row" id="shelf-popular"><div class="loading-row">Loading…</div></div>
+  </div>
+
+  <!-- Dark & Brooding -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">Curated shelf</div>
+        <div class="section-title">Dark & <em>brooding</em></div>
+        <div class="section-sub">Oud, tobacco, leather. For the cold months.</div>
+      </div>
+      <span class="section-more" onclick="triggerSearch('oud tobacco leather')">Explore →</span>
+    </div>
+    <div class="poster-row" id="shelf-dark"><div class="loading-row">Loading…</div></div>
+  </div>
+
+  <!-- Warm & Oriental (new) -->
+  <div class="section tinted">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">Curated shelf</div>
+        <div class="section-title">Warm & <em>oriental</em></div>
+        <div class="section-sub">Amber, vanilla, oud. Skin-close and seductive.</div>
+      </div>
+      <span class="section-more" onclick="triggerSearch('amber vanilla oriental')">Explore →</span>
+    </div>
+    <div class="poster-row" id="shelf-oriental"><div class="loading-row">Loading…</div></div>
+  </div>
+
+  <!-- Taste Test CTA -->
+  <div class="section">
+    <div class="taste-cta" id="taste-cta" onclick="openTasteTest()">
+      <div class="taste-cta-hex"></div>
+      <div class="taste-cta-body">
+        <div class="taste-cta-eyebrow">Taste intelligence</div>
+        <div class="taste-cta-title">What does your nose actually want?</div>
+        <div class="taste-cta-sub">Answer 5 quick questions and get a personalised scent profile.</div>
+        <div class="taste-cta-btn">Take the taste test →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fresh Classics -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">Curated shelf</div>
+        <div class="section-title">Fresh <em>classics</em></div>
+        <div class="section-sub">Office-friendly signatures that never fail.</div>
+      </div>
+      <span class="section-more" onclick="triggerSearch('fresh aquatic citrus')">Explore →</span>
+    </div>
+    <div class="poster-row" id="shelf-fresh"><div class="loading-row">Loading…</div></div>
+  </div>
+
+  <!-- Articles -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">From the journal</div>
+        <div class="section-title"><em>Latest</em> articles</div>
+      </div>
+    </div>
+    <div id="article-featured"></div>
+    <div class="article-row" id="article-list"><div class="loading-row">Loading articles…</div></div>
+  </div>
+
+  <!-- Community -->
+  <div class="section tinted" id="community-reviews-section">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">The community diary</div>
+        <div class="section-title">What people are <em>wearing</em></div>
+      </div>
+    </div>
+    <div id="community-diary-feed">
+      <div style="padding:32px 24px;text-align:center;color:var(--grey)">
+        <div style="font-size:28px;opacity:0.4;margin-bottom:10px">🐝</div>
+        <div style="font-size:13px;font-style:italic;margin-bottom:6px">The hive is quiet</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em">Log a fragrance to appear in the community diary.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 20px 24px;border-top:1px solid var(--border2)">
+    <div style="font-size:32px;margin-bottom:10px">🐝</div>
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:4px">Built for serious noses</div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.12em">scenthive.app</div>
+  </div>
+
+</div>
+```
+
+---
+
+#### B. New CSS to add to `styles.css`
+
+Add after the existing `.section` rules:
+
+```css
+/* ── Greeting bar ── */
+.home-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 10px;
+  gap: 12px;
+}
+.home-greeting-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.home-greeting-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-style: italic;
+  color: var(--white);
+  line-height: 1.1;
+}
+.home-greeting-stats {
+  font-family: 'DM Mono', monospace;
+  font-size: 9.5px;
+  color: var(--grey);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.home-greeting-streak {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--gold-pale);
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  padding: 8px 14px;
+  flex-shrink: 0;
+}
+.greeting-streak-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: var(--gold);
+  line-height: 1;
+}
+.greeting-streak-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--gold-dim);
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+/* ── Continue strip ── */
+.continue-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 20px 20px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.continue-strip::-webkit-scrollbar { display: none }
+.continue-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  min-width: 200px;
+  max-width: 220px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.continue-item:hover { border-color: var(--gold-dim); }
+.continue-item-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background: var(--bg4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.continue-item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: luminosity;
+  filter: brightness(1.3);
+}
+.continue-item-info { flex: 1; min-width: 0; }
+.continue-item-name {
+  font-size: 12px;
+  color: var(--white);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.continue-item-house {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--grey);
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.continue-item-ago {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  color: var(--gold-dim);
+  margin-top: 4px;
+}
+.continue-item-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--gold);
+  font-size: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.continue-item-btn:hover { background: var(--gold-pale); }
+
+/* ── Taste Test CTA card ── */
+.taste-cta {
+  margin: 0 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, #1a0d36 0%, #0e1030 50%, #0a0818 100%);
+  border: 1px solid var(--purple-dim);
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  padding: 28px 24px;
+}
+.taste-cta:hover {
+  border-color: var(--purple-light);
+  transform: translateY(-2px);
+}
+.taste-cta-hex {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpath d='M15,2 L45,2 L58,26 L45,50 L15,50 L2,26 Z' fill='none' stroke='%238b5cf6' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: 60px 52px;
+  pointer-events: none;
+}
+.taste-cta-body { position: relative; z-index: 1; }
+.taste-cta-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--purple-light);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+.taste-cta-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: var(--white);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.taste-cta-sub {
+  font-size: 13px;
+  color: var(--white2);
+  line-height: 1.55;
+  max-width: 320px;
+  margin-bottom: 18px;
+}
+.taste-cta-btn {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--purple-light);
+  border: 1px solid var(--purple-dim);
+  border-radius: 20px;
+  padding: 9px 18px;
+  transition: background 0.15s, color 0.15s;
+}
+.taste-cta:hover .taste-cta-btn {
+  background: var(--purple-pale);
+  color: var(--white);
+}
+
+/* ── Desktop padding for new elements ── */
+@media (min-width: 768px) {
+  .home-greeting { padding: 24px 40px 12px; }
+  .continue-strip { padding: 0 40px 24px; }
+  .taste-cta { margin: 0 40px; }
+}
+@media (min-width: 1200px) {
+  .home-greeting { padding: 28px 60px 14px; }
+  .continue-strip { padding: 0 60px 24px; }
+  .taste-cta { margin: 0 60px; }
+}
+```
+
+---
+
+#### C. Changes to `app.js`
+
+**1. Update `renderHome()`** — replace the entire function body:
+
+```javascript
+async function renderHome() {
+  updateHero();           // updates greeting bar
+  renderContinueStrip();  // "continue wearing" strip
+  renderForYouShelf();    // personalised or curated
+
+  // "Recently worn by you" shelf
+  const sectionYours = document.getElementById('section-recent-yours');
+  const shelfYours = document.getElementById('shelf-yours');
+  if (sectionYours && shelfYours && user && diary.length > 0) {
+    sectionYours.style.display = '';
+    const unique = [];
+    const seen = new Set();
+    for (const e of diary) {
+      const k = (e.fragrance_name || '').toLowerCase();
+      if (!seen.has(k)) { seen.add(k); unique.push(e); }
+      if (unique.length >= 8) break;
+    }
+    shelfYours.innerHTML = unique.map(e => {
+      const key = 'yo' + Math.random().toString(36).slice(2,7);
+      fragStore[key] = { name: e.fragrance_name, house: e.house, image_url: e.image_url };
+      const nm = escapeHtml(e.fragrance_name || '');
+      const hs = escapeHtml(e.house || '');
+      const imgHtml = e.image_url ? makeImg(e.image_url, nm) : '<div class="poster-card-emoji">🏺</div>';
+      return '<div class="poster-card" data-key="' + key + '">' +
+        '<div class="poster-card-img">' + imgHtml +
+        '<div class="poster-card-info"><div class="poster-card-name">' + nm + '</div><div class="poster-card-house">' + hs + '</div></div>' +
+        '</div></div>';
+    }).join('');
+    shelfYours.querySelectorAll('.poster-card').forEach(c =>
+      c.addEventListener('click', () => openFrag(c.getAttribute('data-key')))
+    );
+  }
+
+  loadPopularShelf();
+
+  // Dark & brooding shelf
+  const darkPool = [
+    'Tobacco Vanille Tom Ford', 'Encre Noire Lalique', 'Black Orchid Tom Ford',
+    'Interlude Man Amouage', 'Oud Wood Tom Ford', 'Lost Cherry Tom Ford',
+    'Dior Homme Intense', 'Sauvage Elixir Dior', 'Black Afgano Nasomatto',
+    'M7 Oud Absolu YSL', 'Kilian Black Phantom', 'Memoir Man Amouage',
+    'Fahrenheit Dior', 'Sycomore Chanel', 'Jazz Club Maison Margiela',
+    'Herod Parfums de Marly', 'Vetiver Guerlain', 'Pour Homme Yves Saint Laurent'
+  ];
+  // Warm & Oriental shelf (new)
+  const orientalPool = [
+    'Baccarat Rouge 540 Maison Francis Kurkdjian', 'Love Don't Be Shy Kilian',
+    'Good Girl Carolina Herrera', 'La Nuit de l\'Homme YSL',
+    'Black Opium YSL', 'Elixir Tom Ford',
+    'Bal d\'Afrique Byredo', 'Portrait of a Lady Frederic Malle',
+    'Libre YSL', 'Flowerbomb Viktor Rolf',
+    'Shalimar Guerlain', 'Opium YSL',
+    'Musc Ravageur Frederic Malle', 'Ambre Nuit Dior',
+    'Spicebomb Viktor Rolf', 'Kenzo Amour'
+  ];
+  // Fresh Classics shelf
+  const freshPool = [
+    'Bleu de Chanel EDP', 'Acqua di Gio Profumo', 'Y EDP YSL',
+    'Erba Pura Xerjoff', 'Light Blue Dolce', 'Terre Hermes',
+    'Reflection Man Amouage', 'Viking Creed', 'Silver Mountain Water Creed',
+    'Bvlgari Man in Black', 'Neroli Portofino Tom Ford',
+    'Lime Basil Mandarin Jo Malone', 'Kouros YSL', 'Dior Homme Eau',
+    'Cool Water Davidoff', 'L\'Eau d\'Issey Issey Miyake'
+  ];
+  const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
+
+  delete _shelfCache['shelf-dark'];
+  delete _shelfCache['shelf-oriental'];
+  delete _shelfCache['shelf-fresh'];
+
+  loadShelf('shelf-dark', shuffle(darkPool).slice(0, 8));
+  loadShelf('shelf-oriental', shuffle(orientalPool).slice(0, 8));
+  loadShelf('shelf-fresh', shuffle(freshPool).slice(0, 8));
+  loadCommunityFeed();
+  loadArticlesList();
+}
+```
+
+**2. Update `updateHero()`** — replace with this version that targets the new greeting bar IDs:
+
+```javascript
+function updateHero() {
+  const greeting = document.getElementById('home-greeting');
+  const greetingName = document.getElementById('greeting-name');
+  const greetingStats = document.getElementById('greeting-stats');
+  const greetingStreak = document.getElementById('greeting-streak');
+  const greetingStreakNum = document.getElementById('greeting-streak-num');
+
+  if (!greeting) return;
+
+  if (user) {
+    const name = user.user_metadata?.name || user.email?.split('@')[0] || 'there';
+    const firstName = name.split(' ')[0];
+    const hour = new Date().getHours();
+    const timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+
+    greetingName.textContent = `Good ${timeOfDay}, ${firstName}`;
+    greetingStats.textContent = `${diary.length} logged · ${collection.length} in hive`;
+
+    const streak = computeStreak();
+    if (streak.current >= 2) {
+      greetingStreak.style.display = '';
+      greetingStreakNum.textContent = streak.current;
+    } else {
+      greetingStreak.style.display = 'none';
+    }
+    greeting.style.display = '';
+  } else {
+    greeting.style.display = 'none';
+  }
+}
+```
+
+**3. Add `renderContinueStrip()` function** (add after `renderHome()`):
+
+```javascript
+function renderContinueStrip() {
+  const section = document.getElementById('section-continue');
+  const strip = document.getElementById('continue-strip');
+  if (!section || !strip) return;
+
+  if (!user || diary.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  // Show last 4 unique fragrances from diary
+  const unique = [];
+  const seen = new Set();
+  for (const e of diary) {
+    const k = (e.fragrance_name || '').toLowerCase();
+    if (!seen.has(k)) { seen.add(k); unique.push(e); }
+    if (unique.length >= 4) break;
+  }
+
+  strip.innerHTML = unique.map(e => {
+    const nm = escapeHtml(e.fragrance_name || '');
+    const hs = escapeHtml(e.house || '');
+    const img = e.image_url
+      ? `<img src="${escapeAttr(e.image_url)}" alt="${nm}" loading="lazy" onerror="this.style.display='none'">`
+      : '<span style="font-size:20px">🏺</span>';
+    const ago = timeAgo(e.worn_at);
+    return `<div class="continue-item" onclick="triggerSearch(${JSON.stringify(e.fragrance_name || '')})">
+      <div class="continue-item-img">${img}</div>
+      <div class="continue-item-info">
+        <div class="continue-item-name">${nm}</div>
+        <div class="continue-item-house">${hs}</div>
+        <div class="continue-item-ago">${ago}</div>
+      </div>
+      <button class="continue-item-btn" title="Quick log" onclick="event.stopPropagation();quickLog(${JSON.stringify(e.fragrance_name||'')},${JSON.stringify(e.house||'')},${JSON.stringify(e.image_url||null)},${JSON.stringify(e.fragella_id||null)})">⏱</button>
+    </div>`;
+  }).join('');
+
+  section.style.display = '';
+}
+```
+
+**4. Add `renderForYouShelf()` function** (add after `renderContinueStrip()`):
+
+```javascript
+const _nicheGatewayPool = [
+  'Aventus Creed', 'Baccarat Rouge 540 Maison Francis Kurkdjian',
+  'Santal 33 Le Labo', 'Oud Wood Tom Ford', 'Naxos Xerjoff',
+  'Portrait of a Lady Frederic Malle', 'Bal d\'Afrique Byredo',
+  'Viking Creed', 'Tobacco Vanille Tom Ford', 'Erba Pura Xerjoff',
+  'Lost Cherry Tom Ford', 'Black Orchid Tom Ford'
+];
+
+async function renderForYouShelf() {
+  const section = document.getElementById('section-foryou');
+  const el = document.getElementById('shelf-foryou');
+  const eyebrow = document.getElementById('foryou-eyebrow');
+  const title = document.getElementById('foryou-title');
+  const sub = document.getElementById('foryou-sub');
+  if (!section || !el) return;
+
+  // Determine source fragrance
+  let sourceName = '';
+  let sourceHouse = '';
+  if (collection.length > 0) {
+    sourceName = collection[0].name || '';
+    sourceHouse = collection[0].house || '';
+  } else if (diary.length > 0) {
+    sourceName = diary[0].fragrance_name || '';
+    sourceHouse = diary[0].house || '';
+  }
+
+  if (!sourceName) {
+    // Guest or empty: curated gateway shelf
+    if (eyebrow) eyebrow.textContent = 'Crowd favourites';
+    if (title) title.innerHTML = 'Where to <em>start</em>';
+    if (sub) sub.textContent = 'The fragrances everyone should smell at least once.';
+    loadShelf('shelf-foryou', _nicheGatewayPool.slice().sort(() => Math.random() - 0.5).slice(0, 8));
+    section.style.display = '';
+    return;
+  }
+
+  // Personalised header
+  const firstName = user?.user_metadata?.name?.split(' ')[0]
+    || user?.email?.split('@')[0] || '';
+  if (eyebrow) eyebrow.textContent = 'Tuned to your taste';
+  if (title) title.innerHTML = firstName ? `Picked for <em>${escapeHtml(firstName)}</em>` : 'Picked <em>for you</em>';
+  if (sub) sub.textContent = `Because you have ${escapeHtml(sourceHouse)} ${escapeHtml(sourceName)}`;
+  section.style.display = '';
+  el.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+
+  try {
+    const results = await searchFragella(sourceName);
+    const hiveNames = new Set(collection.map(c => (c.name || '').toLowerCase()));
+    const filtered = (results || [])
+      .filter(r => !hiveNames.has((r.name || '').toLowerCase()))
+      .slice(0, 8);
+    if (!filtered.length) throw new Error('no results');
+    el.innerHTML = filtered.map(f => buildPosterCard(f)).join('');
+    el.querySelectorAll('.poster-card').forEach(c =>
+      c.addEventListener('click', () => openFrag(c.getAttribute('data-key')))
+    );
+  } catch (e) {
+    // Fallback to gateway
+    loadShelf('shelf-foryou', _nicheGatewayPool.slice().sort(() => Math.random() - 0.5).slice(0, 8));
+  }
+}
+```
+
+**5. Add `openTasteTest()` function** (add near `openAI()`):
+
+```javascript
+function openTasteTest() {
+  // For Phase 1: open AI modal with a pre-filled taste test prompt
+  const input = document.getElementById('ai-input');
+  if (input) {
+    input.value = 'Give me a fragrance taste test. Ask me 5 short questions one at a time about my preferences — season, mood, intensity, favourite smells from memory — then produce a personalised scent profile and 5 recommendations.';
+  }
+  openModal('modal-ai');
+  if (input) input.focus();
+}
+```
+
+**6. Add `timeAgo()` helper** (add near other utility functions):
+
+```javascript
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (h < 1) return 'just now';
+  if (h < 24) return h + 'h ago';
+  if (d === 1) return 'yesterday';
+  if (d < 7) return d + ' days ago';
+  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+```
+
+---
+
+#### D. What NOT to change
+
+- `loadShelf()` — no changes needed
+- `buildPosterCard()` — no changes needed
+- `loadPopularShelf()` — no changes needed
+- `loadCommunityFeed()` — no changes needed
+- `loadArticlesList()` — no changes needed
+- `searchFragella()` — no changes needed
+- All modal functions — no changes needed
+- Diary, collection, hive screens — no changes needed
+- All `api/` files — no changes needed
+
+---
+
+#### E. Acceptance criteria
+
+- [ ] No marketing hero on home screen. First visible content is search bar + greeting bar (if logged in) or search bar directly.
+- [ ] Greeting bar shows name, time-of-day greeting, stats, and streak badge (if streak ≥ 2).
+- [ ] Greeting bar is hidden for guest users.
+- [ ] "Continue wearing" strip shows up to 4 recent diary items with name, house, time ago, and ⏱ quick-log button. Hidden for guests and when diary is empty.
+- [ ] "For You" shelf shows personalised results (similar to first hive/diary item) when user has data. Shows curated gateway picks for guests.
+- [ ] "Recently worn" shelf still shows when diary.length > 0.
+- [ ] Popular shelf loads (existing behaviour preserved).
+- [ ] Dark & brooding shelf loads (existing behaviour preserved).
+- [ ] Warm & oriental shelf loads 8 randomly-shuffled items from the oriental pool.
+- [ ] Taste Test card is visible, tappable, and opens the AI modal with the taste test prompt pre-filled.
+- [ ] Fresh classics shelf loads (existing behaviour preserved).
+- [ ] Articles section loads (existing behaviour preserved).
+- [ ] Community section shows at bottom (existing behaviour preserved).
+- [ ] No JS errors in console on load.
+- [ ] All existing functions (openLog, openFrag, quickLog, showTab, triggerSearch) still work.
+- [ ] Guest user sees a full, browsable home without any broken sections.
+
+---
+
+### TASK 6 — Diary entry detail view (was Task 3)
+**Status:** ready for implementation (spec in original Task 3 section above — see lines ~171–287)
 
 ---
 
@@ -313,8 +1002,8 @@ Claude  → reviews, marks task done, writes next spec
 
 ## Coding Rules for Codex
 
-1. Edit `index.html` only unless the task explicitly names another file.
-2. Keep CSS inside the `<style>` block (line ~1–750). Keep JS inside `<script>` (line ~900+).
+1. Files are now split: HTML in `index.html`, CSS in `styles.css`, JS in `app.js`.
+2. Each task specifies which files to edit — do not edit others.
 3. Never introduce external dependencies or CDN links without flagging it.
 4. Run a syntax check before committing (open in browser, check console for errors).
 5. Commit message format: `feat: <short description>` or `fix: <short description>`.
