@@ -367,90 +367,192 @@ img{max-width:100%;display:block}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-row{padding:24px;text-align:center;color:var(--grey);font-size:12px}
 
+/* Global top nav — hidden on mobile, shown on desktop */
+#global-topnav{display:none}
+
 /* ═══ DESKTOP ═══ */
 @media(min-width:768px){
-  body{background:var(--bg2)}
-  .screen{max-width:100%;flex-direction:row;align-items:flex-start;min-height:100vh}
-  .bnav{display:none}
+  body{background:var(--bg)}
 
-  /* Sidebar */
-  .desktop-sidebar{
-    width:var(--sidebar-w);min-height:100vh;position:sticky;top:0;
-    padding:28px 18px;border-right:1px solid var(--border2);
-    display:flex;flex-direction:column;gap:2px;
-    background:var(--bg);flex-shrink:0;overflow-y:auto;max-height:100vh;
+  /* ── Global top nav ── */
+  #global-topnav{
+    display:flex;align-items:center;justify-content:space-between;
+    position:fixed;top:0;left:0;right:0;z-index:300;
+    height:60px;padding:0 40px;
+    background:rgba(8,8,16,0.96);backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border2);
   }
-  .sidebar-logo{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:28px;padding:0 8px}
-  .sidebar-logo em{font-style:italic;color:var(--gold)}
-  .sidebar-item{display:flex;align-items:center;gap:12px;padding:11px 12px;cursor:pointer;color:var(--grey);font-size:13px;transition:all 0.15s;border-radius:2px}
-  .sidebar-item:hover{background:var(--bg2);color:var(--white)}
-  .sidebar-item.active{background:var(--gold-pale);color:var(--gold);border-left:2px solid var(--gold);padding-left:10px}
-  .sidebar-item svg{opacity:0.6;flex-shrink:0}
-  .sidebar-item.active svg{opacity:1}
-  .sidebar-log-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;margin-top:12px;background:var(--gold);color:var(--bg);cursor:pointer;font-size:13px;font-weight:500;letter-spacing:0.04em;border-radius:2px;transition:opacity 0.15s}
-  .sidebar-log-btn:hover{opacity:0.9}
-  .sidebar-divider{height:1px;background:var(--border2);margin:16px 0}
-  .sidebar-footer{margin-top:auto;padding:16px 8px 0;font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;line-height:1.8;border-top:1px solid var(--border2)}
+  .gtnav-logo{
+    font-family:'Playfair Display',serif;font-size:20px;font-weight:400;
+    display:flex;align-items:center;gap:9px;letter-spacing:-0.01em;text-decoration:none;color:var(--white);
+    flex-shrink:0;
+  }
+  .gtnav-logo em{font-style:italic;color:var(--gold)}
+  .gtnav-links{display:flex;align-items:center;gap:4px}
+  .gtnav-link{
+    font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+    padding:7px 14px;border-radius:2px;color:var(--grey);cursor:pointer;
+    transition:all 0.15s;background:none;
+  }
+  .gtnav-link:hover{color:var(--white);background:var(--bg2)}
+  .gtnav-link.active{color:var(--gold);background:var(--gold-pale)}
+  .gtnav-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .gtnav-ai{
+    display:flex;align-items:center;gap:6px;
+    font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;
+    padding:7px 14px;border:1px solid var(--border);border-radius:2px;color:var(--purple-light);
+    cursor:pointer;transition:all 0.15s;background:none;
+  }
+  .gtnav-ai:hover{border-color:var(--purple-dim);background:var(--purple-pale)}
+  .gtnav-log{
+    font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+    padding:8px 18px;background:var(--gold);color:var(--bg);border-radius:2px;
+    cursor:pointer;font-weight:500;transition:opacity 0.15s;
+  }
+  .gtnav-log:hover{opacity:0.88}
+  .gtnav-avatar{
+    width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    color:var(--bg);font-size:13px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;letter-spacing:0;
+    border:none;
+  }
 
-  /* Main content */
-  .screen-main{flex:1;min-width:0;max-width:700px;border-right:1px solid var(--border2);background:var(--bg)}
-  .topbar{padding:16px 24px}
-  .topbar .logo{display:none}
-  .home-screen,.diary-screen,.col-screen,.profile-screen,.frag-screen{max-width:100%}
-  .section-header{padding:0 28px 16px}
-  .poster-row{padding:0 28px}
-  .review-feed{padding:0 28px}
-  .article-feature{margin:0 28px}
-  .article-card{padding:18px 28px}
-  .search-wrap{padding:14px 24px}
-  .diary-header{padding:24px 28px 18px}
-  .diary-month-label{padding:16px 28px 10px}
-  .diary-row-item{padding:14px 28px;grid-template-columns:48px 52px 1fr auto}
-  .diary-review-text{padding-left:66px}
+  /* ── Layout: hide sidebar, no right panel, full-width ── */
+  .desktop-sidebar{display:none !important}
+  .desktop-right{display:none !important}
+  .bnav{display:none}
+  .screen{
+    flex-direction:column;max-width:100%;min-height:100vh;
+    padding-top:60px; /* room for fixed topnav */
+  }
+  .screen-main{width:100%;max-width:100%;border-right:none;background:var(--bg)}
+
+  /* ── Per-screen topbars: hide on desktop (global nav handles it) ── */
+  #screen-home .topbar,
+  #screen-diary .topbar,
+  #screen-col .topbar,
+  #screen-profile .topbar{display:none}
+
+  /* Frag + other screens keep their topbar (back button) but style it */
+  #screen-frag .topbar,
+  #screen-public .topbar,
+  #screen-article .topbar{
+    position:sticky;top:60px;z-index:200;
+    padding:12px 40px;height:52px;
+    background:rgba(8,8,16,0.95);backdrop-filter:blur(16px);
+  }
+
+  /* ── Full-width content padding ── */
+  .home-screen,.diary-screen,.col-screen,.profile-screen{max-width:100%}
+  .section-header{padding:0 40px 18px}
+  .poster-row{padding:0 40px 24px}
+  .review-feed{padding:0 40px}
+  .article-feature{margin:0 40px}
+  .article-card{padding:18px 40px}
+  .search-wrap{padding:14px 40px}
+  .diary-header{padding:28px 40px 18px}
+  .diary-month-label{padding:14px 40px 10px}
+  .diary-row-item{padding:14px 40px;grid-template-columns:48px 56px 1fr auto}
+  .diary-review-text{padding-left:68px}
   .col-stat{padding:20px}
-  .col-stat-num{font-size:30px}
-  .col-grid{grid-template-columns:repeat(4,1fr)}
-  .col-add-btn{margin:16px 28px}
-  .profile-header{padding:0 28px 24px}
+  .col-stat-num{font-size:32px}
+  .col-grid{grid-template-columns:repeat(5,1fr);gap:4px;padding:4px 40px}
+  .col-add-btn{margin:16px 40px}
+  .col-stats{max-width:100%}
+  .profile-cover{height:160px}
+  .profile-header{padding:0 40px 24px}
   .profile-stats{border-top:1px solid var(--border2)}
-  .profile-section{padding:28px 0}
-  .profile-sec-header{padding:0 28px 16px}
-  .favourites-grid{padding:0 28px}
-  .taste-bars{padding:0 28px}
-  .top-houses{padding:0 28px}
-  .frag-hero-body{padding:24px 28px}
-  .detail-sec{padding:22px 28px}
+  .profile-section{padding:32px 0}
+  .profile-sec-header{padding:0 40px 16px}
+  .favourites-grid{padding:0 40px}
+  .taste-bars{padding:0 40px}
+  .top-houses{padding:0 40px}
+  .detail-sec{padding:24px 40px}
   .note-pills{gap:8px}
-  .article-page{padding:36px 40px 60px}
-  .article-page-title{font-size:42px}
-  .article-page-body{font-size:17px}
+  .article-page{padding:48px 120px 80px}
+  .article-page-title{font-size:48px}
+  .article-page-body{font-size:17px;max-width:700px}
 
-  /* Right panel */
-  .desktop-right{width:var(--right-w);min-height:100vh;padding:28px 20px;flex-shrink:0;background:var(--bg);position:sticky;top:0;overflow-y:auto;max-height:100vh}
-  .right-section{margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid var(--border2)}
-  .right-section:last-child{border-bottom:none}
-  .right-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:14px}
-  .right-btn{width:100%;padding:12px;border-radius:2px;font-size:12px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;text-align:center;margin-bottom:8px;transition:all 0.2s}
-  .right-btn.primary{background:var(--gold);color:var(--bg)}
-  .right-btn.secondary{background:var(--bg2);border:1px solid var(--border);color:var(--white2)}
-  .right-btn:hover{opacity:0.9}
-  .right-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border-radius:2px;overflow:hidden}
-  .right-stat{background:var(--bg2);padding:14px;text-align:center}
-  .right-stat-num{font-family:'Playfair Display',serif;font-size:24px;color:var(--gold);line-height:1;display:block}
-  .right-stat-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.06em;text-transform:uppercase;margin-top:4px;display:block}
-  .right-entry{padding:10px 12px;border-bottom:1px solid var(--border2);cursor:pointer;background:var(--bg2)}
-  .right-entry:last-child{border-bottom:none}
-  .right-entry:hover{background:var(--bg3)}
-  .right-entry-name{font-family:'Playfair Display',serif;font-size:13px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .right-entry-stars{font-size:10px;color:var(--honey);margin-top:2px}
+  /* ── Hero: bigger on desktop ── */
+  .hero{height:440px}
+  .hero-content{padding:48px 40px}
+  .hero-title{font-size:54px}
+  .hero-sub{font-size:14px;max-width:420px}
+  .hero-bee.bee-1{font-size:48px;top:40px;right:60px}
+  .hero-bee.bee-2{top:100px;right:130px;font-size:26px}
+
+  /* ── Poster cards: bigger on desktop ── */
+  .poster-card{width:160px}
+  .poster-card-img{width:160px;height:214px}
+
+  /* ── Section titles: larger ── */
+  .section-title{font-size:28px}
+  .section-eyebrow{font-size:9px}
+
+  /* ── Fragrance detail: two-column layout ── */
+  .frag-screen{
+    display:grid;
+    grid-template-columns:40% 60%;
+    align-items:start;
+    min-height:calc(100vh - 112px);
+  }
+  .frag-hero{
+    grid-column:1;
+    grid-row:1;
+    position:sticky;
+    top:112px; /* 60px topnav + 52px frag topbar */
+    height:calc(100vh - 112px);
+    border-bottom:none;
+    border-right:1px solid var(--border2);
+  }
+  .frag-hero-img{
+    height:60%;
+    border-bottom:none;
+  }
+  .frag-hero-body{padding:28px 32px}
+  .frag-hero-eyebrow{font-size:10px}
+  .frag-hero-name{font-size:42px}
+  .frag-actions{flex-direction:column;gap:8px}
+  .frag-btn{flex:none;width:100%}
+
+  /* All content sections go to right column */
+  .frag-hero ~ *{
+    grid-column:2;
+    border-left:none;
+  }
+  .frag-stats-grid{grid-column:2;border-top:none;grid-template-columns:repeat(4,1fr)}
+  #frag-seasons{grid-column:2}
+  #frag-perf{grid-column:2}
+  #frag-reviews{grid-column:2}
+  #frag-similar{grid-column:2}
+  .detail-sec{padding:24px 32px;border-bottom:1px solid var(--border2)}
+  .frag-hero-img img{max-width:60%;max-height:75%}
 }
 
 @media(min-width:1200px){
-  :root{--sidebar-w:260px;--right-w:320px}
-  .screen-main{max-width:780px}
-  .col-grid{grid-template-columns:repeat(5,1fr)}
-  .poster-card{width:154px}
-  .poster-card-img{width:154px;height:205px}
+  #global-topnav{padding:0 60px}
+  .section-header{padding:0 60px 18px}
+  .poster-row{padding:0 60px 24px}
+  .review-feed{padding:0 60px}
+  .article-feature{margin:0 60px}
+  .article-card{padding:18px 60px}
+  .search-wrap{padding:14px 60px}
+  .col-grid{grid-template-columns:repeat(6,1fr);padding:4px 60px}
+  .col-add-btn{margin:16px 60px}
+  .diary-header{padding:28px 60px 18px}
+  .diary-month-label{padding:14px 60px 10px}
+  .diary-row-item{padding:14px 60px}
+  .profile-header{padding:0 60px 24px}
+  .profile-sec-header{padding:0 60px 16px}
+  .favourites-grid{padding:0 60px}
+  .taste-bars{padding:0 60px}
+  .top-houses{padding:0 60px}
+  .poster-card{width:175px}
+  .poster-card-img{width:175px;height:234px}
+  .section-title{font-size:32px}
+  .hero{height:500px}
+  .hero-title{font-size:62px}
+  .frag-hero{top:112px;height:calc(100vh - 112px)}
 }
 
 /* ═══ HONEYCOMB NOTE PYRAMID ═══ */
@@ -705,6 +807,27 @@ img{max-width:100%;display:block}
     <button class="auth-skip" onclick="enterAsGuest()">Continue without an account</button>
   </div>
 </div>
+
+<nav id="global-topnav">
+  <div class="gtnav-logo">
+    <svg width="22" height="22" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>
+    Scent<em>Hive</em>
+  </div>
+  <div class="gtnav-links">
+    <button class="gtnav-link active" data-tab="home">Home</button>
+    <button class="gtnav-link" data-tab="diary">Diary</button>
+    <button class="gtnav-link" data-tab="collection">Hive</button>
+    <button class="gtnav-link" data-tab="profile">Profile</button>
+  </div>
+  <div class="gtnav-actions">
+    <button class="gtnav-ai" onclick="openAI()">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      AI Recs
+    </button>
+    <button class="gtnav-log" onclick="openLog()">+ Log</button>
+    <button class="gtnav-avatar" id="gtnav-avatar" onclick="goToProfile()">E</button>
+  </div>
+</nav>
 
 <!-- ═══ HOME ═══ -->
 <div class="screen" id="screen-home">
@@ -1592,6 +1715,19 @@ function showScreen(id) {
   const target = document.getElementById('screen-' + id);
   if (target) target.classList.add('active');
   window.scrollTo(0, 0);
+  // Update global topnav active state
+  document.querySelectorAll('.gtnav-link[data-tab]').forEach(l => {
+    l.classList.toggle('active', l.getAttribute('data-tab') === id);
+  });
+  // Show/hide global topnav on auth/article screens
+  const gtnav = document.getElementById('global-topnav');
+  if (gtnav) gtnav.style.display = (id === 'auth' || id === 'article') ? 'none' : '';
+  // Update avatar initial
+  const av = document.getElementById('gtnav-avatar');
+  if (av && typeof user !== 'undefined' && user) {
+    const name = user.user_metadata?.name || user.email || 'U';
+    av.textContent = name[0].toUpperCase();
+  }
 }
 
 function showTab(id) {
@@ -3794,6 +3930,14 @@ function wireEvents() {
   // Sidebar navigation
   document.querySelectorAll('.desktop-sidebar .sidebar-item[data-tab]').forEach(item => {
     item.addEventListener('click', () => showTab(item.getAttribute('data-tab')));
+  });
+
+  // Wire global top nav links
+  document.querySelectorAll('.gtnav-link[data-tab]').forEach(link => {
+    link.addEventListener('click', () => {
+      const tab = link.getAttribute('data-tab');
+      showTab(tab);
+    });
   });
   document.querySelectorAll('.sidebar-log-btn').forEach(b => {
     b.addEventListener('click', openLog);
