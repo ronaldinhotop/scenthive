@@ -7,6 +7,19 @@ function normalize(value) {
     .trim();
 }
 
+const QUERY_ALIASES = {
+  naxos: 'Xerjoff 1861 Naxos',
+  aventus: 'Creed Aventus',
+  layton: 'Parfums de Marly Layton',
+  herod: 'Parfums de Marly Herod',
+  'erba pura': 'Xerjoff Erba Pura',
+  'oud wood': 'Tom Ford Oud Wood',
+  'tobacco vanille': 'Tom Ford Tobacco Vanille',
+  'another 13': 'Le Labo Another 13',
+  'santal 33': 'Le Labo Santal 33',
+  'baccarat rouge 540': 'Maison Francis Kurkdjian Baccarat Rouge 540'
+};
+
 function scoreFragrance(f, query) {
   const q = normalize(query);
   const name = normalize(f.name);
@@ -39,57 +52,97 @@ function scoreFragrance(f, query) {
   return score;
 }
 
+function mapFragrance(f) {
+  return {
+    fragella_id: String(f.id || f.ID || Math.random()),
+    name: f.Name || f.name || '',
+    house: f.Brand || f.brand || f.house || '',
+    family: Array.isArray(f['Main Accords']) ? f['Main Accords'][0] : (f['Main Accords'] || f.family || ''),
+    notes_top: f['Top Notes'] || f.top_notes || [],
+    notes_heart: f['Middle Notes'] || f.middle_notes || [],
+    notes_base: f['Base Notes'] || f.base_notes || [],
+    accords: f['Main Accords'] || f.accords || [],
+    longevity: f.Longevity || f.longevity || '',
+    sillage: f.Sillage || f.sillage || '',
+    gender: f.Gender || f.gender || '',
+    image_url: f['Image URL'] || f.image_url || f.image || '',
+    launch_year: f.Year || f.year || null,
+    price_range: f.Price || f.price || '',
+    oil_type: f.OilType || f.oil_type || '',
+    'General Notes': f['General Notes'] || []
+  };
+}
+
+function getRawRows(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.data)) return data.data;
+  if (Array.isArray(data.fragrances)) return data.fragrances;
+  if (Array.isArray(data.results)) return data.results;
+  return [];
+}
+
+async function fetchFragella(query, apiKey) {
+  const url = 'https://api.fragella.com/api/v1/fragrances?search=' + encodeURIComponent(query) + '&limit=12';
+  const response = await fetch(url, {
+    headers: { 'x-api-key': apiKey, 'Accept': 'application/json' }
+  });
+  const responseText = await response.text();
+  if (!response.ok) {
+    const err = new Error('Fragella ' + response.status);
+    err.status = response.status;
+    throw err;
+  }
+  return getRawRows(JSON.parse(responseText));
+}
+
+function rankFragrances(raw, query) {
+  const seen = new Set();
+  const fragrances = raw
+    .map(mapFragrance)
+    .filter(f => {
+      const key = normalize(`${f.name} ${f.house}`);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map(f => ({ ...f, _score: scoreFragrance(f, query) }));
+
+  const bestScore = Math.max(...fragrances.map(f => f._score), 0);
+  const filtered = bestScore >= 55
+    ? fragrances.filter(f => f._score >= Math.max(20, bestScore - 80))
+    : fragrances;
+
+  filtered.sort((a, b) => b._score - a._score || String(a.name).localeCompare(String(b.name)));
+  return { bestScore, fragrances: filtered.map(({ _score, ...f }) => f) };
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed', fragrances: [] });
+
   try {
-    const { query } = req.body;
+    const { query } = req.body || {};
     if (!query) return res.status(400).json({ error: 'No query', fragrances: [] });
+
     const apiKey = process.env.FRAGELLA_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'Missing FRAGELLA_API_KEY', fragrances: [] });
-    const url = 'https://api.fragella.com/api/v1/fragrances?search=' + encodeURIComponent(query) + '&limit=12';
-    const response = await fetch(url, {
-      headers: { 'x-api-key': apiKey, 'Accept': 'application/json' }
-    });
-    const responseText = await response.text();
-    if (!response.ok) return res.status(500).json({ error: 'Fragella ' + response.status, fragrances: [] });
-    const data = JSON.parse(responseText);
-    var raw = [];
-    if (Array.isArray(data)) raw = data;
-    else if (Array.isArray(data.data)) raw = data.data;
-    else if (Array.isArray(data.fragrances)) raw = data.fragrances;
-    else if (Array.isArray(data.results)) raw = data.results;
-    const fragrances = raw.map(function(f) {
-      return {
-        fragella_id: String(f.id || f.ID || Math.random()),
-        name: f.Name || f.name || '',
-        house: f.Brand || f.brand || f.house || '',
-        family: Array.isArray(f['Main Accords']) ? f['Main Accords'][0] : (f['Main Accords'] || f.family || ''),
-        notes_top: f['Top Notes'] || f.top_notes || [],
-        notes_heart: f['Middle Notes'] || f.middle_notes || [],
-        notes_base: f['Base Notes'] || f.base_notes || [],
-        accords: f['Main Accords'] || f.accords || [],
-        longevity: f.Longevity || f.longevity || '',
-        sillage: f.Sillage || f.sillage || '',
-        gender: f.Gender || f.gender || '',
-        image_url: f['Image URL'] || f.image_url || f.image || '',
-        launch_year: f.Year || f.year || null,
-        price_range: f.Price || f.price || '',
-        oil_type: f.OilType || f.oil_type || '',
-        'General Notes': f['General Notes'] || []
-      };
-    }).map(f => ({ ...f, _score: scoreFragrance(f, query) }));
 
-    const bestScore = Math.max(...fragrances.map(f => f._score), 0);
-    const filtered = bestScore >= 55
-      ? fragrances.filter(f => f._score >= Math.max(20, bestScore - 80))
-      : fragrances;
+    const ranked = rankFragrances(await fetchFragella(query, apiKey), query);
+    const alias = QUERY_ALIASES[normalize(query)];
 
-    filtered.sort((a, b) => b._score - a._score || String(a.name).localeCompare(String(b.name)));
-    return res.status(200).json({ fragrances: filtered.map(({ _score, ...f }) => f) });
+    if (alias && ranked.bestScore < 55) {
+      const aliasRanked = rankFragrances(await fetchFragella(alias, apiKey), alias);
+      if (aliasRanked.bestScore > ranked.bestScore) {
+        return res.status(200).json({ fragrances: aliasRanked.fragrances });
+      }
+    }
+
+    return res.status(200).json({ fragrances: ranked.fragrances });
   } catch (err) {
-    return res.status(500).json({ error: err.message, fragrances: [] });
+    return res.status(500).json({ error: err.message || 'Unknown error', fragrances: [] });
   }
 }
