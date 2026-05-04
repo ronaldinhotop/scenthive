@@ -195,6 +195,32 @@ function saveLocal() {
   } catch (e) {}
 }
 
+// ═══════ RECENTLY VIEWED ═══════
+const RECENTS_KEY = 'sh_recents';
+const RECENTS_MAX = 12;
+
+function saveRecent(f) {
+  if (!f || !f.name) return;
+  try {
+    const stored = JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]');
+    const key = (f.name + '||' + (f.house || '')).toLowerCase();
+    const filtered = stored.filter(r =>
+      (r.name + '||' + (r.house || '')).toLowerCase() !== key
+    );
+    const slim = { name: f.name, house: f.house || '', image_url: f.image_url || null, fragella_id: f.fragella_id || null };
+    filtered.unshift(slim);
+    localStorage.setItem(RECENTS_KEY, JSON.stringify(filtered.slice(0, RECENTS_MAX)));
+  } catch (e) {}
+}
+
+function loadRecents() {
+  try { return JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]'); } catch (e) { return []; }
+}
+
+function clearRecents() {
+  try { localStorage.removeItem(RECENTS_KEY); } catch (e) {}
+}
+
 // ═══════ HOME ═══════
 async function updateRightSidebar() {
   const rsl = document.getElementById('rs-logged');
@@ -217,6 +243,7 @@ async function updateRightSidebar() {
 async function renderHome() {
   updateHero();
   renderContinueStrip();
+  renderRecentsShelf();
   renderTasteModule();
   renderForYouShelf();
 
@@ -289,6 +316,26 @@ async function renderHome() {
   loadShelf('shelf-fresh', shuffle(freshPool).slice(0, 8));
   loadCommunityFeed();
   loadArticlesList();
+}
+
+function renderRecentsShelf() {
+  const section  = document.getElementById('section-recents');
+  const shelf    = document.getElementById('shelf-recents');
+  const clearBtn = document.getElementById('recents-clear');
+  if (!section || !shelf) return;
+
+  const recents = loadRecents();
+  if (!recents.length) { section.style.display = 'none'; return; }
+
+  section.style.display = '';
+  shelf.innerHTML = recents.map(f => buildPosterCard(f)).join('');
+  shelf.querySelectorAll('.poster-card').forEach(card =>
+    card.addEventListener('click', () => openFrag(card.getAttribute('data-key')))
+  );
+
+  if (clearBtn) {
+    clearBtn.onclick = () => { clearRecents(); section.style.display = 'none'; };
+  }
 }
 
 function renderContinueStrip() {
@@ -1116,6 +1163,7 @@ function buildWhenHtml(f) {
 function openFrag(key) {
   const f = fragStore[key];
   if (!f) return;
+  saveRecent(f);
   const top = f.notes_top || f['Top Notes'] || [];
   const heart = f.notes_heart || f['Middle Notes'] || [];
   const base = f.notes_base || f['Base Notes'] || [];
