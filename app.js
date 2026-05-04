@@ -2255,30 +2255,46 @@ function toast(msg) {
 }
 
 // ═══════ FRAGELLA SEARCH + SUPABASE CACHE ═══════
+// In-memory dedup: same query never hits the server twice in one session.
+// Stores resolved results (arrays) and in-flight promises so concurrent
+// callers share one request rather than firing N identical ones.
+const _searchMemo = {};
+
 async function searchFragella(q) {
   if (!q || q.trim().length < 2) return [];
   const qq = q.trim();
-  // 1. Always hit the API first — most accurate and up-to-date
-  try {
-    const res = await fetch(SEARCH_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: qq })
-    });
-    if (!res.ok) throw new Error('API ' + res.status);
-    const json = await res.json();
-    const frags = Array.isArray(json.fragrances) ? json.fragrances : [];
-    if (frags.length > 0) {
-      cacheFragrances(frags).catch(() => {});
-      return frags;
-    }
-  } catch (e) {}
-  // 2. Fallback: Supabase cache
-  try {
-    const { data } = await sb.from('fragrances_cache')
-      .select('*').ilike('name', '%' + qq + '%').limit(10);
-    return Array.isArray(data) ? data : [];
-  } catch (e) { return []; }
+  const key = qq.toLowerCase();
+
+  if (_searchMemo[key] !== undefined) {
+    // Already resolved or in-flight — return the same promise/value
+    return _searchMemo[key];
+  }
+
+  // Store the promise immediately so concurrent callers await the same fetch
+  _searchMemo[key] = (async () => {
+    try {
+      const res = await fetch(SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: qq })
+      });
+      if (!res.ok) throw new Error('API ' + res.status);
+      const json = await res.json();
+      const frags = Array.isArray(json.fragrances) ? json.fragrances : [];
+      if (frags.length > 0) {
+        cacheFragrances(frags).catch(() => {});
+        return frags;
+      }
+    } catch (e) {}
+    // Fallback: Supabase cache directly
+    try {
+      const { data } = await sb.from('fragrances_cache')
+        .select('*').ilike('name', '%' + qq + '%').limit(10);
+      return Array.isArray(data) ? data : [];
+    } catch (e) { return []; }
+  })();
+
+  return _searchMemo[key];
 }
 
 // ═══════ BACKGROUND IMAGE ENRICHMENT ═══════
