@@ -61,6 +61,7 @@ ScentHive should move toward a Spotify/Letterboxd/Fragrantica-inspired fragrance
 - ✅ Search aliases: alias results now always surface first and merge with direct results.
 - ✅ Home v2: New releases shelf.
 - ✅ Home v2: Similar-to-last-viewed shelf powered by recent fragrance signals.
+- ✅ Home v2: Daily recommendations shelf.
 
 ---
 
@@ -2333,6 +2334,22 @@ De-dupe key is `(name + "||" + house).toLowerCase()`. When a fragrance is viewed
 - `renderSimilarRecentShelf()` uses the last viewed fragrance, excludes that exact fragrance, and fills `#shelf-similar-recent` with up to 8 related poster cards.
 - If there are no recents, or no useful results, the section stays hidden.
 - The `Explore` link searches for the source fragrance.
+
+---
+
+### TASK 12 — Today's Recommendations
+**Status:** ✅ DONE
+
+**What shipped:** A daily rotating Home shelf that gives the feed a fresh set of discovery picks each day.
+
+**Files changed:** `index.html`, `app.js`
+
+**Behavior:**
+- Adds `#shelf-daily` under a `Today’s recommendations` section after `New releases`.
+- Uses a curated 24-item discovery pool with niche, designer, fresh, warm, and statement picks.
+- `dailyPick()` uses the current ISO date as a deterministic seed, so everyone sees the same 8 picks for that day and a new set the next day.
+- The section subline renders the current date.
+- Existing shelves and personalization modules are unaffected.
 
 
 ## Workflow

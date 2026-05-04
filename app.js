@@ -298,6 +298,20 @@ async function renderHome() {
     'Libre Flowers Flames YSL', 'Devotion Intense Dolce Gabbana'
   ];
 
+  const dailyPool = [
+    'Gris Charnel BDK', 'Mojave Ghost Byredo', 'Philosykos Diptyque',
+    'Another 13 Le Labo', 'Gentle Fluidity Silver Maison Francis Kurkdjian',
+    'Lira Xerjoff', 'Ani Nishane', 'Hacivat Nishane',
+    'Delina Parfums de Marly', 'Layton Parfums de Marly',
+    'Molecule 01 Escentric Molecules', 'Musc Ravageur Frederic Malle',
+    'Carnal Flower Frederic Malle', 'Tam Dao Diptyque',
+    'Angels Share Kilian', 'Greenley Parfums de Marly',
+    'Wulong Cha Nishane', 'Grand Soir Maison Francis Kurkdjian',
+    'Ganymede Marc-Antoine Barrois', 'Naxos Xerjoff',
+    'Santal 33 Le Labo', 'Oud Satin Mood Maison Francis Kurkdjian',
+    'Ambre Nuit Dior', 'Imagination Louis Vuitton'
+  ];
+
   loadPopularShelf();
 
   const darkPool = [
@@ -327,13 +341,36 @@ async function renderHome() {
     'Cool Water Davidoff', 'L\'Eau d\'Issey Issey Miyake'
   ];
   const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
+  const dailyPick = arr => {
+    const dateKey = new Date().toISOString().slice(0, 10);
+    let seed = 0;
+    for (let i = 0; i < dateKey.length; i++) seed = (seed * 31 + dateKey.charCodeAt(i)) >>> 0;
+    const seeded = arr.slice();
+    for (let i = seeded.length - 1; i > 0; i--) {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      const j = seed % (i + 1);
+      [seeded[i], seeded[j]] = [seeded[j], seeded[i]];
+    }
+    return seeded.slice(0, 8);
+  };
+
+  const dailySub = document.getElementById('daily-recs-sub');
+  if (dailySub) {
+    dailySub.textContent = new Date().toLocaleDateString('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    }) + ' · a fresh set for discovery.';
+  }
 
   delete _shelfCache['shelf-new'];
+  delete _shelfCache['shelf-daily'];
   delete _shelfCache['shelf-dark'];
   delete _shelfCache['shelf-oriental'];
   delete _shelfCache['shelf-fresh'];
 
   loadShelf('shelf-new', shuffle(newReleasePool).slice(0, 8));
+  loadShelf('shelf-daily', dailyPick(dailyPool));
   loadShelf('shelf-dark', shuffle(darkPool).slice(0, 8));
   loadShelf('shelf-oriental', shuffle(orientalPool).slice(0, 8));
   loadShelf('shelf-fresh', shuffle(freshPool).slice(0, 8));
