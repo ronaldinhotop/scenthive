@@ -217,6 +217,7 @@ async function updateRightSidebar() {
 async function renderHome() {
   updateHero();
   renderContinueStrip();
+  renderTasteModule();
   renderForYouShelf();
 
   // Recently worn by you
@@ -327,6 +328,85 @@ function renderContinueStrip() {
   }).join('');
 
   section.style.display = '';
+}
+
+function getTasteProfile() {
+  let profileKey = null;
+  if (user && user.user_metadata?.taste_profile?.key) {
+    profileKey = user.user_metadata.taste_profile.key;
+  }
+  if (!profileKey) {
+    try {
+      const stored = JSON.parse(localStorage.getItem('sh_taste_profile') || 'null');
+      if (stored?.key) profileKey = stored.key;
+    } catch (e) {}
+  }
+  if (!profileKey || !TASTE_PROFILES[profileKey]) return null;
+  return { key: profileKey, ...TASTE_PROFILES[profileKey] };
+}
+
+function renderTasteModule() {
+  const cardEl = document.getElementById('taste-profile-card');
+  const ctaEl = document.getElementById('taste-cta');
+  const matchesEl = document.getElementById('shelf-taste-matches');
+  if (!cardEl || !ctaEl) return;
+
+  const profile = getTasteProfile();
+  if (matchesEl) {
+    matchesEl.style.display = 'none';
+    matchesEl.dataset.loaded = '';
+    matchesEl.innerHTML = '';
+  }
+
+  if (!profile) {
+    ctaEl.style.display = '';
+    cardEl.style.display = 'none';
+    return;
+  }
+
+  ctaEl.style.display = 'none';
+  const traitsHtml = (profile.traits || [])
+    .map(t => `<span class="tpc-trait">${escapeHtml(t)}</span>`)
+    .join('');
+
+  cardEl.innerHTML = `
+    <div class="taste-profile-card">
+      <div class="tpc-header">
+        <div class="tpc-emoji">${profile.emoji}</div>
+        <div class="tpc-identity">
+          <div class="tpc-eyebrow">Your scent profile</div>
+          <div class="tpc-name">${escapeHtml(profile.name)}</div>
+        </div>
+      </div>
+      <div class="tpc-traits">${traitsHtml}</div>
+      <div class="tpc-actions">
+        <button class="tpc-btn-primary" id="tpc-view-matches">View matches →</button>
+        <button class="tpc-btn-secondary" onclick="openTasteTest()">Retake</button>
+      </div>
+    </div>`;
+  cardEl.style.display = '';
+
+  const viewBtn = document.getElementById('tpc-view-matches');
+  if (viewBtn) viewBtn.addEventListener('click', () => loadTasteMatches(profile));
+}
+
+function loadTasteMatches(profile) {
+  const matchesEl = document.getElementById('shelf-taste-matches');
+  if (!matchesEl) return;
+
+  if (matchesEl.dataset.loaded === 'true') {
+    matchesEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+
+  matchesEl.style.display = '';
+  matchesEl.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+
+  delete _shelfCache['shelf-taste-matches'];
+  loadShelf('shelf-taste-matches', profile.queries || []).then(() => {
+    matchesEl.dataset.loaded = 'true';
+    matchesEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
 }
 
 const _nicheGatewayPool = [
