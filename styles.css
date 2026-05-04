@@ -314,14 +314,26 @@ img{max-width:100%;display:block}
 .frag-hero-img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(to top,var(--bg) 0%,transparent 100%);pointer-events:none}
 .frag-hero-body{padding:22px 20px}
 .frag-hero-eyebrow{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;opacity:0.85}
-.frag-hero-name{font-family:'Playfair Display',serif;font-size:36px;font-style:italic;line-height:1.0;margin-bottom:8px;letter-spacing:-0.01em}
+.frag-hero-name{font-family:'Playfair Display',serif;font-size:42px;font-style:italic;line-height:0.95;margin-bottom:10px;letter-spacing:0}
 .frag-hero-meta{font-size:12px;color:var(--grey);margin-bottom:16px;line-height:1.6}
-.frag-actions{display:flex;gap:8px}
+.frag-actions{display:flex;flex-direction:column;gap:0}
 .frag-btn{flex:1;padding:12px;border-radius:2px;font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;text-align:center;transition:all 0.2s}
 .frag-btn-primary{background:var(--gold);color:var(--bg)}
 .frag-btn-primary:active{background:var(--gold-light)}
 .frag-btn-secondary{background:var(--bg2);color:var(--white2);border:1px solid var(--border)}
 .frag-btn-secondary:active{border-color:var(--gold);color:var(--gold)}
+.fd-status{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
+.fd-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.fd-badge-hive{background:var(--gold-pale);color:var(--gold);border:1px solid var(--gold-dim)}
+.fd-badge-worn{background:var(--purple-pale);color:var(--purple-light);border:1px solid var(--purple-dim)}
+.fd-badge-date{background:transparent;color:var(--grey);border:1px solid var(--border)}
+.fd-badge-stars{font-size:10px;color:var(--honey);margin-left:2px}
+.frag-actions-row2{display:flex;gap:8px;margin-top:8px}
+.frag-actions-row2 .frag-btn{flex:1}
+.fd-desc-text{font-size:14px;color:var(--white2);line-height:1.7;font-style:italic;margin:0}
+.fd-when-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+.fd-when-chip{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;padding:5px 13px;border-radius:20px;background:var(--bg4);color:var(--white2);border:1px solid var(--border)}
+.detail-sublabel{font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;opacity:0.7}
 .detail-sec{padding:20px;border-bottom:1px solid var(--border2)}
 .detail-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);margin-bottom:14px}
 .note-pyramid{display:flex;flex-direction:column;gap:14px}
@@ -560,8 +572,10 @@ img{max-width:100%;display:block}
   }
   .frag-hero-body{padding:28px 28px 24px;flex-shrink:0}
   .frag-hero-eyebrow{font-size:9px}
-  .frag-hero-name{font-size:38px}
-  .frag-actions{flex-direction:column;gap:8px}
+  .frag-hero-name{font-size:44px}
+  .frag-actions{flex-direction:column;gap:0}
+  .frag-actions-row2{flex-direction:column}
+  .frag-actions-row2 .frag-btn{flex:none;width:100%}
   .frag-btn{flex:none;width:100%}
 
   /* Right column: all content after .frag-hero */

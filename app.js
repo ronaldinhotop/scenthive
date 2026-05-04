@@ -903,23 +903,133 @@ function getSeasons(f) {
   ];
 }
 
-async function loadSimilarFragrances(house, currentName) {
+async function loadSimilarFragrances(f) {
   const el = document.getElementById('frag-similar');
-  if (!el || !house) return;
-  try {
-    const frags = await searchFragella(house);
-    const filtered = frags
-      .filter(f => f.name && f.name.toLowerCase() !== (currentName || '').toLowerCase())
-      .slice(0, 6);
-    if (!filtered.length) { el.style.display = 'none'; return; }
-    const row = el.querySelector('.poster-row');
-    if (row) {
-      row.innerHTML = filtered.map(f => buildPosterCard(f)).join('');
-      row.querySelectorAll('.poster-card').forEach(card => {
-        card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
-      });
-    }
-  } catch (e) { el.style.display = 'none'; }
+  if (!el) return;
+  const label = el.querySelector('.detail-label');
+
+  const familyQuery = f.family || '';
+  const houseQuery = f.house || '';
+  const currentName = (f.name || '').toLowerCase();
+
+  let results = [];
+  if (familyQuery) {
+    try {
+      results = (await searchFragella(familyQuery)) || [];
+    } catch(e) {}
+  }
+  if (results.length < 4 && houseQuery) {
+    try {
+      const byHouse = (await searchFragella(houseQuery)) || [];
+      const seen = new Set(results.map(r => (r.name || '').toLowerCase()));
+      for (const r of byHouse) {
+        const key = (r.name || '').toLowerCase();
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push(r);
+        }
+      }
+    } catch(e) {}
+  }
+
+  const filtered = results
+    .filter(r => (r.name || '').toLowerCase() !== currentName)
+    .slice(0, 8);
+
+  if (!filtered.length) { el.style.display = 'none'; return; }
+
+  if (label) label.textContent = 'You might also like';
+  const shelf = el.querySelector('.poster-row');
+  if (shelf) {
+    shelf.innerHTML = filtered.map(r => buildPosterCard(r)).join('');
+    shelf.querySelectorAll('.poster-card').forEach(c => {
+      c.addEventListener('click', () => openFrag(c.getAttribute('data-key')));
+    });
+  }
+}
+
+const FAMILY_OCCASIONS = {
+  woody: ['Office', 'Casual', 'Autumn'],
+  oriental: ['Evening', 'Date night', 'Winter'],
+  fresh: ['Office', 'Sport', 'Spring', 'Summer'],
+  floral: ['Date night', 'Weekend', 'Spring'],
+  gourmand: ['Evening', 'Autumn', 'Winter'],
+  aquatic: ['Sport', 'Summer', 'Casual'],
+  fougere: ['Office', 'Sport'],
+  chypre: ['Evening', 'Weekend'],
+  citrus: ['Morning', 'Summer', 'Sport'],
+  aromatic: ['Office', 'Casual'],
+  leather: ['Evening', 'Autumn'],
+  musk: ['Casual', 'Weekend']
+};
+
+function sameFragName(a, b) {
+  return (a || '').toLowerCase() === (b || '').toLowerCase();
+}
+
+function getFamilyOccasions(family) {
+  const familyKey = (family || '').toLowerCase().split(/[\s/,]/)[0];
+  return FAMILY_OCCASIONS[familyKey] || [];
+}
+
+function buildFragStatus(f) {
+  const diaryEntries = diary.filter(e => sameFragName(e.fragrance_name, f.name));
+  const inHive = collection.some(c => sameFragName(c.name, f.name));
+  const wornCount = diaryEntries.length;
+  const lastEntry = diaryEntries[0];
+  const avgRating = wornCount
+    ? Math.round(diaryEntries.reduce((s, e) => s + (e.rating || 0), 0) / wornCount)
+    : 0;
+
+  const statusBadges = [];
+  if (inHive) statusBadges.push('<span class="fd-badge fd-badge-hive">🐝 In your hive</span>');
+  if (wornCount > 0) {
+    const starsHtml = avgRating
+      ? '<span class="fd-badge-stars">' + '★'.repeat(avgRating) + '<span style="color:var(--grey2)">' + '★'.repeat(5 - avgRating) + '</span></span>'
+      : '';
+    const lastDate = lastEntry?.worn_at
+      ? new Date(lastEntry.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '';
+    statusBadges.push('<span class="fd-badge fd-badge-worn">Worn ' + wornCount + 'x ' + starsHtml + '</span>');
+    if (lastDate) statusBadges.push('<span class="fd-badge fd-badge-date">Last: ' + lastDate + '</span>');
+  }
+
+  return {
+    inHive,
+    wornCount,
+    statusBar: statusBadges.length ? '<div class="fd-status">' + statusBadges.join('') + '</div>' : ''
+  };
+}
+
+function buildFragActionsHtml(f, inHive, wornCount) {
+  return '<div class="frag-actions">' +
+    '<button class="frag-btn frag-btn-primary" data-act="log" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '">' +
+      (wornCount > 0 ? 'Log again' : 'Log &amp; rate') +
+    '</button>' +
+    '<div class="frag-actions-row2">' +
+      '<button class="frag-btn frag-btn-secondary" data-act="add" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '">' +
+        (inHive ? '🐝 In hive' : '🐝 Add to hive') +
+      '</button>' +
+      '<button class="frag-btn frag-btn-secondary" data-act="wish" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '">' +
+        '✨ Wishlist' +
+      '</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function buildWhenHtml(f) {
+  const occasionChips = getFamilyOccasions(f.family)
+    .map(o => '<span class="fd-when-chip">' + o + '</span>')
+    .join('');
+
+  return '<div class="detail-sec">' +
+    '<div class="detail-label">When to wear</div>' +
+    (occasionChips ? '<div class="fd-when-chips">' + occasionChips + '</div>' : '') +
+    '<div class="fd-when-votes">' +
+      '<div class="detail-sublabel">Community seasons</div>' +
+      '<div id="frag-seasons-inner"><div class="season-wrap"><div style="color:var(--grey);font-size:11px">Loading votes…</div></div></div>' +
+    '</div>' +
+  '</div>';
 }
 
 // ═══════ FRAGRANCE DETAIL ═══════
@@ -935,9 +1045,15 @@ function openFrag(key) {
   const buyQ = encodeURIComponent((f.name || '') + ' ' + (f.house || ''));
   const safeName = escapeHtml(f.name || '');
   const safeHouse = escapeHtml(f.house || '');
-
-  // Season badges — community voted
-  const seasonHtml = '<div class="detail-sec"><div class="detail-label">Best seasons <span style="font-size:9px;color:var(--grey);font-weight:400">(community voted)</span></div><div id="frag-seasons-inner"><div class="season-wrap"><div style="color:var(--grey);font-size:11px">Loading votes…</div></div></div></div>';
+  const { inHive, wornCount, statusBar } = buildFragStatus(f);
+  const fragActionsHtml = buildFragActionsHtml(f, inHive, wornCount);
+  const descHtml = f.description
+    ? '<div class="detail-sec fd-desc">' +
+        '<div class="detail-label">About this fragrance</div>' +
+        '<p class="fd-desc-text">' + escapeHtml(f.description) + '</p>' +
+      '</div>'
+    : '';
+  const whenHtml = buildWhenHtml(f);
 
   // Performance — community voted
   const perfHtml = '<div class="detail-sec"><div class="detail-label">Performance <span style="font-size:9px;color:var(--grey);font-weight:400">(community voted)</span></div><div id="frag-perf-inner"><div class="pvote-row"><div style="color:var(--grey);font-size:11px">Loading votes…</div></div></div></div>';
@@ -949,11 +1065,8 @@ function openFrag(key) {
         '<div class="frag-hero-eyebrow">' + safeHouse + '</div>' +
         '<div class="frag-hero-name">' + safeName + '</div>' +
         '<div class="frag-hero-meta">' + [f.family, f.oil_type, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' +
-        '<div class="frag-actions">' +
-          '<button class="frag-btn frag-btn-primary" data-act="log" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '">Log &amp; rate</button>' +
-          '<button class="frag-btn frag-btn-secondary" data-act="add" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '">+ Hive</button>' +
-          '<button class="frag-btn frag-btn-secondary" data-act="wish" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '" style="flex:0 0 auto;padding:12px 14px">✨</button>' +
-        '</div>' +
+        statusBar +
+        fragActionsHtml +
       '</div>' +
     '</div>' +
     ((f.gender || f.launch_year) ?
@@ -963,7 +1076,8 @@ function openFrag(key) {
         (f.price_range ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.price_range) + '</span><span class="frag-stat-key">Price</span></div>' : '') +
         (f.oil_type ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.oil_type) + '</span><span class="frag-stat-key">Type</span></div>' : '') +
       '</div>' : '') +
-    seasonHtml +
+    descHtml +
+    whenHtml +
     perfHtml +
     (hasNotes ? '<div class="detail-sec"><div class="detail-label">Fragrance notes <span style="font-size:9px;color:var(--grey);font-weight:400;cursor:help" title="Notes sourced from community databases — accuracy is similar to Fragrantica. Niche fragrances may have gaps.">ⓘ</span></div>' +
       (top.length ? '<div class="note-tier-head note-tier-top">Top notes</div><div class="note-tile-grid">' + buildHexNotes(top, 'top') + '</div>' : '') +
@@ -979,10 +1093,10 @@ function openFrag(key) {
         return '<div class="accord-bar-wrap"><div class="accord-bar-top"><span class="accord-bar-name">' + escapeHtml(nm) + '</span><span class="accord-bar-pct">' + Math.round(pct) + '%</span></div><div class="accord-track"><div class="' + fillCls + '" style="width:' + pct + '%"></div></div></div>';
       }).join('') + '</div>' : '') +
     '<div class="detail-sec" id="frag-reviews"><div class="detail-label">Reviews from the hive</div><div style="color:var(--grey);font-size:12px;font-style:italic">Loading…</div></div>' +
-    (f.house ? '<div class="detail-sec" id="frag-similar">' +
-      '<div class="detail-label">More from ' + safeHouse + '</div>' +
+    '<div class="detail-sec" id="frag-similar">' +
+      '<div class="detail-label">You might also like</div>' +
       '<div class="poster-row"><div class="loading-row"><div class="spinner"></div></div></div>' +
-    '</div>' : '') +
+    '</div>' +
     '<div class="detail-sec"><div class="detail-label">Where to buy</div>' +
       '<div class="buy-section-label">Norway</div>' +
       '<div class="buy-grid">' +
@@ -1010,7 +1124,10 @@ function openFrag(key) {
       const name = b.getAttribute('data-name');
       const house = b.getAttribute('data-house');
       if (act === 'log') prefillLog(name, house, b.getAttribute('data-img'));
-      else if (act === 'add') quickAdd(name, house, b.getAttribute('data-img'), b.getAttribute('data-fid'));
+      else if (act === 'add') {
+        if (collection.some(c => sameFragName(c.name, name))) { toast('Already in your hive'); return; }
+        quickAdd(name, house, b.getAttribute('data-img'), b.getAttribute('data-fid'));
+      }
       else if (act === 'wish') addToWishlist({ name, house, image_url: b.getAttribute('data-img'), fragella_id: b.getAttribute('data-fid') });
     });
   });
@@ -1020,7 +1137,7 @@ function openFrag(key) {
 
   showScreen('frag');
   if (f.name) loadFragReviews(f.name);
-  if (f.house) loadSimilarFragrances(f.house, f.name);
+  loadSimilarFragrances(f);
   // Async: load community votes + note images in parallel
   const allNotes = [...(f.notes_top||f['Top Notes']||[]), ...(f.notes_heart||f['Middle Notes']||[]), ...(f.notes_base||f['Base Notes']||[]), ...(f['General Notes']||[])];
   if (f.fragella_id) loadAndRenderVotes(f);
