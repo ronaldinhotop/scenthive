@@ -1839,6 +1839,319 @@ Max scores: freshness ~10, darkness ~10, sweetness ~10, intensity ~3.
 - [ ] Existing `openAI()` / `#modal-ai` flow is completely unchanged.
 
 
+---
+
+### TASK 9 — Taste Profile on Home
+**Status:** ready for implementation
+
+**Why:** Users who complete the taste test get a result, then close the modal and never see it again. The profile should live on the home screen — a persistent identity card that replaces the generic "Take the taste test" CTA once they've completed it.
+
+**Goal:** Read the saved taste profile and render a compact identity card on the home feed. When clicked, it loads a shelf of fragrance matches. Users without a profile still see the existing CTA.
+
+**Files:** `index.html` (two small additions), `styles.css` (new CSS), `app.js` (new function + one call)
+
+---
+
+#### A. Changes to `index.html`
+
+Find the section wrapping `.taste-cta` (currently `<div class="section">`):
+
+```html
+<div class="section">
+  <div class="taste-cta" id="taste-cta" onclick="openTasteTest()">
+    ...
+  </div>
+</div>
+```
+
+Replace it with:
+
+```html
+<div class="section" id="section-taste-module">
+  <!-- Shown when taste test has been completed -->
+  <div id="taste-profile-card" style="display:none"></div>
+
+  <!-- Shown after "View matches" is clicked -->
+  <div class="poster-row" id="shelf-taste-matches" style="display:none"></div>
+
+  <!-- Shown when no profile exists (existing CTA, unchanged) -->
+  <div class="taste-cta" id="taste-cta" onclick="openTasteTest()">
+    <div class="taste-cta-hex"></div>
+    <div class="taste-cta-body">
+      <div class="taste-cta-eyebrow">Taste intelligence</div>
+      <div class="taste-cta-title">What does your nose actually want?</div>
+      <div class="taste-cta-sub">Answer 5 quick questions and get a personalised scent profile.</div>
+      <div class="taste-cta-btn">Take the taste test →</div>
+    </div>
+  </div>
+</div>
+```
+
+That's the only HTML change.
+
+---
+
+#### B. New CSS in `styles.css`
+
+Add after the existing `.taste-cta` rules:
+
+```css
+/* ── Taste Profile Card (home) ── */
+.taste-profile-card {
+  margin: 0 20px;
+  padding: 18px 20px;
+  background: var(--bg3);
+  border: 1px solid var(--gold-dim);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.taste-profile-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 0% 60%, rgba(240,192,64,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.tpc-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  position: relative;
+}
+.tpc-emoji {
+  font-size: 38px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.tpc-identity { flex: 1; min-width: 0; }
+.tpc-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--gold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.75;
+}
+.tpc-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-style: italic;
+  color: var(--white);
+  line-height: 1.1;
+}
+.tpc-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.tpc-trait {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--gold-pale);
+  color: var(--gold-dim);
+  border: 1px solid rgba(240, 192, 64, 0.18);
+}
+.tpc-actions {
+  display: flex;
+  gap: 8px;
+  position: relative;
+}
+.tpc-btn-primary {
+  flex: 1;
+  padding: 9px 14px;
+  background: var(--gold);
+  color: var(--bg);
+  border-radius: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  border: none;
+  transition: background 0.15s;
+}
+.tpc-btn-primary:hover { background: var(--gold-light); }
+.tpc-btn-secondary {
+  padding: 9px 14px;
+  background: transparent;
+  color: var(--grey);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tpc-btn-secondary:hover { color: var(--white2); border-color: var(--grey); }
+
+@media (min-width: 768px) {
+  .taste-profile-card { margin: 0 40px; }
+}
+@media (min-width: 1200px) {
+  .taste-profile-card { margin: 0 60px; }
+}
+```
+
+---
+
+#### C. New JS in `app.js`
+
+Add these three functions near the other home render helpers (`renderContinueStrip`, `renderForYouShelf`):
+
+```javascript
+function getTasteProfile() {
+  // Priority 1: signed-in user's server-side metadata
+  let profileKey = null;
+  if (user && user.user_metadata?.taste_profile?.key) {
+    profileKey = user.user_metadata.taste_profile.key;
+  }
+  // Priority 2: localStorage (guests + fallback)
+  if (!profileKey) {
+    try {
+      const stored = JSON.parse(localStorage.getItem('sh_taste_profile') || 'null');
+      if (stored?.key) profileKey = stored.key;
+    } catch (e) {}
+  }
+  if (!profileKey || !TASTE_PROFILES[profileKey]) return null;
+  return { key: profileKey, ...TASTE_PROFILES[profileKey] };
+}
+
+function renderTasteModule() {
+  const cardEl    = document.getElementById('taste-profile-card');
+  const ctaEl     = document.getElementById('taste-cta');
+  const matchesEl = document.getElementById('shelf-taste-matches');
+  if (!cardEl || !ctaEl) return;
+
+  const profile = getTasteProfile();
+
+  if (!profile) {
+    // No profile yet — show existing CTA, hide card and shelf
+    ctaEl.style.display = '';
+    cardEl.style.display = 'none';
+    if (matchesEl) matchesEl.style.display = 'none';
+    return;
+  }
+
+  // Profile exists — hide CTA, render card
+  ctaEl.style.display = 'none';
+  if (matchesEl) matchesEl.style.display = 'none'; // reset on re-render
+
+  const traitsHtml = (profile.traits || [])
+    .map(t => `<span class="tpc-trait">${escapeHtml(t)}</span>`)
+    .join('');
+
+  cardEl.innerHTML = `
+    <div class="taste-profile-card">
+      <div class="tpc-header">
+        <div class="tpc-emoji">${profile.emoji}</div>
+        <div class="tpc-identity">
+          <div class="tpc-eyebrow">Your scent profile</div>
+          <div class="tpc-name">${escapeHtml(profile.name)}</div>
+        </div>
+      </div>
+      <div class="tpc-traits">${traitsHtml}</div>
+      <div class="tpc-actions">
+        <button class="tpc-btn-primary" id="tpc-view-matches">View matches →</button>
+        <button class="tpc-btn-secondary" onclick="openTasteTest()">Retake</button>
+      </div>
+    </div>`;
+  cardEl.style.display = '';
+
+  const viewBtn = document.getElementById('tpc-view-matches');
+  if (viewBtn) {
+    viewBtn.addEventListener('click', () => loadTasteMatches(profile));
+  }
+}
+
+function loadTasteMatches(profile) {
+  const matchesEl = document.getElementById('shelf-taste-matches');
+  if (!matchesEl) return;
+
+  // Already loaded — just scroll to it
+  if (matchesEl.dataset.loaded === 'true') {
+    matchesEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+
+  matchesEl.style.display = '';
+  matchesEl.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+
+  delete _shelfCache['shelf-taste-matches'];
+  loadShelf('shelf-taste-matches', profile.queries || []).then(() => {
+    matchesEl.dataset.loaded = 'true';
+    matchesEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+}
+```
+
+#### Update `renderHome()`
+
+Add `renderTasteModule()` on the line after `renderContinueStrip()`:
+
+```javascript
+async function renderHome() {
+  updateHero();
+  renderContinueStrip();
+  renderTasteModule();   // ← add this line
+  renderForYouShelf();
+  // ... rest unchanged
+}
+```
+
+---
+
+#### D. How profile resolution works
+
+```
+renderTasteModule()
+  └─ getTasteProfile()
+       ├─ user.user_metadata.taste_profile.key  (signed-in, set by Task 8)
+       ├─ localStorage sh_taste_profile.key      (guest or fallback)
+       └─ null → show taste-cta instead
+
+  If profile found:
+       ├─ hide #taste-cta
+       ├─ render profile card into #taste-profile-card
+       └─ wire "View matches" → loadTasteMatches(profile)
+
+loadTasteMatches(profile)
+       ├─ shows #shelf-taste-matches
+       ├─ calls loadShelf('shelf-taste-matches', profile.queries)
+       └─ scrolls to shelf once loaded
+```
+
+`TASTE_PROFILES` is a module-level constant defined in Task 8. It maps `key` → `{ name, emoji, tagline, traits, queries }`. `getTasteProfile()` looks up by key to get the full object including traits and queries.
+
+---
+
+#### E. Acceptance criteria
+
+- [ ] On home load, `renderHome()` calls `renderTasteModule()` as its third step (after `updateHero` and `renderContinueStrip`).
+- [ ] If no taste profile exists in localStorage or user_metadata: `#taste-cta` is visible, `#taste-profile-card` is `display:none`.
+- [ ] If a profile exists: `#taste-cta` is `display:none`, `#taste-profile-card` is visible.
+- [ ] Profile card displays: "Your scent profile" eyebrow label, profile emoji, profile name in Playfair italic, all 3 trait chips.
+- [ ] "View matches →" button is gold, full-width, tappable.
+- [ ] Tapping "View matches →" shows `#shelf-taste-matches` below the card and populates it with poster cards via `loadShelf(profile.queries)`.
+- [ ] A second tap on "View matches →" scrolls to the already-loaded shelf without re-fetching.
+- [ ] "Retake" button calls `openTasteTest()` and opens the taste test modal.
+- [ ] After completing the taste test (Task 8 flow), navigating back to Home re-renders the module correctly with the new profile.
+- [ ] `user.user_metadata.taste_profile.key` takes priority over `localStorage.sh_taste_profile.key` for signed-in users.
+- [ ] Guest with a localStorage profile sees the card (no auth required for localStorage read).
+- [ ] `#shelf-taste-matches` is reset (`display:none`, `data-loaded` cleared) on each home render so a profile change reflects immediately.
+- [ ] All existing shelves (popular, dark, oriental, fresh) are unaffected.
+- [ ] No JS errors in console.
+
+
 ## Workflow
 
 ```
