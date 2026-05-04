@@ -1356,25 +1356,25 @@ function renderDiary() {
   }
   // Group by month
   const monthMap = {};
-  diary.forEach(e => {
+  diary.forEach((e, idx) => {
     const d = new Date(e.worn_at);
     const key = d.getFullYear() + '-' + String(d.getMonth()).padStart(2, '0');
     if (!monthMap[key]) monthMap[key] = { label: d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }), entries: [] };
-    monthMap[key].entries.push(e);
+    monthMap[key].entries.push({ entry: e, idx });
   });
   const months = Object.keys(monthMap).sort().reverse();
   el.innerHTML = months.map(k => {
     const m = monthMap[k];
     return `<div class="diary-month-group">
         <div class="diary-month-label">${m.label}</div>
-        ${m.entries.map(e => {
+        ${m.entries.map(({ entry: e, idx }) => {
           const d = new Date(e.worn_at);
           const day = d.getDate();
           const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
           const stars = e.rating ? '★'.repeat(e.rating) + '<span class="empty">' + '★'.repeat(5 - e.rating) + '</span>' : '';
           const reviewIcon = e.notes ? '<span class="diary-review-icon">≡</span>' : '';
           return `
-            <div class="diary-row-item" style="cursor:pointer" data-id="${escapeAttr(String(e.id||''))}" data-name="${escapeAttr(e.fragrance_name||'')}" data-house="${escapeAttr(e.house||'')}">
+            <div class="diary-row-item" style="cursor:pointer" data-idx="${idx}" data-id="${escapeAttr(String(e.id||''))}" data-name="${escapeAttr(e.fragrance_name||'')}" data-house="${escapeAttr(e.house||'')}">
               <div>
                 <div class="diary-day">${day}</div>
                 <div class="diary-day-sub">${dayName}</div>
@@ -1404,24 +1404,51 @@ function renderDiary() {
     });
   });
 
-  // Diary row click → open frag detail
+  // Diary row click → entry detail sheet
   el.querySelectorAll('.diary-row-item').forEach(row => {
-    row.addEventListener('click', () => {
-      const name = row.getAttribute('data-name');
-      const house = row.getAttribute('data-house');
-      if (!name) return;
-      const cached = Object.keys(fragStore).find(k =>
-        fragStore[k].name && fragStore[k].name.toLowerCase() === name.toLowerCase()
-      );
-      if (cached) { openFrag(cached); return; }
-      searchFragella(name + (house ? ' ' + house : '')).then(frags => {
-        if (!frags.length) return;
-        const key = 'd' + Math.random().toString(36).slice(2, 8);
-        fragStore[key] = frags[0];
-        openFrag(key);
-      });
+    row.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      const idx = parseInt(row.getAttribute('data-idx'), 10);
+      if (!isNaN(idx) && diary[idx]) openEntrySheet(diary[idx]);
     });
   });
+}
+
+function openEntrySheet(entry) {
+  const body = document.getElementById('entry-sheet-body');
+  const sheet = document.getElementById('entry-sheet');
+  if (!body || !sheet || !entry) return;
+  const rating = Math.max(0, Math.min(5, parseInt(entry.rating || 0, 10) || 0));
+  const img = entry.image_url
+    ? `<img class="entry-sheet-img" src="${escapeAttr(entry.image_url)}" alt="${escapeHtml(entry.fragrance_name || '')}" onerror="this.outerHTML='<div class=&quot;entry-sheet-emoji&quot;>🏺</div>'">`
+    : '<div class="entry-sheet-emoji">🏺</div>';
+  const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  const date = entry.worn_at
+    ? new Date(entry.worn_at).toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+    : '';
+  body.innerHTML = `
+    ${img}
+    <div class="entry-sheet-name">${escapeHtml(entry.fragrance_name || '')}</div>
+    <div class="entry-sheet-house">${escapeHtml(entry.house || '')}</div>
+    <div class="entry-sheet-meta">
+      ${date ? `<span class="entry-sheet-date">${date}</span>` : ''}
+      ${rating ? `<span class="entry-sheet-stars">${stars}</span>` : ''}
+      ${entry.occasion ? `<span class="entry-sheet-occasion">${escapeHtml(entry.occasion)}</span>` : ''}
+    </div>
+    ${entry.notes ? `<div class="entry-sheet-notes">${escapeHtml(entry.notes)}</div>` : ''}
+    <button class="entry-sheet-delete" onclick="deleteEntryFromSheet(${JSON.stringify(String(entry.id || ''))})">Delete entry</button>
+  `;
+  sheet.style.display = 'flex';
+}
+
+function closeEntrySheet() {
+  const sheet = document.getElementById('entry-sheet');
+  if (sheet) sheet.style.display = 'none';
+}
+
+function deleteEntryFromSheet(id) {
+  closeEntrySheet();
+  deleteDiaryEntry(id);
 }
 
 // ═══════ COLLECTION ═══════
