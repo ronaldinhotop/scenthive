@@ -986,8 +986,366 @@ function timeAgo(dateStr) {
 
 ---
 
-### TASK 6 — Diary entry detail view (was Task 3)
-**Status:** ready for implementation (spec in original Task 3 section above — see lines ~171–287)
+### TASK 6 — Fragrance Detail v1
+**Status:** ready for implementation
+
+**Why:** The current fragrance page works but feels unfinished. The name is small, there's no sense of whether you own it or have worn it, no description, no proper "when to wear" guidance, and the "similar" shelf shows same-house only — not actually similar fragrances. This is the most-opened screen in the app so it needs to feel premium.
+
+**Goal:** Make every fragrance page feel like a Letterboxd film page — rich, informative, personal, and with a clear action hierarchy.
+
+**Files:** `app.js`, `styles.css` only. Do NOT touch `index.html` (screen shell is fine as-is).
+
+---
+
+#### What exists today (do not break)
+
+In `openFrag()` (`app.js`), the following are built into `#frag-content`:
+- `.frag-hero` — bottle image + house/name/meta + 3 action buttons (Log, Hive, Wish)
+- `.frag-stats-grid` — gender, year, price, type (4 cells)
+- season voting block (`#frag-seasons-inner`)
+- performance voting block (`#frag-perf-inner`)
+- note tiles (top/heart/base tiers with Wikipedia photos)
+- accords bars
+- `#frag-reviews` — community diary entries for this fragrance
+- `#frag-similar` — "More from [House]" shelf
+- "Where to buy" links
+
+The two-column sticky layout on desktop (38% bottle / 62% content) is already working via CSS Grid. **Do not change the grid or sticky behaviour.**
+
+---
+
+#### A. Hero area improvements
+
+**1. Bigger name typography**
+
+In `styles.css`, change `.frag-hero-name`:
+```css
+/* FROM: */
+.frag-hero-name { font-size: 36px; ... }
+/* TO: */
+.frag-hero-name { font-size: 42px; font-style: italic; letter-spacing: -0.02em; line-height: 0.95; margin-bottom: 10px; }
+```
+
+At `@media(min-width:768px)` change from `38px` to `44px`.
+
+**2. Personal status bar** — shown between the meta line and the action buttons, only when the user has data about this fragrance.
+
+Add this **inside `openFrag()`**, just before building the `frag-actions` div. Compute it from `diary` and `collection`:
+
+```javascript
+// Personal status
+const diaryEntries = diary.filter(e =>
+  (e.fragrance_name || '').toLowerCase() === (f.name || '').toLowerCase()
+);
+const inHive = collection.some(c =>
+  (c.name || '').toLowerCase() === (f.name || '').toLowerCase()
+);
+const wornCount = diaryEntries.length;
+const lastEntry = diaryEntries[0]; // diary is sorted newest-first
+const avgRating = wornCount
+  ? Math.round(diaryEntries.reduce((s, e) => s + (e.rating || 0), 0) / wornCount)
+  : 0;
+
+const statusBadges = [];
+if (inHive) statusBadges.push('<span class="fd-badge fd-badge-hive">🐝 In your hive</span>');
+if (wornCount > 0) {
+  const starsHtml = avgRating
+    ? '<span class="fd-badge-stars">' + '★'.repeat(avgRating) + '<span style="color:var(--grey2)">' + '★'.repeat(5-avgRating) + '</span></span>'
+    : '';
+  const lastDate = new Date(lastEntry.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  statusBadges.push('<span class="fd-badge fd-badge-worn">Worn ' + wornCount + 'x ' + starsHtml + '</span>');
+  statusBadges.push('<span class="fd-badge fd-badge-date">Last: ' + lastDate + '</span>');
+}
+const statusBar = statusBadges.length
+  ? '<div class="fd-status">' + statusBadges.join('') + '</div>'
+  : '';
+```
+
+Insert `statusBar` into the hero body HTML, between `.frag-hero-meta` and `.frag-actions`:
+
+```javascript
+// In the frag-hero-body string:
+'<div class="frag-hero-meta">...</div>' +
+statusBar +   // ← insert here
+'<div class="frag-actions">...</div>'
+```
+
+**3. Action buttons — clearer hierarchy**
+
+Change the actions from three equal-flex buttons to:
+- "Log & rate" — full-width gold primary
+- "🐝 Add to hive" and "✨ Wishlist" — side by side, secondary
+
+Replace the `frag-actions` HTML block in `openFrag()`:
+
+```javascript
+const fragActionsHtml =
+  '<div class="frag-actions">' +
+    '<button class="frag-btn frag-btn-primary" data-act="log" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '">' +
+      (wornCount > 0 ? 'Log again' : 'Log &amp; rate') +
+    '</button>' +
+    '<div class="frag-actions-row2">' +
+      '<button class="frag-btn frag-btn-secondary" data-act="add" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '">' +
+        (inHive ? '🐝 In hive' : '🐝 Add to hive') +
+      '</button>' +
+      '<button class="frag-btn frag-btn-secondary" data-act="wish" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '">' +
+        '✨ Wishlist' +
+      '</button>' +
+    '</div>' +
+  '</div>';
+```
+
+---
+
+#### B. Description section (new)
+
+Insert immediately after `.frag-stats-grid` and before `seasonHtml`:
+
+```javascript
+const descHtml = f.description
+  ? '<div class="detail-sec fd-desc">' +
+      '<div class="detail-label">About this fragrance</div>' +
+      '<p class="fd-desc-text">' + escapeHtml(f.description) + '</p>' +
+    '</div>'
+  : '';
+```
+
+---
+
+#### C. "When to wear" section (new)
+
+Replace the current season block (`seasonHtml`) with a richer section that combines derived occasion chips with the existing community season vote UI.
+
+**Occasion mapping** — derive from `f.family`:
+
+```javascript
+const FAMILY_OCCASIONS = {
+  'woody':     ['Office', 'Casual', 'Autumn'],
+  'oriental':  ['Evening', 'Date night', 'Winter'],
+  'fresh':     ['Office', 'Sport', 'Spring', 'Summer'],
+  'floral':    ['Date night', 'Weekend', 'Spring'],
+  'gourmand':  ['Evening', 'Autumn', 'Winter'],
+  'aquatic':   ['Sport', 'Summer', 'Casual'],
+  'fougere':   ['Office', 'Sport'],
+  'chypre':    ['Evening', 'Weekend'],
+  'citrus':    ['Morning', 'Summer', 'Sport'],
+  'aromatic':  ['Office', 'Casual'],
+  'leather':   ['Evening', 'Autumn'],
+  'musk':      ['Casual', 'Weekend'],
+};
+const familyKey = (f.family || '').toLowerCase().split(/[\s/,]/)[0];
+const occasionChips = (FAMILY_OCCASIONS[familyKey] || [])
+  .map(o => '<span class="fd-when-chip">' + o + '</span>')
+  .join('');
+
+const whenHtml = '<div class="detail-sec">' +
+  '<div class="detail-label">When to wear</div>' +
+  (occasionChips ? '<div class="fd-when-chips">' + occasionChips + '</div>' : '') +
+  '<div class="fd-when-votes">' +
+    '<div class="detail-sublabel">Community seasons</div>' +
+    '<div id="frag-seasons-inner"><div class="season-wrap"><div style="color:var(--grey);font-size:11px">Loading votes…</div></div></div>' +
+  '</div>' +
+'</div>';
+```
+
+Update `openFrag()` to use `whenHtml` in place of `seasonHtml`.
+
+---
+
+#### D. Improve "Similar fragrances" shelf
+
+`loadSimilarFragrances(house, currentName)` currently searches only by house. Change it to search by family/notes first, house as fallback, and rename the section title.
+
+Replace `loadSimilarFragrances()` in `app.js`:
+
+```javascript
+async function loadSimilarFragrances(f) {
+  const el = document.getElementById('frag-similar');
+  if (!el) return;
+  const label = el.querySelector('.detail-label');
+
+  // Strategy 1: search by family (most relevant)
+  // Strategy 2: search by house (fallback)
+  const familyQuery = f.family || '';
+  const houseQuery = f.house || '';
+  const currentName = (f.name || '').toLowerCase();
+
+  let results = [];
+  if (familyQuery) {
+    try {
+      results = (await searchFragella(familyQuery)) || [];
+    } catch(e) {}
+  }
+  if (results.length < 4 && houseQuery) {
+    try {
+      const byHouse = (await searchFragella(houseQuery)) || [];
+      // Merge without duplicates
+      const seen = new Set(results.map(r => (r.name||'').toLowerCase()));
+      for (const r of byHouse) {
+        if (!seen.has((r.name||'').toLowerCase())) results.push(r);
+      }
+    } catch(e) {}
+  }
+
+  // Filter out the current fragrance
+  const filtered = results.filter(r =>
+    (r.name || '').toLowerCase() !== currentName
+  ).slice(0, 8);
+
+  if (!filtered.length) { el.style.display = 'none'; return; }
+
+  if (label) label.textContent = 'You might also like';
+  const shelf = el.querySelector('.poster-row');
+  if (shelf) {
+    shelf.innerHTML = filtered.map(r => {
+      const key = 'sim' + Math.random().toString(36).slice(2,7);
+      fragStore[key] = r;
+      return buildPosterCard(r);
+    }).join('');
+    shelf.querySelectorAll('.poster-card').forEach(c =>
+      c.addEventListener('click', () => openFrag(c.getAttribute('data-key')))
+    );
+  }
+}
+```
+
+**Update the call site** in `openFrag()`:
+- Change `if (f.house) loadSimilarFragrances(f.house, f.name);` → `loadSimilarFragrances(f);`
+- Change the `frag-similar` HTML in the main string to: `'<div class="detail-sec" id="frag-similar"><div class="detail-label">You might also like</div><div class="poster-row"><div class="loading-row"><div class="spinner"></div></div></div></div>'`
+
+---
+
+#### E. New CSS to add to `styles.css`
+
+```css
+/* ── Fragrance detail: personal status ── */
+.fd-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 14px;
+}
+.fd-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.fd-badge-hive {
+  background: var(--gold-pale);
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+}
+.fd-badge-worn {
+  background: var(--purple-pale);
+  color: var(--purple-light);
+  border: 1px solid var(--purple-dim);
+}
+.fd-badge-date {
+  background: transparent;
+  color: var(--grey);
+  border: 1px solid var(--border);
+}
+.fd-badge-stars {
+  font-size: 10px;
+  color: var(--honey);
+  margin-left: 2px;
+}
+
+/* ── Fragrance detail: action row 2 ── */
+.frag-actions-row2 {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.frag-actions-row2 .frag-btn {
+  flex: 1;
+}
+
+/* ── Fragrance detail: description ── */
+.fd-desc-text {
+  font-size: 14px;
+  color: var(--white2);
+  line-height: 1.7;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Fragrance detail: when to wear ── */
+.fd-when-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+.fd-when-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 5px 13px;
+  border-radius: 20px;
+  background: var(--bg4);
+  color: var(--white2);
+  border: 1px solid var(--border);
+}
+.detail-sublabel {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: var(--grey);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+
+/* ── Desktop: larger name ── */
+@media (min-width: 768px) {
+  .frag-hero-name { font-size: 44px; }
+  .frag-actions-row2 { flex-direction: column; }
+  .frag-actions-row2 .frag-btn { flex: none; width: 100%; }
+}
+```
+
+---
+
+#### F. Section order in `openFrag()` after this task
+
+The final string passed to `#frag-content.innerHTML` should be in this order:
+
+1. `.frag-hero` (bottle + name + statusBar + fragActionsHtml)
+2. `.frag-stats-grid` (gender/year/price/type)
+3. `descHtml` (description — new)
+4. `whenHtml` (when to wear + community seasons — replaces old seasonHtml)
+5. `perfHtml` (performance votes — unchanged)
+6. Notes section (unchanged)
+7. Accords section (unchanged)
+8. `#frag-reviews` (unchanged)
+9. `#frag-similar` (improved — "You might also like")
+10. "Where to buy" (unchanged)
+
+---
+
+#### G. Acceptance criteria
+
+- [ ] Fragrance name is larger (42px mobile, 44px desktop), italic.
+- [ ] When the current user has this fragrance in their diary: a purple "Worn Nx" badge and "Last: [date]" badge appear below the meta line.
+- [ ] When the current user has this fragrance in their hive: a gold "🐝 In your hive" badge appears.
+- [ ] Action buttons: "Log & rate" (or "Log again" if worn before) is full-width gold on top; "🐝 Add to hive" and "✨ Wishlist" share a second row.
+- [ ] If `f.description` exists, a styled italic description shows after the stats grid.
+- [ ] "When to wear" section shows derived occasion chips (e.g. Office, Evening, Sport) based on fragrance family, followed by the community season vote UI.
+- [ ] "You might also like" shelf searches by family first, falls back to house, excludes the current fragrance.
+- [ ] All existing features still work: voting, note tiles, Wikipedia photos, reviews, buy links.
+- [ ] No JS errors in console.
+- [ ] Desktop two-column layout is unchanged.
+
+---
+
+### TASK 7 — Diary entry detail view (was Task 3 / Task 6)
+**Status:** ready for implementation (full spec lives in the original Task 3 block above, search for "TASK 3 — Diary entry detail view")
 
 ---
 
