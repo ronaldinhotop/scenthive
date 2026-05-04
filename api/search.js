@@ -116,6 +116,18 @@ function rankFragrances(raw, query) {
   return { bestScore, fragrances: filtered.map(({ _score, ...f }) => f) };
 }
 
+function mergeRanked(primary, secondary) {
+  const seen = new Set();
+  const merged = [];
+  for (const f of [...primary.fragrances, ...secondary.fragrances]) {
+    const key = normalize(`${f.name} ${f.house}`);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    merged.push(f);
+  }
+  return merged;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -131,16 +143,16 @@ export default async function handler(req, res) {
     const apiKey = process.env.FRAGELLA_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'Missing FRAGELLA_API_KEY', fragrances: [] });
 
-    const ranked = rankFragrances(await fetchFragella(query, apiKey), query);
-    const alias = QUERY_ALIASES[normalize(query)];
+    const normalizedQuery = normalize(query);
+    const alias = QUERY_ALIASES[normalizedQuery];
 
-    if (alias && ranked.bestScore < 55) {
+    if (alias) {
+      const ranked = rankFragrances(await fetchFragella(query, apiKey), query);
       const aliasRanked = rankFragrances(await fetchFragella(alias, apiKey), alias);
-      if (aliasRanked.bestScore > ranked.bestScore) {
-        return res.status(200).json({ fragrances: aliasRanked.fragrances });
-      }
+      return res.status(200).json({ fragrances: mergeRanked(aliasRanked, ranked) });
     }
 
+    const ranked = rankFragrances(await fetchFragella(query, apiKey), query);
     return res.status(200).json({ fragrances: ranked.fragrances });
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Unknown error', fragrances: [] });
