@@ -207,7 +207,17 @@ function saveRecent(f) {
     const filtered = stored.filter(r =>
       (r.name + '||' + (r.house || '')).toLowerCase() !== key
     );
-    const slim = { name: f.name, house: f.house || '', image_url: f.image_url || null, fragella_id: f.fragella_id || null };
+    const slim = {
+      name: f.name,
+      house: f.house || '',
+      image_url: f.image_url || null,
+      fragella_id: f.fragella_id || null,
+      family: f.family || '',
+      accords: Array.isArray(f.accords || f['Main Accords']) ? (f.accords || f['Main Accords']).slice(0, 5) : [],
+      notes_top: Array.isArray(f.notes_top || f['Top Notes']) ? (f.notes_top || f['Top Notes']).slice(0, 4) : [],
+      notes_heart: Array.isArray(f.notes_heart || f['Middle Notes']) ? (f.notes_heart || f['Middle Notes']).slice(0, 4) : [],
+      notes_base: Array.isArray(f.notes_base || f['Base Notes']) ? (f.notes_base || f['Base Notes']).slice(0, 4) : []
+    };
     filtered.unshift(slim);
     localStorage.setItem(RECENTS_KEY, JSON.stringify(filtered.slice(0, RECENTS_MAX)));
   } catch (e) {}
@@ -244,6 +254,7 @@ async function renderHome() {
   updateHero();
   renderContinueStrip();
   renderRecentsShelf();
+  renderSimilarRecentShelf();
   renderTasteModule();
   renderForYouShelf();
 
@@ -347,6 +358,101 @@ function renderRecentsShelf() {
 
   if (clearBtn) {
     clearBtn.onclick = () => { clearRecents(); section.style.display = 'none'; };
+  }
+}
+
+function getAccordName(accord) {
+  return typeof accord === 'string' ? accord : (accord?.name || '');
+}
+
+function buildSimilarRecentQueries(f) {
+  const signals = [];
+  (f.accords || []).slice(0, 3).forEach(a => {
+    const name = getAccordName(a);
+    if (name) signals.push(name);
+  });
+  (f.notes_base || []).slice(0, 2).forEach(n => signals.push(n));
+  (f.notes_heart || []).slice(0, 1).forEach(n => signals.push(n));
+  if (f.family) signals.push(f.family);
+
+  const cleanSignals = [...new Set(signals.map(s => String(s || '').trim()).filter(Boolean))];
+  if (!cleanSignals.length) {
+    const house = f.house ? f.house + ' ' : '';
+    return [
+      house + f.name,
+      f.name + ' intense',
+      f.name + ' elixir',
+      f.name + ' parfum',
+      f.name + ' eau de parfum'
+    ];
+  }
+
+  const queries = [
+    cleanSignals.slice(0, 2).join(' '),
+    cleanSignals.slice(0, 3).join(' '),
+    cleanSignals[0] + ' fragrance',
+    cleanSignals[1] ? cleanSignals[1] + ' perfume' : '',
+    f.family ? f.family + ' perfume' : '',
+    f.name
+  ];
+  return [...new Set(queries.filter(Boolean))].slice(0, 6);
+}
+
+async function renderSimilarRecentShelf() {
+  const section = document.getElementById('section-similar-recent');
+  const shelf = document.getElementById('shelf-similar-recent');
+  const source = document.getElementById('similar-recent-source');
+  const more = document.getElementById('similar-recent-more');
+  if (!section || !shelf) return;
+
+  const recent = loadRecents()[0];
+  if (!recent || !recent.name) {
+    section.style.display = 'none';
+    return;
+  }
+
+  const label = [recent.house, recent.name].filter(Boolean).join(' ');
+  if (source) source.textContent = label;
+  if (more) more.onclick = () => triggerSearch(label);
+  section.style.display = '';
+  shelf.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+
+  const exclude = (recent.name + '||' + (recent.house || '')).toLowerCase();
+  const seen = new Set([exclude]);
+  const picks = [];
+
+  try {
+    const firstPass = await searchFragella(label || recent.name);
+    (firstPass || []).forEach(f => {
+      const key = (f.name + '||' + (f.house || '')).toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        picks.push(f);
+      }
+    });
+
+    if (picks.length < 5) {
+      const queries = buildSimilarRecentQueries(recent);
+      for (const q of queries) {
+        if (picks.length >= 8) break;
+        const results = await searchFragella(q);
+        (results || []).forEach(f => {
+          const key = (f.name + '||' + (f.house || '')).toLowerCase();
+          if (!seen.has(key) && picks.length < 8) {
+            seen.add(key);
+            picks.push(f);
+          }
+        });
+      }
+    }
+
+    if (!picks.length) throw new Error('no similar results');
+    shelf.innerHTML = picks.slice(0, 8).map(f => buildPosterCard(f)).join('');
+    shelf.querySelectorAll('.poster-card').forEach(card =>
+      card.addEventListener('click', () => openFrag(card.getAttribute('data-key')))
+    );
+  } catch (e) {
+    section.style.display = 'none';
   }
 }
 

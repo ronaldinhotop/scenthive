@@ -59,6 +59,8 @@ ScentHive should move toward a Spotify/Letterboxd/Fragrantica-inspired fragrance
 - ✅ Empty states: diary 📖, hive 🐝, wishlist ✨ all show friendly messages when empty.
 - ✅ Quick wear: ⏱ button on hive cards logs a wear instantly with a toast, no modal.
 - ✅ Search aliases: alias results now always surface first and merge with direct results.
+- ✅ Home v2: New releases shelf.
+- ✅ Home v2: Similar-to-last-viewed shelf powered by recent fragrance signals.
 
 ---
 
@@ -2314,6 +2316,23 @@ De-dupe key is `(name + "||" + house).toLowerCase()`. When a fragrance is viewed
 - [ ] Items in the recents shelf support all existing poster card hover states and quick-action buttons (Log, Hive, Wish).
 - [ ] Diary, search, hive, and fragrance detail screens are unaffected.
 - [ ] No JS errors in console.
+
+---
+
+### TASK 11 — Similar to Last Viewed
+**Status:** ✅ DONE
+
+**What shipped:** A hidden Home shelf appears after `Recently viewed` once a user has opened at least one fragrance.
+
+**Files changed:** `index.html`, `app.js`
+
+**Behavior:**
+- `#section-similar-recent` renders between `#section-recents` and `#section-foryou`.
+- The shelf title is `Similar to this`; the subline shows the most recently viewed fragrance.
+- `saveRecent(f)` now stores light scent signals (`family`, `accords`, top/heart/base notes) when available.
+- `renderSimilarRecentShelf()` uses the last viewed fragrance, excludes that exact fragrance, and fills `#shelf-similar-recent` with up to 8 related poster cards.
+- If there are no recents, or no useful results, the section stays hidden.
+- The `Explore` link searches for the source fragrance.
 
 
 ## Workflow
