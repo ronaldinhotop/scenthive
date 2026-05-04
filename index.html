@@ -100,6 +100,14 @@ img{max-width:100%;display:block}
 .hero-title{font-family:'Playfair Display',serif;font-size:40px;line-height:1.0;margin-bottom:10px;letter-spacing:-0.01em}
 .hero-title em{font-style:italic;color:var(--gold-light)}
 .hero-sub{font-size:13px;color:var(--white2);line-height:1.65;max-width:300px;opacity:0.85}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.hero-primary,.hero-secondary{font-family:'DM Mono',monospace;font-size:10px;padding:11px 18px;border-radius:3px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-weight:600}
+.hero-primary{background:var(--gold);color:var(--bg);box-shadow:0 8px 24px rgba(240,192,64,0.22)}
+.hero-secondary{background:rgba(255,255,255,0.03);color:var(--white2);border:1px solid var(--border)}
+.hero-proof{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.hero-proof-item{min-width:86px;padding:10px 12px;background:rgba(8,8,16,0.58);border:1px solid rgba(240,192,64,0.13);border-radius:4px;backdrop-filter:blur(12px)}
+.hero-proof-num{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);line-height:1}
+.hero-proof-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px}
 .hero-bee{position:absolute;pointer-events:none}
 .bee-1{top:24px;right:24px;font-size:34px;filter:drop-shadow(0 0 16px rgba(240,192,64,0.65));animation:floatBee1 4s ease-in-out infinite}
 .bee-2{top:78px;right:76px;font-size:18px;filter:drop-shadow(0 0 8px rgba(240,192,64,0.35));animation:floatBee2 6.5s ease-in-out infinite 1.5s;opacity:0.6}
@@ -339,6 +347,10 @@ img{max-width:100%;display:block}
 .modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
 .modal-title{font-family:'Playfair Display',serif;font-size:26px;font-style:italic;margin-bottom:4px;letter-spacing:-0.01em}
 .modal-sub{font-size:12px;color:var(--grey);margin-bottom:18px;line-height:1.5}
+.modal-kicker{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:6px}
+.log-step-card{padding:14px;background:linear-gradient(135deg,var(--gold-pale),rgba(255,255,255,0.02));border:1px solid rgba(240,192,64,0.16);border-radius:4px;margin-bottom:14px}
+.log-step-title{font-size:13px;color:var(--white);font-weight:500;margin-bottom:4px}
+.log-step-body{font-size:12px;color:var(--grey);line-height:1.5}
 .modal-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey);display:block;margin-bottom:7px}
 .modal-input{width:100%;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;font-size:14px;margin-bottom:12px;-webkit-appearance:none;color:var(--white)}
 .modal-input:focus{border-color:var(--gold)}
@@ -691,9 +703,10 @@ img{max-width:100%;display:block}
 
 /* ═══ FEATURE GRID ═══ */
 .features-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);margin:0}
-.feature-card{padding:20px 16px;background:var(--bg);display:flex;gap:13px;align-items:flex-start;transition:background 0.15s;cursor:default}
+.feature-card{padding:20px 16px;background:var(--bg);display:flex;gap:13px;align-items:flex-start;transition:background 0.15s,border-color 0.15s;cursor:default}
 .feature-card.clickable{cursor:pointer}
 .feature-card.clickable:hover{background:var(--bg2)}
+.feature-card.primary{background:linear-gradient(135deg,var(--gold-pale),var(--bg));border-left:2px solid var(--gold-dim)}
 .feature-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--gold-pale);border:1px solid var(--gold-dim)}
 .feature-icon.purple{background:var(--purple-pale);border-color:var(--purple-dim)}
 .feature-head{font-size:12.5px;color:var(--white);font-weight:500;margin-bottom:4px;line-height:1.3}
@@ -921,29 +934,35 @@ img{max-width:100%;display:block}
         <span class="hero-bee bee-2">🐝</span>
         <span class="hero-bee bee-3">🐝</span>
         <div class="hero-content">
-          <div class="hero-tag" id="hero-tag">🍯 Welcome to the Hive</div>
+          <div class="hero-tag" id="hero-tag">Personal scent archive</div>
           <div class="hero-title" id="hero-title">Your fragrance <em>diary</em></div>
-          <div class="hero-sub" id="hero-sub">Log every scent. Rate it. Discover your nose.</div>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px">
-            <button onclick="openLog()" style="font-family:'DM Mono',monospace;font-size:11px;padding:10px 22px;background:var(--gold);color:var(--bg);border-radius:2px;letter-spacing:0.07em;text-transform:uppercase;cursor:pointer;font-weight:500">+ Log today's scent</button>
-            <button onclick="showScreen('auth')" id="hero-signin-btn" style="font-family:'DM Mono',monospace;font-size:11px;padding:10px 20px;background:transparent;color:var(--white2);border:1px solid var(--border);border-radius:2px;letter-spacing:0.07em;text-transform:uppercase;cursor:pointer">Join free →</button>
+          <div class="hero-sub" id="hero-sub">Remember what you wore, how it performed, and which bottles actually deserve a place on your shelf.</div>
+          <div class="hero-actions">
+            <button class="hero-primary" onclick="openLog()">Log today's scent</button>
+            <button class="hero-secondary" onclick="openAdd()">Add a bottle</button>
+            <button class="hero-secondary" onclick="showScreen('auth')" id="hero-signin-btn">Create account</button>
+          </div>
+          <div class="hero-proof">
+            <div class="hero-proof-item"><div class="hero-proof-num" id="hero-proof-logged">0</div><div class="hero-proof-label">logged</div></div>
+            <div class="hero-proof-item"><div class="hero-proof-num" id="hero-proof-hive">0</div><div class="hero-proof-label">in hive</div></div>
+            <div class="hero-proof-item"><div class="hero-proof-num" id="hero-proof-streak">0</div><div class="hero-proof-label">day streak</div></div>
           </div>
         </div>
       </div>
 
       <!-- FEATURE GRID (shown only to new users) -->
       <div class="features-grid" id="features-grid">
-        <div class="feature-card">
+        <div class="feature-card primary">
           <div class="feature-icon">🏺</div>
-          <div><div class="feature-head">Track every wear</div><div class="feature-body">Log what you spray each day and build a lifetime scent diary.</div></div>
+          <div><div class="feature-head">Start with today</div><div class="feature-body">One quick log turns ScentHive into a personal memory bank for scent.</div></div>
         </div>
         <div class="feature-card">
           <div class="feature-icon">⭐</div>
-          <div><div class="feature-head">Rate &amp; review</div><div class="feature-body">Five-star ratings with personal notes. Know exactly what you thought.</div></div>
+          <div><div class="feature-head">Rate with context</div><div class="feature-body">Track ratings, occasions and notes so your taste becomes visible.</div></div>
         </div>
         <div class="feature-card">
           <div class="feature-icon">🐝</div>
-          <div><div class="feature-head">Build your hive</div><div class="feature-body">Catalogue every bottle you own with size, price, and cover art.</div></div>
+          <div><div class="feature-head">Know your shelf</div><div class="feature-body">Catalogue bottles, wishlist samples, and see what you actually wear.</div></div>
         </div>
         <div class="feature-card">
           <div class="feature-icon">📊</div>
@@ -1343,10 +1362,11 @@ img{max-width:100%;display:block}
 
     <!-- STEP 1: Search for fragrance -->
     <div id="log-step-1">
-      <div class="modal-title">Log a fragrance</div>
-      <div class="modal-sub">Search for what you wore today.</div>
+      <div class="modal-kicker">Daily wear</div>
+      <div class="modal-title">What did you wear?</div>
+      <div class="modal-sub">Search first, then add a rating or a quick note. The goal is speed: capture the memory while it is fresh.</div>
       <div style="position:relative">
-        <input class="modal-input" id="log-search" type="text" placeholder="Search any fragrance…" autocomplete="off" style="padding-right:40px">
+        <input class="modal-input" id="log-search" type="text" placeholder="Try 'Naxos', 'Oud Wood', 'Another 13'…" autocomplete="off" style="padding-right:40px">
         <div id="log-search-spinner" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%)"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div></div>
       </div>
       <div id="log-search-results" style="max-height:280px;overflow-y:auto;margin-bottom:10px"></div>
@@ -1363,6 +1383,10 @@ img{max-width:100%;display:block}
 
     <!-- STEP 2: Rate and review -->
     <div id="log-step-2" style="display:none">
+      <div class="log-step-card">
+        <div class="log-step-title">Make this useful for future you.</div>
+        <div class="log-step-body">A rating is enough. Add one line if the scent surprised you, disappointed you, or worked perfectly for the moment.</div>
+      </div>
       <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg3);border-radius:2px;margin-bottom:18px;cursor:pointer" id="log-selected-frag" onclick="resetLogStep()">
         <div id="log-selected-img" style="width:44px;height:56px;background:var(--bg2);border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0">🏺</div>
         <div style="flex:1;min-width:0">
@@ -1381,8 +1405,8 @@ img{max-width:100%;display:block}
         <span class="star-pick" data-r="5">★</span>
       </div>
 
-      <label class="modal-label">Review <span style="color:var(--grey);font-size:9px">optional</span></label>
-      <textarea class="modal-input" id="log-review" placeholder="Two sentences. What does it smell like to you?" style="height:80px;resize:none;line-height:1.5"></textarea>
+      <label class="modal-label">Memory note <span style="color:var(--grey);font-size:9px">optional</span></label>
+      <textarea class="modal-input" id="log-review" placeholder="Opening, drydown, compliments, performance, mood…" style="height:80px;resize:none;line-height:1.5"></textarea>
 
       <label class="modal-label">Occasion</label>
       <div class="occ-chips" id="log-occ">
@@ -1397,15 +1421,15 @@ img{max-width:100%;display:block}
       <label class="modal-label" style="margin-top:16px">Share with community</label>
       <div id="log-public-toggle" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;cursor:pointer;margin-bottom:16px" onclick="toggleLogPublic()">
         <div>
-          <div style="font-size:13px;color:var(--white2)">Make this review public</div>
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-top:2px;letter-spacing:0.04em">Appears in the community feed for others to read</div>
+          <div style="font-size:13px;color:var(--white2)">Share this note publicly</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-top:2px;letter-spacing:0.04em">Private by default. Turn on only when the note is useful to others.</div>
         </div>
         <div id="log-public-pill" style="width:38px;height:22px;border-radius:11px;background:var(--bg4);border:1px solid var(--border);position:relative;transition:background 0.2s;flex-shrink:0">
           <div id="log-public-dot" style="width:16px;height:16px;border-radius:50%;background:var(--grey2);position:absolute;top:2px;left:2px;transition:all 0.2s"></div>
         </div>
       </div>
 
-      <button class="modal-submit" id="log-save-btn">Save to diary</button>
+      <button class="modal-submit" id="log-save-btn">Save wear</button>
       <button class="modal-cancel" data-close="modal-log">Cancel</button>
     </div>
   </div>
@@ -4445,24 +4469,31 @@ function updateHero() {
   const title = document.getElementById('hero-title');
   const sub = document.getElementById('hero-sub');
   const signinBtn = document.getElementById('hero-signin-btn');
+  const proofLogged = document.getElementById('hero-proof-logged');
+  const proofHive = document.getElementById('hero-proof-hive');
+  const proofStreak = document.getElementById('hero-proof-streak');
+  const streak = computeStreak();
+  if (proofLogged) proofLogged.textContent = diary.length;
+  if (proofHive) proofHive.textContent = collection.length;
+  if (proofStreak) proofStreak.textContent = streak.current;
   if (!tag) return;
   if (user) {
     const name = user.user_metadata?.name || user.email?.split('@')[0] || 'there';
     const firstName = name.split(' ')[0];
     if (diary.length > 0) {
-      tag.textContent = '🐝 Welcome back, ' + firstName;
+      tag.textContent = 'Welcome back, ' + firstName;
       title.innerHTML = diary.length + ' scents <em>logged</em>';
-      sub.textContent = 'Keep the streak going. What are you wearing today?';
+      sub.textContent = 'Your archive is starting to say something. Keep it honest: log what you actually wore today.';
     } else {
-      tag.textContent = '🍯 Hey ' + firstName + ', welcome';
+      tag.textContent = 'Hey ' + firstName + ', welcome';
       title.innerHTML = 'Log your <em>first</em> scent';
-      sub.textContent = 'Start your fragrance diary — it takes 30 seconds.';
+      sub.textContent = 'Start with the fragrance on your skin right now. One rating is enough.';
     }
     if (signinBtn) signinBtn.style.display = 'none';
   } else {
-    tag.textContent = '🍯 Welcome to the Hive';
+    tag.textContent = 'Personal scent archive';
     title.innerHTML = 'Your fragrance <em>diary</em>';
-    sub.textContent = 'Log every scent. Rate it. Discover your nose.';
+    sub.textContent = 'Remember what you wore, how it performed, and which bottles actually deserve a place on your shelf.';
     if (signinBtn) signinBtn.style.display = '';
   }
 }
