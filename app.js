@@ -277,6 +277,16 @@ async function renderHome() {
     sectionYours.style.display = 'none';
   }
 
+  const newReleasePool = [
+    'Dior Homme Parfum 2025', 'Valentino Uomo Born in Roma Extradose',
+    'YSL Myslf Le Parfum', 'Bleu de Chanel L Exclu',
+    'Sauvage Eau Forte Dior', 'Tom Ford Black Lacquer',
+    'Aventus Absolu Creed', 'Le Male Elixir Absolu Jean Paul Gaultier',
+    'Rabanne Million Gold', 'Boss Bottled Absolu',
+    'Burberry Goddess Intense', 'Gucci Flora Gorgeous Orchid',
+    'Libre Flowers Flames YSL', 'Devotion Intense Dolce Gabbana'
+  ];
+
   loadPopularShelf();
 
   const darkPool = [
@@ -307,10 +317,12 @@ async function renderHome() {
   ];
   const shuffle = arr => arr.slice().sort(() => Math.random() - 0.5);
 
+  delete _shelfCache['shelf-new'];
   delete _shelfCache['shelf-dark'];
   delete _shelfCache['shelf-oriental'];
   delete _shelfCache['shelf-fresh'];
 
+  loadShelf('shelf-new', shuffle(newReleasePool).slice(0, 8));
   loadShelf('shelf-dark', shuffle(darkPool).slice(0, 8));
   loadShelf('shelf-oriental', shuffle(orientalPool).slice(0, 8));
   loadShelf('shelf-fresh', shuffle(freshPool).slice(0, 8));
