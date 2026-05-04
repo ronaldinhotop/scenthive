@@ -4,7 +4,9 @@ ScentHive is a fragrance diary and collection app: log what you wear, rate scent
 
 ## Project Shape
 
-- `index.html` contains the current app UI, styles, and browser JavaScript.
+- `index.html` contains the app HTML shell.
+- `styles.css` contains the app styling.
+- `app.js` contains the browser JavaScript.
 - `api/search.js` proxies Fragella fragrance search.
 - `api/ai.js` handles AI recommendations through Anthropic.
 - `api/scan.js` handles bottle image identification through Anthropic vision.
@@ -32,3 +34,7 @@ Use GitHub as the source of truth and `HANDOFF.md` as the shared working note.
 5. Codex verifies production at `https://scenthive-ten.vercel.app`.
 
 Keep handoffs concrete: current goal, files likely affected, acceptance criteria, and open questions.
+
+## Product Direction
+
+See `REDESIGN.md` for the current redesign brief: Spotify/Letterboxd/Fragrantica-inspired home feed, quieter AI, and monetization direction.

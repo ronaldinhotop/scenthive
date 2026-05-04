@@ -8,7 +8,7 @@ Human owner: Frode. Push via GitHub Desktop when terminal auth is unavailable.
 ## Project Overview
 
 **ScentHive** — fragrance diary + discovery app.
-- **Frontend:** single-file `index.html` (~4 700 lines). No framework. Vanilla JS + CSS.
+- **Frontend:** static `index.html` shell, `styles.css`, and `app.js`. No framework. Vanilla JS + CSS.
 - **Backend:** Vercel serverless functions in `api/` (Node ESM).
   - `api/search.js` — queries Fragella (fragrance DB) via Supabase.
   - `api/ai.js` — Claude AI recommendations via Anthropic API.
@@ -30,6 +30,19 @@ Human owner: Frode. Push via GitHub Desktop when terminal auth is unavailable.
 - `user` — current Supabase auth user object.
 - `sb` — Supabase client instance.
 - `_shelfCache{}` — caches rendered shelf HTML to avoid repeat API calls.
+
+---
+
+## Current Product Direction
+
+Read `REDESIGN.md` before starting major UI work.
+
+ScentHive should move toward a Spotify/Letterboxd/Fragrantica-inspired fragrance experience:
+- Home as an endless discovery feed, not a marketing landing page.
+- Clean, minimal, dark, premium, with light color coding.
+- Lots of fragrance shelves: new releases, for you, similar to, taste test, recent, editorial.
+- AI should become a quiet personalization layer: taste test, smart shelves, fragrance summaries, and editorial support.
+- Monetization should unlock deeper taste intelligence, not basic diary usage.
 
 ---
 

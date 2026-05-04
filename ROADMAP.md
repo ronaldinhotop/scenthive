@@ -23,6 +23,9 @@
 
 ## Phase 4: Product Polish
 
+- Redesign home into a Spotify/Letterboxd-style fragrance feed.
+- Reposition AI as personalization, taste test, and smart fragrance insight instead of a generic chat feature.
+- Define a clear ScentHive wordmark and brand system.
 - Improve profile and public profile sharing.
 - Improve collection/hive browsing.
 - Improve wishlist and sample tracking.
