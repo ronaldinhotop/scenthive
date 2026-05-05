@@ -22,8 +22,8 @@ img{max-width:100%;display:block}
 
 /* ═══ TOPBAR ═══ */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;position:sticky;top:0;z-index:100;background:rgba(13,16,24,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2)}
-.logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;display:flex;align-items:center;gap:9px;letter-spacing:-0.01em}
-.logo em{font-style:italic;color:var(--gold);font-weight:600}
+.logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;display:flex;align-items:center;gap:8px;letter-spacing:-0.02em}
+.logo em{font-style:italic;color:var(--gold);font-weight:500}
 .tbar-btn{width:34px;height:34px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--white2);cursor:pointer}
 .tbar-btn:active{background:var(--bg3)}
 
@@ -40,8 +40,9 @@ img{max-width:100%;display:block}
 /* ═══ AUTH ═══ */
 #screen-auth{align-items:center;justify-content:center;padding:40px 24px;min-height:100vh;background:radial-gradient(ellipse at top,#1a0d30 0%,var(--bg) 65%)}
 .auth-wrap{width:100%;max-width:360px}
-.auth-logo{font-family:'Playfair Display',serif;font-size:48px;text-align:center;margin-bottom:4px}
-.auth-logo em{font-style:italic;color:var(--gold)}
+.auth-logo{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:8px}
+.auth-wordmark{font-family:'Playfair Display',serif;font-size:44px;letter-spacing:-0.03em;line-height:1;text-align:center}
+.auth-wordmark em{font-style:italic;color:var(--gold)}
 .auth-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.16em;text-transform:uppercase;text-align:center;margin-bottom:36px}
 .auth-tabs{display:flex;margin-bottom:24px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
 .auth-tab{flex:1;padding:11px;color:var(--grey);font-size:13px;cursor:pointer;text-align:center}
@@ -775,7 +776,7 @@ img{max-width:100%;display:block}
 /* ═══ SIDEBAR LOGO BRAND ═══ */
 .sidebar-logo{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:28px;padding:0 8px;letter-spacing:-0.01em}
 .sidebar-logo em{font-style:italic;color:var(--gold)}
-.auth-logo em,.logo em{color:var(--gold)}
+.logo em{color:var(--gold)}
 
 /* ═══ POSTER CARD QUICK ACTIONS ═══ */
 .poster-card-actions{position:absolute;inset:0;background:rgba(4,4,12,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:0;transition:opacity 0.2s;border-radius:12px;z-index:3}
