@@ -2271,24 +2271,26 @@ function renderCollection() {
     return;
   }
   grid.innerHTML = collection.map((b, idx) => {
+    const initial = escapeHtml((b.name || '?')[0].toUpperCase());
     const img = b.image_url
-      ? `<img src="${escapeAttr(b.image_url)}" alt="${escapeHtml(b.name)}" onerror="this.outerHTML='<div class=&quot;col-cell-monogram&quot;>${escapeHtml((b.name||'?')[0].toUpperCase())}</div>'">`
-      : `<div class="col-cell-monogram">${escapeHtml((b.name||'?')[0].toUpperCase())}</div>`;
+      ? `<img src="${escapeAttr(b.image_url)}" alt="${escapeAttr(b.name || '')}" onerror="this.outerHTML='<div class=&quot;col-cell-monogram&quot;>${initial}</div>'">`
+      : `<div class="col-cell-monogram">${initial}</div>`;
     return `
-      <div class="col-cell" data-idx="${idx}" data-name="${escapeAttr(b.name||'')}" data-house="${escapeAttr(b.house||'')}">
+      <div class="col-cell" data-idx="${idx}" data-id="${escapeAttr(b.id||'')}" data-name="${escapeAttr(b.name||'')}" data-house="${escapeAttr(b.house||'')}">
         ${img}
         <div class="col-cell-overlay">
           <div class="col-cell-name">${escapeHtml(b.name)}</div>
           <div class="col-cell-house">${escapeHtml(b.house || '')}</div>
         </div>
-        <button class="col-quick-btn" data-quick-idx="${idx}" title="Quick log wear">⏱</button>
-        <button class="col-del-btn" data-del-idx="${idx}" title="Remove">×</button>
+        <button type="button" class="col-quick-btn" data-quick-idx="${idx}" title="Quick log wear" aria-label="Quick log ${escapeAttr(b.name || 'fragrance')}">⏱</button>
+        <button type="button" class="col-del-btn" data-del-idx="${idx}" title="Remove" aria-label="Remove ${escapeAttr(b.name || 'fragrance')}">×</button>
       </div>`;
   }).join('');
 
   // Wire quick wear buttons
   grid.querySelectorAll('.col-quick-btn').forEach(btn => {
     btn.addEventListener('click', e => {
+      e.preventDefault();
       e.stopPropagation();
       const idx = parseInt(btn.getAttribute('data-quick-idx'));
       const b = collection[idx];
@@ -2299,10 +2301,11 @@ function renderCollection() {
   // Wire delete buttons
   grid.querySelectorAll('.col-del-btn').forEach(btn => {
     btn.addEventListener('click', e => {
+      e.preventDefault();
       e.stopPropagation();
       const idx = parseInt(btn.getAttribute('data-del-idx'));
       const b = collection[idx];
-      if (b) deleteCollectionItem(String(b.id||''), b.name||'');
+      if (b) deleteCollectionItem(String(b.id||''), b.name||'', b.house||'');
     });
   });
 
@@ -2317,21 +2320,20 @@ function renderCollection() {
       const b = collection[idx];
       if (!b || b.image_url) return;
       try {
-        const q = (b.name || '') + (b.house ? ' ' + b.house : '');
-        const { data } = await sb.from('fragella').select('name,house,image_url').ilike('name', '%' + (b.name||'').split(' ')[0] + '%').limit(5);
+        const q = getImageLookupQuery(b, 'name');
+        const { data } = await sb.from('fragella').select('name,house,image_url').ilike('name', '%' + q.split(' ')[0] + '%').limit(5);
         if (!data || !data.length) return;
         // Best match: same house
         const match = data.find(r => r.house && b.house && r.house.toLowerCase().includes(b.house.toLowerCase().split(' ')[0])) || data[0];
         if (!match || !match.image_url) return;
         // Update the cell
-        const emojiDiv = cell.querySelector('.col-cell-emoji');
-        if (emojiDiv) {
+        const placeholder = cell.querySelector('.col-cell-monogram, .col-cell-emoji');
+        if (placeholder) {
           const img = document.createElement('img');
           img.src = match.image_url;
-          img.alt = escapeHtml(b.name);
+          img.alt = b.name || '';
           img.onerror = () => img.remove();
-          img.style.cssText = 'width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;padding:10px;transition:transform 0.2s';
-          emojiDiv.replaceWith(img);
+          placeholder.replaceWith(img);
         }
         // Persist to DB if logged in
         collection[idx].image_url = match.image_url;
@@ -2862,7 +2864,7 @@ async function enrichImages(items, nameKey, tableKey) {
   if (!noImg.length) return false;
   const toFetch = noImg.slice(0, 8);
   const results = await Promise.allSettled(
-    toFetch.map(b => searchFragella((b[nameKey] || '') + (b.house ? ' ' + b.house : '')))
+    toFetch.map(b => searchFragella(getImageLookupQuery(b, nameKey)))
   );
   let changed = false;
   results.forEach((r, i) => {
@@ -2880,6 +2882,23 @@ async function enrichImages(items, nameKey, tableKey) {
     changed = true;
   });
   return changed;
+}
+
+function getImageLookupQuery(item, nameKey) {
+  const rawName = String(item?.[nameKey] || '').trim();
+  const house = String(item?.house || '').trim();
+  const aliases = {
+    sausage: 'Sauvage Dior'
+  };
+  const aliased = aliases[rawName.toLowerCase()] || rawName;
+  const cleaned = aliased
+    .replace(/\s+or\s+similar\b/i, '')
+    .split(/\s+or\s+/i)[0]
+    .replace(/\b(collection\s+)?bottle\b/gi, '')
+    .replace(/\bdecants?\b|\bsamples?\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return (cleaned || aliased || rawName) + (house ? ' ' + house : '');
 }
 
 async function cacheFragrances(frags) {
@@ -3190,15 +3209,26 @@ async function deleteDiaryEntry(id) {
   toast('Entry removed');
 }
 
-async function deleteCollectionItem(id, name) {
+async function deleteCollectionItem(id, name, house = '') {
   if (!id && !name) return;
+  const previous = [...collection];
   collection = id
     ? collection.filter(b => String(b.id) !== String(id))
-    : collection.filter(b => b.name !== name);
-  if (user && id) sb.from('collection').delete().eq('id', id).catch(() => {});
-  else saveLocal();
+    : collection.filter(b => !(b.name === name && (house ? b.house === house : true)));
   renderCollection();
   updateRightSidebar();
+  if (user && id) {
+    const { error } = await sb.from('collection').delete().eq('id', id);
+    if (error) {
+      collection = previous;
+      renderCollection();
+      updateRightSidebar();
+      toast('Could not remove from hive');
+      return;
+    }
+  } else {
+    saveLocal();
+  }
   toast('Removed from hive');
 }
 

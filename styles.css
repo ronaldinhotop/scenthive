@@ -278,7 +278,7 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .col-cell{aspect-ratio:3/4;background:#fff;position:relative;overflow:hidden;cursor:pointer;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
 .col-cell:active{opacity:0.75;transform:scale(0.98)}
 .col-cell:hover{z-index:1}
-.col-cell img{width:100%;height:100%;object-fit:contain;padding:10px;transition:transform 0.2s}
+.col-cell img{width:100%;height:100%;object-fit:contain;padding:12px;transition:transform 0.2s}
 .col-cell:hover img{transform:scale(1.04)}
 .col-cell-emoji{font-size:36px;width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0.35}
 .col-cell-monogram{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:64px;font-style:italic;font-weight:400;color:rgba(240,192,64,0.15);letter-spacing:-0.02em;user-select:none}
@@ -893,11 +893,11 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .pro-promise-sub{font-size:11px;color:var(--grey);line-height:1.5}
 
 /* ═══ DELETE BUTTONS ═══ */
-.col-del-btn{position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(13,16,24,0.82);color:var(--red);font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0.55;transition:opacity 0.15s,background 0.15s;z-index:4;border:1px solid rgba(239,68,68,0.35)}
-.col-quick-btn{position:absolute;top:5px;left:5px;width:28px;height:28px;border-radius:50%;background:rgba(13,16,24,0.86);color:var(--gold);font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0.72;transition:opacity 0.15s,background 0.15s,transform 0.15s;z-index:4;border:1px solid var(--gold-dim)}
+.col-del-btn{position:absolute;top:7px;right:7px;width:32px;height:32px;border-radius:50%;background:rgba(13,16,24,0.9);color:var(--red);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0.86;transition:opacity 0.15s,background 0.15s,transform 0.15s;z-index:6;border:1px solid rgba(239,68,68,0.42);pointer-events:auto}
+.col-quick-btn{position:absolute;top:7px;left:7px;width:32px;height:32px;border-radius:50%;background:rgba(13,16,24,0.9);color:var(--gold);font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0.82;transition:opacity 0.15s,background 0.15s,transform 0.15s;z-index:6;border:1px solid var(--gold-dim);pointer-events:auto}
 .col-quick-btn:hover,.col-quick-btn:active{background:rgba(240,192,64,0.18);opacity:1;transform:scale(1.04)}
 .col-cell:hover .col-del-btn{opacity:1}
-.col-del-btn:hover,.col-del-btn:active{background:rgba(239,68,68,0.3);opacity:1}
+.col-del-btn:hover,.col-del-btn:active{background:rgba(239,68,68,0.3);opacity:1;transform:scale(1.04)}
 .diary-del-btn{width:28px;height:28px;border-radius:50%;background:transparent;color:var(--grey2);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0.5;transition:opacity 0.15s,color 0.15s;flex-shrink:0}
 .diary-row-item:hover .diary-del-btn{opacity:1}
 .diary-del-btn:hover,.diary-del-btn:active{color:var(--red);opacity:1}
