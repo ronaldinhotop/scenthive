@@ -2255,6 +2255,56 @@ function toast(msg) {
 }
 
 // ═══════ FRAGELLA SEARCH + SUPABASE CACHE ═══════
+// ─── Static fragrance index (from static_frags.js, loaded before app.js) ────
+// window._SF is an array of slim objects: {n, h, i, f, a, t, m, b, l, s, g, id}
+// Build a normalised lookup once at startup for O(1) shelf hits.
+const _staticIndex = (() => {
+  const idx = new Map();
+  const sf = window._SF || [];
+  for (const f of sf) {
+    const expand = f => ({
+      fragella_id: f.id || '',
+      name: f.n || '', house: f.h || '',
+      family: f.f || '', accords: f.a || [],
+      notes_top: f.t || [], notes_heart: f.m || [], notes_base: f.b || [],
+      longevity: f.l || '', sillage: f.s || '', gender: f.g || '',
+      image_url: f.i || '', launch_year: null, price_range: '', oil_type: '',
+    });
+    const norm = v => String(v||'').toLowerCase().normalize('NFD')
+      .replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+    const nameKey = norm(f.n);
+    const fullKey = norm((f.n||'') + ' ' + (f.h||''));
+    if (!idx.has(nameKey)) idx.set(nameKey, []);
+    idx.get(nameKey).push(expand(f));
+    if (fullKey !== nameKey) {
+      if (!idx.has(fullKey)) idx.set(fullKey, []);
+      idx.get(fullKey).push(expand(f));
+    }
+  }
+  return idx;
+})();
+
+function staticSearch(q) {
+  const norm = v => String(v||'').toLowerCase().normalize('NFD')
+    .replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+  const nq = norm(q);
+  // Exact full match first
+  if (_staticIndex.has(nq)) return _staticIndex.get(nq);
+  // Prefix match on first token
+  const firstToken = nq.split(' ')[0];
+  const hits = [];
+  for (const [k, v] of _staticIndex) {
+    if (k.startsWith(nq) || k.includes(nq)) hits.push(...v);
+  }
+  // Deduplicate
+  const seen = new Set();
+  return hits.filter(f => {
+    const key = norm(f.name + f.house);
+    if (seen.has(key)) return false;
+    seen.add(key); return true;
+  });
+}
+
 // In-memory dedup: same query never hits the server twice in one session.
 // Stores resolved results (arrays) and in-flight promises so concurrent
 // callers share one request rather than firing N identical ones.
@@ -2266,11 +2316,17 @@ async function searchFragella(q) {
   const key = qq.toLowerCase();
 
   if (_searchMemo[key] !== undefined) {
-    // Already resolved or in-flight — return the same promise/value
     return _searchMemo[key];
   }
 
-  // Store the promise immediately so concurrent callers await the same fetch
+  // 1. Check static index first — zero network cost
+  const staticHits = staticSearch(qq);
+  if (staticHits.length > 0) {
+    _searchMemo[key] = staticHits;
+    return staticHits;
+  }
+
+  // 2. Store the promise immediately so concurrent callers await the same fetch
   _searchMemo[key] = (async () => {
     try {
       const res = await fetch(SEARCH_URL, {
