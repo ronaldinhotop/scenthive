@@ -8,6 +8,8 @@
     { "src": "manifest.json", "use": "@vercel/static" },
     { "src": "icon-192.png", "use": "@vercel/static" },
     { "src": "icon-512.png", "use": "@vercel/static" },
+    { "src": "assets/logo-full.png", "use": "@vercel/static" },
+    { "src": "assets/logo-mark.png", "use": "@vercel/static" },
     { "src": "api/*.js", "use": "@vercel/node" }
   ],
   "routes": [
@@ -24,6 +26,8 @@
     { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/icon-192.png", "dest": "/icon-192.png" },
     { "src": "/icon-512.png", "dest": "/icon-512.png" },
+    { "src": "/assets/logo-full.png", "dest": "/assets/logo-full.png" },
+    { "src": "/assets/logo-mark.png", "dest": "/assets/logo-mark.png" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
