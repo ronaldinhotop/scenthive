@@ -49,7 +49,7 @@ const BRAND_SITES = {
   'ds durga':         q=>`https://www.dsdurga.com/search?q=${q}`,
   'orto parisi':      q=>`https://www.ortoparisi.com/search?q=${q}`,
   'nasomatto':        q=>`https://www.nasomatto.com/search?q=${q}`,
-  'juliette has a gun': q=>`https://www.juliettehasa gun.com/en/search?q=${q}`,
+  'juliette has a gun': q=>`https://www.juliettehasagun.com/en/search?q=${q}`,
   'vilhelm parfumerie': q=>`https://www.vilhelmparfumerie.com/search?q=${q}`,
   'maison francis kurkdjian': q=>`https://www.maisonfk.com/en/search?q=${q}`,
   'mfk':              q=>`https://www.maisonfk.com/en/search?q=${q}`,
@@ -422,8 +422,10 @@ function setAuthMode(mode) {
   document.getElementById('tab-signin').classList.toggle('active', mode === 'signin');
   document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
   const isSignup = mode === 'signup';
-  document.getElementById('auth-name').style.display = isSignup ? 'block' : 'none';
-  document.getElementById('auth-country').style.display = isSignup ? 'block' : 'none';
+  const authName = document.getElementById('auth-name');
+  const authCountry = document.getElementById('auth-country');
+  if (authName) authName.style.display = isSignup ? 'block' : 'none';
+  if (authCountry) authCountry.style.display = isSignup ? 'block' : 'none';
   document.getElementById('auth-btn').textContent = isSignup ? 'Create account' : 'Sign in';
   document.getElementById('auth-msg').textContent = '';
 }
@@ -438,7 +440,7 @@ async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const name = document.getElementById('auth-name').value.trim();
-  const country = document.getElementById('auth-country').value || 'NO';
+  const country = document.getElementById('auth-country')?.value || 'NO';
   const btn = document.getElementById('auth-btn');
   if (!email || !password) { setMsg('Please fill in all fields.', 'error'); return; }
   btn.disabled = true;
