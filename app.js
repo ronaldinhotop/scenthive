@@ -628,11 +628,12 @@ async function renderHome() {
     shelfYours.innerHTML = unique.map(e => {
       const key = 'yo' + Math.random().toString(36).slice(2,7);
       fragStore[key] = { name: e.fragrance_name, house: e.house, image_url: e.image_url };
+      const mood = buildMoodPoster(fragStore[key]);
       const nm = escapeHtml(e.fragrance_name || '');
       const hs = escapeHtml(e.house || '');
       const imgHtml = e.image_url ? makeImg(e.image_url, nm) : '<div class="poster-card-emoji">🏺</div>';
       return '<div class="poster-card" data-key="' + key + '">' +
-        '<div class="poster-card-img">' + imgHtml +
+        '<div class="poster-card-img">' + mood.html + imgHtml +
         '<div class="poster-card-info"><div class="poster-card-name">' + nm + '</div><div class="poster-card-house">' + hs + '</div></div>' +
         '</div></div>';
     }).join('');
@@ -1064,11 +1065,12 @@ async function loadPopularShelf() {
       const cards = sorted.map(f => {
         const key = 'pop' + Math.random().toString(36).slice(2, 7);
         fragStore[key] = { name: f.fragrance_name, house: f.house, image_url: f.image_url, fragella_id: f.fragella_id };
+        const mood = buildMoodPoster(fragStore[key]);
         const img = f.image_url ? makeImg(f.image_url, f.fragrance_name) : '';
         const nm = escapeHtml(f.fragrance_name);
         const hs = escapeHtml(f.house || '');
         return '<div class="poster-card" data-key="' + key + '">' +
-          '<div class="poster-card-img">' + (img || '<div class="poster-card-emoji">🏺</div>') +
+          '<div class="poster-card-img">' + mood.html + (img || '<div class="poster-card-emoji">🏺</div>') +
           '<div class="poster-card-info">' +
           '<div class="poster-card-name">' + nm + '</div>' +
           '<div class="poster-card-house">' + hs + '</div>' +
@@ -1120,6 +1122,7 @@ function buildPosterCard(f) {
   fragStore[key] = f;
   const safeName = escapeHtml(f.name || '');
   const safeHouse = escapeHtml(f.house || '');
+  const mood = buildMoodPoster(f);
   const img = f.image_url
     ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" loading="lazy" onerror="this.style.display='none';var e=document.createElement('div');e.className='poster-card-emoji';e.textContent='🏺';this.parentNode.insertBefore(e,this);">`
     : '<div class="poster-card-emoji">🏺</div>';
@@ -1130,13 +1133,84 @@ function buildPosterCard(f) {
     </div>`;
   return `
     <div class="poster-card" data-key="${key}">
-      <div class="poster-card-img">${img}${actions}
+      <div class="poster-card-img">${mood.html}${img}${actions}
         <div class="poster-card-info">
           <div class="poster-card-name">${safeName}</div>
           <div class="poster-card-house">${safeHouse}${f.launch_year ? ' · ' + f.launch_year : ''}</div>
         </div>
       </div>
     </div>`;
+}
+
+function buildMoodPoster(f) {
+  const tokens = collectMoodTokens(f);
+  const mood = pickMood(tokens);
+  const seed = hashText((f.name || '') + '|' + (f.house || ''));
+  const accent = mood.accents[seed % mood.accents.length];
+  const angle = 130 + (seed % 55);
+  const x1 = 18 + (seed % 44);
+  const y1 = 14 + ((seed >> 3) % 38);
+  const x2 = 62 + ((seed >> 5) % 28);
+  const y2 = 54 + ((seed >> 7) % 28);
+  const style = [
+    `--mood-a:${mood.colors[0]}`,
+    `--mood-b:${mood.colors[1]}`,
+    `--mood-c:${mood.colors[2]}`,
+    `--mood-accent:${accent}`,
+    `--mood-angle:${angle}deg`,
+    `--mood-x1:${x1}%`,
+    `--mood-y1:${y1}%`,
+    `--mood-x2:${x2}%`,
+    `--mood-y2:${y2}%`
+  ].join(';');
+  return {
+    key: mood.key,
+    label: mood.label,
+    html: `<div class="mood-poster mood-${mood.key}" style="${escapeAttr(style)}" aria-hidden="true"><span>${escapeHtml(mood.label)}</span></div>`
+  };
+}
+
+function collectMoodTokens(f) {
+  const values = [
+    f.family,
+    f.gender,
+    ...(Array.isArray(f.accords) ? f.accords : []),
+    ...(Array.isArray(f.notes_top) ? f.notes_top : []),
+    ...(Array.isArray(f.notes_heart) ? f.notes_heart : []),
+    ...(Array.isArray(f.notes_base) ? f.notes_base : []),
+    ...(Array.isArray(f['Top Notes']) ? f['Top Notes'] : []),
+    ...(Array.isArray(f['Middle Notes']) ? f['Middle Notes'] : []),
+    ...(Array.isArray(f['Base Notes']) ? f['Base Notes'] : []),
+    ...(Array.isArray(f['General Notes']) ? f['General Notes'] : [])
+  ];
+  return values.map(v => typeof v === 'string' ? v : (v?.name || '')).join(' ').toLowerCase();
+}
+
+function pickMood(tokens) {
+  const moods = [
+    { key:'marine', label:'Marine air', match:['marine','aquatic','ozonic','ocean','sea','water','salt'], colors:['#10283d','#256b82','#d8f5ef'], accents:['#7dd3fc','#5eead4','#bff8ea'] },
+    { key:'forest', label:'Forest shade', match:['woody','cedar','sandalwood','vetiver','pine','conifer','oakmoss','green','herbal'], colors:['#08150f','#254232','#d8b66a'], accents:['#7faa62','#c5a457','#9fcf8a'] },
+    { key:'citrus', label:'Citrus light', match:['citrus','bergamot','lemon','lime','orange','mandarin','grapefruit','fresh'], colors:['#18210a','#d59a24','#f7e9a4'], accents:['#facc15','#fb923c','#bef264'] },
+    { key:'floral', label:'Petal haze', match:['floral','rose','jasmine','violet','iris','tuberose','white floral','yellow floral','flower'], colors:['#281121','#8f3f68','#f3c6c8'], accents:['#f0abfc','#f9a8d4','#f5d0fe'] },
+    { key:'gourmand', label:'Warm gourmand', match:['vanilla','gourmand','caramel','honey','chocolate','coffee','sweet','tonka','praline','almond'], colors:['#241207','#8b4a20','#f0c777'], accents:['#f59e0b','#fcd34d','#fdba74'] },
+    { key:'smoke', label:'Resin smoke', match:['oud','amber','smoky','incense','tobacco','leather','resin','balsamic','labdanum'], colors:['#0c0908','#3b2420','#c8923d'], accents:['#d97706','#b45309','#fbbf24'] },
+    { key:'spice', label:'Spiced dusk', match:['spicy','warm spicy','fresh spicy','pepper','cinnamon','cardamom','saffron','clove','ginger'], colors:['#160b12','#6f2638','#e3a95a'], accents:['#fb7185','#f97316','#fbbf24'] },
+    { key:'musk', label:'Soft musk', match:['musk','musky','powdery','aldehydic','clean','cotton'], colors:['#14131b','#5d6172','#e7dfcf'], accents:['#cbd5e1','#f5e7c8','#d8b4fe'] }
+  ];
+  const scored = moods.map(m => ({
+    mood: m,
+    score: m.match.reduce((s, token) => s + (tokens.includes(token) ? 1 : 0), 0)
+  })).sort((a, b) => b.score - a.score);
+  return scored[0].score ? scored[0].mood : moods[hashText(tokens || 'scenthive') % moods.length];
+}
+
+function hashText(text) {
+  let h = 2166136261;
+  for (let i = 0; i < String(text).length; i++) {
+    h ^= String(text).charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }
 
 
@@ -1851,17 +1925,18 @@ function openFrag(key) {
   const whenHtml = buildWhenHtml(f);
   const blindBuyHtml = buildBlindBuyAdvisorHtml(f);
   const relationshipHtml = buildFragranceRelationshipHtml(f);
+  const mood = buildMoodPoster(f);
 
   // Performance — community voted
   const perfHtml = '<div class="detail-sec"><div class="detail-label">Performance <span style="font-size:9px;color:var(--grey);font-weight:400">(community voted)</span></div><div id="frag-perf-inner"><div class="pvote-row"><div style="color:var(--grey);font-size:11px">Loading votes…</div></div></div></div>';
 
   document.getElementById('frag-content').innerHTML =
     '<div class="frag-hero">' +
-      '<div class="frag-hero-img">' + (f.image_url ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + safeName + '">' : '<div class="frag-hero-img-emoji">🏺</div>') + '</div>' +
+      '<div class="frag-hero-img">' + mood.html + (f.image_url ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + safeName + '">' : '<div class="frag-hero-img-emoji">🏺</div>') + '</div>' +
       '<div class="frag-hero-body">' +
         '<div class="frag-hero-eyebrow">' + safeHouse + '</div>' +
         '<div class="frag-hero-name">' + safeName + '</div>' +
-        '<div class="frag-hero-meta">' + [f.family, f.oil_type, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' +
+        '<div class="frag-hero-meta">' + [mood.label, f.family, f.oil_type, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' +
         statusBar +
         fragActionsHtml +
       '</div>' +
