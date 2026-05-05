@@ -114,7 +114,7 @@ const COUNTRY_STORES = {
     { name:'Lyko FI',       note:'Fast delivery',    url: q=>`https://www.lyko.fi/fi/haku?query=${q}` },
   ]},
   GB: { label:'United Kingdom', flag:'🇬🇧', stores:[
-    { name:'The Fragrance Shop', note:'UK's largest specialist',   url: q=>`https://www.thefragranceshop.co.uk/search?q=${q}` },
+    { name:'The Fragrance Shop', note:"UK's largest specialist",   url: q=>`https://www.thefragranceshop.co.uk/search?q=${q}` },
     { name:'Selfridges',         note:'Luxury & niche selection',  url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}` },
     { name:'Harvey Nichols',     note:'Premium selection',         url: q=>`https://www.harveynichols.com/brand/all-beauty/?q=${q}` },
   ]},
