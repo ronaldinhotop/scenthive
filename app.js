@@ -1669,6 +1669,55 @@ function buildFragActionsHtml(f, inHive, wornCount) {
   '</div>';
 }
 
+function buildFragranceRelationshipHtml(f) {
+  const entries = diary.filter(e => sameFragName(e.fragrance_name, f.name));
+  const inHive = collection.some(c => sameFragName(c.name, f.name));
+  const inWishlist = wishlist.some(w => sameFragName(w.name, f.name));
+  const latest = entries[0] || null;
+  const reviews = entries.filter(e => e.notes);
+  const avgRating = entries.length
+    ? (entries.reduce((s, e) => s + (Number(e.rating) || 0), 0) / entries.length)
+    : 0;
+  const rounded = Math.max(0, Math.min(5, Math.round(avgRating)));
+  const stars = avgRating
+    ? '★'.repeat(rounded) + '<span style="color:var(--grey2)">' + '★'.repeat(5 - rounded) + '</span>'
+    : '<span style="color:var(--grey)">Not rated yet</span>';
+  const lastDate = latest?.worn_at
+    ? new Date(latest.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '';
+  const latestReview = reviews[0];
+  const stateText = entries.length
+    ? `${entries.length} wear${entries.length === 1 ? '' : 's'} logged${lastDate ? ' · last ' + lastDate : ''}`
+    : 'No wears logged yet';
+
+  return '<div class="detail-sec fragrance-relationship">' +
+    '<div class="rel-head">' +
+      '<div>' +
+        '<div class="detail-label">Your relationship</div>' +
+        '<div class="rel-title">' + (entries.length ? 'Part of your scent diary' : 'Start your history with this scent') + '</div>' +
+      '</div>' +
+      '<div class="rel-score"><span>' + (avgRating ? avgRating.toFixed(1) : '—') + '</span><small>avg</small></div>' +
+    '</div>' +
+    '<div class="rel-stats">' +
+      '<div><span>Status</span><strong>' + (inHive ? 'In hive' : inWishlist ? 'Want to try' : 'Untracked') + '</strong></div>' +
+      '<div><span>Wears</span><strong>' + entries.length + '</strong></div>' +
+      '<div><span>Rating</span><strong>' + stars + '</strong></div>' +
+    '</div>' +
+    '<div class="rel-state">' + escapeHtml(stateText) + '</div>' +
+    (latestReview
+      ? '<button class="rel-review-card" data-entry-id="' + escapeAttr(String(latestReview.id || '')) + '">' +
+          '<div class="rel-review-kicker">Latest review</div>' +
+          '<div class="rel-review-text">"' + escapeHtml(latestReview.notes || '') + '"</div>' +
+        '</button>'
+      : '<div class="rel-empty-review">Log a wear with a note to create your first review for this fragrance.</div>') +
+    '<div class="rel-actions">' +
+      '<button class="rel-action" data-rel-act="log">Write review</button>' +
+      (inHive ? '<button class="rel-action muted" data-rel-act="hive">In hive</button>' : '<button class="rel-action" data-rel-act="hive">Add to hive</button>') +
+      (inWishlist ? '<button class="rel-action muted" data-rel-act="wish">On wishlist</button>' : '<button class="rel-action" data-rel-act="wish">Want to try</button>') +
+    '</div>' +
+  '</div>';
+}
+
 function buildWhenHtml(f) {
   const occasionChips = getFamilyOccasions(f.family)
     .map(o => '<span class="fd-when-chip">' + o + '</span>')
@@ -1801,6 +1850,7 @@ function openFrag(key) {
     : '';
   const whenHtml = buildWhenHtml(f);
   const blindBuyHtml = buildBlindBuyAdvisorHtml(f);
+  const relationshipHtml = buildFragranceRelationshipHtml(f);
 
   // Performance — community voted
   const perfHtml = '<div class="detail-sec"><div class="detail-label">Performance <span style="font-size:9px;color:var(--grey);font-weight:400">(community voted)</span></div><div id="frag-perf-inner"><div class="pvote-row"><div style="color:var(--grey);font-size:11px">Loading votes…</div></div></div></div>';
@@ -1823,6 +1873,7 @@ function openFrag(key) {
         (f.price_range ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.price_range) + '</span><span class="frag-stat-key">Price</span></div>' : '') +
         (f.oil_type ? '<div class="frag-stat-cell"><span class="frag-stat-val">' + escapeHtml(f.oil_type) + '</span><span class="frag-stat-key">Type</span></div>' : '') +
       '</div>' : '') +
+    relationshipHtml +
     blindBuyHtml +
     descHtml +
     whenHtml +
@@ -1859,6 +1910,26 @@ function openFrag(key) {
         quickAdd(name, house, b.getAttribute('data-img'), b.getAttribute('data-fid'));
       }
       else if (act === 'wish') addToWishlist({ name, house, image_url: b.getAttribute('data-img'), fragella_id: b.getAttribute('data-fid') });
+    });
+  });
+  document.querySelectorAll('#frag-content .rel-action').forEach(b => {
+    b.addEventListener('click', () => {
+      const act = b.getAttribute('data-rel-act');
+      if (act === 'log') prefillLog(f.name || '', f.house || '', f.image_url || null);
+      else if (act === 'hive') {
+        if (collection.some(c => sameFragName(c.name, f.name))) { toast('Already in your hive'); return; }
+        quickAdd(f.name || '', f.house || '', f.image_url || null, f.fragella_id || null);
+      } else if (act === 'wish') {
+        if (wishlist.some(w => sameFragName(w.name, f.name))) { toast('Already on your wishlist'); return; }
+        addToWishlist(f);
+      }
+    });
+  });
+  document.querySelectorAll('#frag-content .rel-review-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.getAttribute('data-entry-id');
+      const entry = diary.find(e => String(e.id || '') === String(id));
+      if (entry) openEntrySheet(entry);
     });
   });
 

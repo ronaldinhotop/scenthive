@@ -2929,6 +2929,25 @@ if (noseCtaSub && diary.length >= 3) {
 - [ ] Home CTA strip only appears when user has ≥ 3 diary entries.
 - [ ] No regressions on existing AI RECS flow or other screens.
 
+---
+
+### TASK 19 — Fragrance Relationship Layer
+**Status:** ✅ DONE
+
+**Why:** ScentHive is the Letterboxd of fragrances. Fragrance detail should lead with the user's relationship to the scent, not only database/product facts.
+
+**What shipped:** A `Your relationship` section on fragrance detail.
+
+**Files changed:** `app.js`, `styles.css`
+
+**Behavior:**
+- Adds a relationship card directly below fragrance stats and above Blind Buy Advisor.
+- Shows status (`In hive`, `Want to try`, or `Untracked`), wear count, average rating, last worn date, and latest review.
+- Latest review opens the existing diary entry sheet.
+- Provides actions for `Write review`, `Add to hive`, and `Want to try`.
+- Reuses existing diary, collection, wishlist, log, hive, wishlist, and entry-sheet flows.
+- Keeps buying/Pro advisor below the diary relationship layer, so the product remains diary-first.
+
 
 ## Workflow
 
