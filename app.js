@@ -101,26 +101,15 @@ function getUserCountry() {
   return (user?.user_metadata?.country) || localStorage.getItem('sh_country') || 'NO';
 }
 
-// Open external links safely — handles iOS standalone PWA where target="_blank" is silently ignored
-function openExternal(e, el) {
-  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-  if (isStandalone) {
-    e.preventDefault();
-    const w = window.open(el.href, '_blank');
-    if (!w) window.location.href = el.href;
-  }
-  // In regular browser: let the native <a href target="_blank"> handle it
-}
-
 function buildBuySection(buyQ) {
   const code = getUserCountry();
   const market = COUNTRY_STORES[code] || COUNTRY_STORES['OTHER'];
   const card = (flag, name, note, url) =>
-    `<a class="buy-card" href="${url}" target="_blank" rel="noopener noreferrer" onclick="openExternal(event,this)">` +
+    `<div class="buy-card" data-buy="${url.replace(/"/g,'&quot;')}" role="link" tabindex="0">` +
       `<div class="buy-card-flag">${flag}</div>` +
       `<div class="buy-card-name">${name}</div>` +
       `<div class="buy-card-note">${note}</div>` +
-    `</a>`;
+    `</div>`;
   const localHtml = market.stores.length
     ? `<div class="buy-section-label">${market.flag} ${market.label}</div><div class="buy-grid">` +
         market.stores.map(s => card(market.flag, s.name, s.note, s.url(buyQ))).join('') +
@@ -1637,7 +1626,6 @@ function openFrag(key) {
       else if (act === 'wish') addToWishlist({ name, house, image_url: b.getAttribute('data-img'), fragella_id: b.getAttribute('data-fid') });
     });
   });
-  // buy-card links are <a href> elements — no JS handler needed
 
   showScreen('frag');
   if (f.name) loadFragReviews(f.name);
@@ -3704,6 +3692,24 @@ function wireEvents() {
   // Wishlist search
   const wls = document.getElementById('wishlist-search');
   if (wls) wls.addEventListener('input', e => onWishlistSearch(e.target.value));
+
+  // Buy-card delegation — opens external store links reliably on all platforms
+  document.addEventListener('click', function(e) {
+    const card = e.target.closest('[data-buy]');
+    if (!card) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const url = card.getAttribute('data-buy');
+    if (!url) return;
+    // iOS standalone: location.href routes external URLs to Safari, keeping PWA open
+    if (window.navigator.standalone) {
+      window.location.href = url;
+    } else {
+      // Regular browser / Android PWA
+      const w = window.open(url, '_blank', 'noopener,noreferrer');
+      if (!w) window.location.href = url; // popup blocked fallback
+    }
+  });
 
   // Poster card quick-action buttons (global delegation)
   document.addEventListener('click', function(e) {
