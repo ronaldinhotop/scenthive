@@ -2948,6 +2948,25 @@ if (noseCtaSub && diary.length >= 3) {
 - Reuses existing diary, collection, wishlist, log, hive, wishlist, and entry-sheet flows.
 - Keeps buying/Pro advisor below the diary relationship layer, so the product remains diary-first.
 
+---
+
+### TASK 20 — Profile Taste Page Shelves
+**Status:** ✅ DONE
+
+**Why:** If ScentHive is the Letterboxd of fragrances, the profile should feel like a shareable taste page, not only account settings.
+
+**What shipped:** Top rated and most worn shelves, plus upgraded review cards.
+
+**Files changed:** `index.html`, `app.js`, `styles.css`
+
+**Behavior:**
+- Adds `Top rated` poster shelf on Profile.
+- Adds `Most worn` poster shelf on Profile.
+- Aggregates diary entries by fragrance to calculate average rating and wear count.
+- Poster cards open fragrance detail.
+- Recent reviews now render as cleaner review cards and open the existing diary entry sheet.
+- Empty states encourage rating/logging instead of showing blank space.
+
 
 ## Workflow
 

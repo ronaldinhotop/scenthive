@@ -2453,6 +2453,81 @@ function renderProfileTasteIdentity() {
     </div>`;
 }
 
+function profileEntryKey(e) {
+  return ((e.fragrance_name || '') + '||' + (e.house || '')).toLowerCase();
+}
+
+function openProfileFragFromEntry(entry) {
+  if (!entry) return;
+  const cached = Object.keys(fragStore).find(k => {
+    const f = fragStore[k];
+    return f && sameFragName(f.name, entry.fragrance_name);
+  });
+  if (cached) { openFrag(cached); return; }
+  searchFragella((entry.fragrance_name || '') + (entry.house ? ' ' + entry.house : '')).then(frags => {
+    const key = 'pf' + Math.random().toString(36).slice(2, 8);
+    fragStore[key] = frags?.[0] || { name: entry.fragrance_name, house: entry.house, image_url: entry.image_url };
+    openFrag(key);
+  });
+}
+
+function renderProfilePosterShelves() {
+  const topRatedEl = document.getElementById('profile-top-rated');
+  const mostWornEl = document.getElementById('profile-most-worn');
+  if (!topRatedEl || !mostWornEl) return;
+
+  const byFrag = new Map();
+  diary.forEach(e => {
+    const key = profileEntryKey(e);
+    if (!key.trim()) return;
+    if (!byFrag.has(key)) byFrag.set(key, { entry: e, count: 0, ratingSum: 0, ratingCount: 0 });
+    const item = byFrag.get(key);
+    item.count += 1;
+    if (e.rating) { item.ratingSum += Number(e.rating); item.ratingCount += 1; }
+    if (new Date(e.worn_at || 0) > new Date(item.entry.worn_at || 0)) item.entry = e;
+  });
+
+  const groups = [...byFrag.values()];
+  const topRated = groups
+    .filter(g => g.ratingCount > 0)
+    .map(g => ({ ...g, avg: g.ratingSum / g.ratingCount }))
+    .sort((a, b) => b.avg - a.avg || b.count - a.count)
+    .slice(0, 8);
+  const mostWorn = groups
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  function renderShelf(el, items, metricFn, emptyText) {
+    if (!items.length) {
+      el.innerHTML = `<div class="profile-shelf-empty">${emptyText}</div>`;
+      return;
+    }
+    el.innerHTML = items.map(item => {
+      const e = item.entry;
+      const key = 'ps' + Math.random().toString(36).slice(2, 8);
+      fragStore[key] = { name: e.fragrance_name, house: e.house, image_url: e.image_url, fragella_id: e.fragella_id };
+      const nm = escapeHtml(e.fragrance_name || '');
+      const hs = escapeHtml(e.house || '');
+      const imgHtml = e.image_url ? makeImg(e.image_url, nm) : '<div class="poster-card-emoji">🏺</div>';
+      return '<div class="poster-card" data-key="' + key + '">' +
+        '<div class="poster-card-img">' + imgHtml +
+          '<div class="poster-card-info">' +
+            '<div class="poster-card-name">' + nm + '</div>' +
+            '<div class="poster-card-house">' + hs + '</div>' +
+            '<div class="poster-card-rating">' + metricFn(item) + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    el.querySelectorAll('.poster-card').forEach(card => {
+      card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
+    });
+  }
+
+  renderShelf(topRatedEl, topRated, item => '★ ' + item.avg.toFixed(1), 'Rate fragrances to build your top rated shelf.');
+  renderShelf(mostWornEl, mostWorn, item => item.count + ' wear' + (item.count === 1 ? '' : 's'), 'Log wears to build your most worn shelf.');
+}
+
 // ═══════ PROFILE ═══════
 function renderProfile() {
   // Account info
@@ -2504,28 +2579,37 @@ function renderProfile() {
 
   // Favourites — manual picks stored in user metadata
   renderFavsGrid(user?.user_metadata?.favourites || null);
+  renderProfilePosterShelves();
 
   // Recent reviews — last 3 with notes
   const recentReviews = diary.filter(e => e.notes).slice(0, 3);
   const reviewsEl = document.getElementById('profile-reviews');
   if (recentReviews.length === 0) {
-    reviewsEl.innerHTML = `<div style="padding:0 20px;color:var(--grey);font-size:12px;font-style:italic">No reviews yet — log a fragrance and add a note.</div>`;
+    reviewsEl.innerHTML = `<div class="profile-shelf-empty">No reviews yet — log a fragrance and add a note.</div>`;
   } else {
     reviewsEl.innerHTML = recentReviews.map(r => {
       const d = new Date(r.worn_at);
       const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
       const stars = r.rating ? '★'.repeat(r.rating) + '<span style="color:var(--grey2)">' + '★'.repeat(5 - r.rating) + '</span>' : '';
       return `
-        <div style="padding:14px 20px;border-bottom:1px solid var(--border2)">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-            <div style="font-family:'Playfair Display',serif;font-size:15px;font-style:italic">${escapeHtml(r.fragrance_name)}</div>
-            ${stars ? `<div style="font-size:11px;color:var(--gold)">${stars}</div>` : ''}
+        <button class="profile-review-card" data-entry-id="${escapeAttr(String(r.id || ''))}">
+          <div class="profile-review-top">
+            <div>
+              <div class="profile-review-name">${escapeHtml(r.fragrance_name)}</div>
+              <div class="profile-review-house">${escapeHtml(r.house || '')} · ${dateStr}</div>
+            </div>
+            ${stars ? `<div class="profile-review-stars">${stars}</div>` : ''}
           </div>
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">${escapeHtml(r.house || '')} · ${dateStr}</div>
-          <div style="font-size:12px;color:var(--white2);font-style:italic;line-height:1.55">"${escapeHtml(r.notes)}"</div>
-        </div>
+          <div class="profile-review-text">"${escapeHtml(r.notes)}"</div>
+        </button>
       `;
     }).join('');
+    reviewsEl.querySelectorAll('.profile-review-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const entry = diary.find(e => String(e.id || '') === card.getAttribute('data-entry-id'));
+        if (entry) openEntrySheet(entry);
+      });
+    });
   }
 
   // Top houses
