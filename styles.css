@@ -47,7 +47,9 @@ img{max-width:100%;display:block}
 .auth-tabs{display:flex;margin-bottom:24px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
 .auth-tab{flex:1;padding:11px;color:var(--grey);font-size:13px;cursor:pointer;text-align:center}
 .auth-tab.active{background:var(--gold);color:var(--bg);font-weight:500}
-.auth-input{width:100%;padding:13px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:10px;-webkit-appearance:none}
+.auth-input{width:100%;padding:13px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;font-size:14px;margin-bottom:10px;-webkit-appearance:none;color:var(--white)}
+select.auth-input,select.modal-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+select.auth-input option,select.modal-input option{background:var(--bg2);color:var(--white)}
 .auth-input:focus{border-color:var(--gold)}
 .auth-input::placeholder{color:var(--grey)}
 .auth-btn{width:100%;padding:14px;background:var(--gold);color:var(--bg);font-weight:500;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border-radius:10px;margin-top:4px}

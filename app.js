@@ -18,6 +18,116 @@ let curScreen = 'auth';
 let searchTimer = null;
 let fragStore = {};
 
+// ═══════ COUNTRY STORES ═══════
+const COUNTRY_STORES = {
+  NO: { label:'Norway', flag:'🇳🇴', stores:[
+    { name:'Notino',     note:'Free ship over 299 kr', url: q=>`https://www.notino.no/search/?phrase=${q}` },
+    { name:'Kicks',      note:'Same-day delivery',     url: q=>`https://www.kicks.no/search?q=${q}` },
+    { name:'Parfyme.no', note:'Norwegian specialist',  url: q=>`https://www.parfyme.no/?s=${q}` },
+  ]},
+  SE: { label:'Sweden', flag:'🇸🇪', stores:[
+    { name:'Notino',   note:'Fast delivery',     url: q=>`https://www.notino.se/search/?phrase=${q}` },
+    { name:'Kicks',    note:'Beauty specialist', url: q=>`https://www.kicks.se/search?q=${q}` },
+    { name:'Lyko',     note:'Wide selection',    url: q=>`https://www.lyko.se/sv/sok?query=${q}` },
+  ]},
+  DK: { label:'Denmark', flag:'🇩🇰', stores:[
+    { name:'Notino', note:'Fast delivery',     url: q=>`https://www.notino.dk/search/?phrase=${q}` },
+    { name:'Matas',  note:'Danish beauty chain', url: q=>`https://www.matas.dk/search?query=${q}` },
+  ]},
+  FI: { label:'Finland', flag:'🇫🇮', stores:[
+    { name:'Notino FI', note:'Fast delivery', url: q=>`https://www.notino.fi/search/?phrase=${q}` },
+    { name:'Sokos',     note:'Finnish chain', url: q=>`https://www.s-kaupat.fi/search?q=${q}` },
+  ]},
+  GB: { label:'United Kingdom', flag:'🇬🇧', stores:[
+    { name:'The Fragrance Shop', note:'UK specialist',   url: q=>`https://www.thefragranceshop.co.uk/search?q=${q}` },
+    { name:'Notino UK',          note:'Fast delivery',   url: q=>`https://www.notino.co.uk/search/?phrase=${q}` },
+    { name:'Selfridges',         note:'Luxury selection',url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}` },
+  ]},
+  US: { label:'United States', flag:'🇺🇸', stores:[
+    { name:'Sephora',   note:'Free ship $50+', url: q=>`https://www.sephora.com/search?keyword=${q}` },
+    { name:'Ulta',      note:'Beauty specialist', url: q=>`https://www.ulta.com/search?searchPhrase=${q}` },
+    { name:'Nordstrom', note:'Free shipping',  url: q=>`https://www.nordstrom.com/sr?origin=keywordsearch&keyword=${q}` },
+  ]},
+  CA: { label:'Canada', flag:'🇨🇦', stores:[
+    { name:"Sephora CA",    note:'Free ship $50+',   url: q=>`https://www.sephora.com/ca/en/search?keyword=${q}` },
+    { name:"Hudson's Bay",  note:'Department store', url: q=>`https://www.thebay.com/search?q=${q}` },
+  ]},
+  AU: { label:'Australia', flag:'🇦🇺', stores:[
+    { name:'Scentstore', note:'AUS specialist', url: q=>`https://www.scentstore.com.au/search?q=${q}` },
+    { name:'Myer',       note:'Department store', url: q=>`https://www.myer.com.au/search?query=${q}` },
+  ]},
+  DE: { label:'Germany', flag:'🇩🇪', stores:[
+    { name:'Douglas',  note:'Beauty chain',     url: q=>`https://www.douglas.de/de/search?q=${q}` },
+    { name:'Notino DE',note:'Fast delivery',    url: q=>`https://www.notino.de/search/?phrase=${q}` },
+    { name:'Flaconi',  note:'Online specialist',url: q=>`https://www.flaconi.de/search/?q=${q}` },
+  ]},
+  AT: { label:'Austria', flag:'🇦🇹', stores:[
+    { name:'Douglas AT', note:'Beauty chain',  url: q=>`https://www.douglas.at/de/search?q=${q}` },
+    { name:'Notino AT',  note:'Fast delivery', url: q=>`https://www.notino.at/search/?phrase=${q}` },
+  ]},
+  CH: { label:'Switzerland', flag:'🇨🇭', stores:[
+    { name:'Douglas CH', note:'Beauty chain',  url: q=>`https://www.douglas.ch/de/search?q=${q}` },
+    { name:'Notino CH',  note:'Fast delivery', url: q=>`https://www.notino.ch/search/?phrase=${q}` },
+  ]},
+  FR: { label:'France', flag:'🇫🇷', stores:[
+    { name:'Sephora',   note:'Click & collect', url: q=>`https://www.sephora.fr/search/?q=${q}` },
+    { name:'Nocibé',    note:'French specialist',url: q=>`https://www.nocibe.fr/search?q=${q}` },
+    { name:'Notino FR', note:'Fast delivery',    url: q=>`https://www.notino.fr/search/?phrase=${q}` },
+  ]},
+  NL: { label:'Netherlands', flag:'🇳🇱', stores:[
+    { name:'Notino NL', note:'Fast delivery',   url: q=>`https://www.notino.nl/search/?phrase=${q}` },
+    { name:'Bol.com',   note:'Dutch marketplace',url: q=>`https://www.bol.com/nl/nl/s/?searchtext=${q}` },
+  ]},
+  BE: { label:'Belgium', flag:'🇧🇪', stores:[
+    { name:'Notino BE', note:'Fast delivery',  url: q=>`https://www.notino.be/search/?phrase=${q}` },
+    { name:'ICI Paris XL', note:'Beauty chain',url: q=>`https://www.iciparisxl.be/search?q=${q}` },
+  ]},
+  IT: { label:'Italy', flag:'🇮🇹', stores:[
+    { name:'Notino IT', note:'Fast delivery', url: q=>`https://www.notino.it/search/?phrase=${q}` },
+    { name:'Douglas IT',note:'Beauty chain',  url: q=>`https://www.douglas.it/it/search?q=${q}` },
+  ]},
+  ES: { label:'Spain', flag:'🇪🇸', stores:[
+    { name:'Notino ES', note:'Fast delivery', url: q=>`https://www.notino.es/search/?phrase=${q}` },
+    { name:'Douglas ES',note:'Beauty chain',  url: q=>`https://www.douglas.es/es/search?q=${q}` },
+  ]},
+  PL: { label:'Poland', flag:'🇵🇱', stores:[
+    { name:'Notino PL', note:'Fast delivery', url: q=>`https://www.notino.pl/search/?phrase=${q}` },
+    { name:'Douglas PL',note:'Beauty chain',  url: q=>`https://www.douglas.pl/pl/search?q=${q}` },
+  ]},
+  OTHER: { label:'International', flag:'🌍', stores:[] },
+};
+
+function getUserCountry() {
+  return (user?.user_metadata?.country) || localStorage.getItem('sh_country') || 'NO';
+}
+
+function buildBuySection(buyQ) {
+  const code = getUserCountry();
+  const market = COUNTRY_STORES[code] || COUNTRY_STORES['OTHER'];
+  const localHtml = market.stores.length
+    ? `<div class="buy-section-label">${market.flag} ${market.label}</div><div class="buy-grid">` +
+        market.stores.map(s =>
+          `<div class="buy-card" data-url="${s.url(buyQ)}"><div class="buy-card-flag">${market.flag}</div><div class="buy-card-name">${s.name}</div><div class="buy-card-note">${s.note}</div></div>`
+        ).join('') +
+      '</div>'
+    : '';
+  const samplesHtml =
+    '<div class="buy-section-label" style="margin-top:14px">Samples &amp; decants</div>' +
+    '<div class="buy-grid">' +
+      `<div class="buy-card" data-url="https://www.luckyscent.com/search?q=${buyQ}"><div class="buy-card-flag">🇺🇸</div><div class="buy-card-name">LuckyScent</div><div class="buy-card-note">Authorised samples</div></div>` +
+      `<div class="buy-card" data-url="https://www.theperfumedcourt.com/search.aspx?q=${buyQ}"><div class="buy-card-flag">🇺🇸</div><div class="buy-card-name">Perfumed Court</div><div class="buy-card-note">Trusted decants</div></div>` +
+    '</div>';
+  const communityHtml =
+    '<div class="buy-section-label" style="margin-top:14px">Community &amp; info</div>' +
+    '<div class="buy-grid">' +
+      `<div class="buy-card" data-url="https://www.fragrantica.com/search/?query=${buyQ}"><div class="buy-card-flag">🌐</div><div class="buy-card-name">Fragrantica</div><div class="buy-card-note">Community ratings</div></div>` +
+      `<div class="buy-card" data-url="https://www.google.com/search?tbm=shop&q=${buyQ}"><div class="buy-card-flag">🔍</div><div class="buy-card-name">Google Shopping</div><div class="buy-card-note">Compare all prices</div></div>` +
+    '</div>';
+  return '<div class="detail-sec"><div class="detail-label">Where to buy</div>' +
+    localHtml + samplesHtml + communityHtml +
+  '</div><div style="height:40px"></div>';
+}
+
 // ═══════ NAV BUILDER ═══════
 function buildNav(active) {
   const tabs = [
@@ -92,8 +202,10 @@ function setAuthMode(mode) {
   authMode = mode;
   document.getElementById('tab-signin').classList.toggle('active', mode === 'signin');
   document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
-  document.getElementById('auth-name').style.display = mode === 'signup' ? 'block' : 'none';
-  document.getElementById('auth-btn').textContent = mode === 'signup' ? 'Create account' : 'Sign in';
+  const isSignup = mode === 'signup';
+  document.getElementById('auth-name').style.display = isSignup ? 'block' : 'none';
+  document.getElementById('auth-country').style.display = isSignup ? 'block' : 'none';
+  document.getElementById('auth-btn').textContent = isSignup ? 'Create account' : 'Sign in';
   document.getElementById('auth-msg').textContent = '';
 }
 
@@ -107,17 +219,19 @@ async function handleAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const name = document.getElementById('auth-name').value.trim();
+  const country = document.getElementById('auth-country').value || 'NO';
   const btn = document.getElementById('auth-btn');
   if (!email || !password) { setMsg('Please fill in all fields.', 'error'); return; }
   btn.disabled = true;
   btn.textContent = 'Please wait…';
   try {
     if (authMode === 'signup') {
-      const { error } = await sb.auth.signUp({ email, password, options: { data: { name: name || email.split('@')[0] } } });
+      const { error } = await sb.auth.signUp({ email, password, options: { data: { name: name || email.split('@')[0], country } } });
       if (error) throw error;
       const { data, error: e2 } = await sb.auth.signInWithPassword({ email, password });
       if (!e2 && data.user) {
         user = data.user;
+        localStorage.setItem('sh_country', country);
         await initApp();
         setTimeout(() => toast('🐝 Welcome to the hive! Start by logging what you\'re wearing today.'), 800);
       } else setMsg('Account created! Please sign in.', 'success');
@@ -125,6 +239,7 @@ async function handleAuth() {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
       user = data.user;
+      if (user.user_metadata?.country) localStorage.setItem('sh_country', user.user_metadata.country);
       await initApp();
     }
   } catch (e) {
@@ -1491,25 +1606,7 @@ function openFrag(key) {
       '<div class="detail-label">You might also like</div>' +
       '<div class="poster-row"><div class="loading-row"><div class="spinner"></div></div></div>' +
     '</div>' +
-    '<div class="detail-sec"><div class="detail-label">Where to buy</div>' +
-      '<div class="buy-section-label">Norway</div>' +
-      '<div class="buy-grid">' +
-        '<div class="buy-card" data-url="https://www.notino.no/search/?phrase=' + buyQ + '"><div class="buy-card-flag">🇳🇴</div><div class="buy-card-name">Notino</div><div class="buy-card-note">Free ship over 299 kr</div></div>' +
-        '<div class="buy-card" data-url="https://www.kicks.no/search?q=' + buyQ + '"><div class="buy-card-flag">🇳🇴</div><div class="buy-card-name">Kicks</div><div class="buy-card-note">Same-day delivery</div></div>' +
-        '<div class="buy-card" data-url="https://www.parfyme.no/?s=' + buyQ + '"><div class="buy-card-flag">🇳🇴</div><div class="buy-card-name">Parfyme.no</div><div class="buy-card-note">Norwegian specialist</div></div>' +
-        '<div class="buy-card" data-url="https://www.parfumo.com/search?q=' + buyQ + '"><div class="buy-card-flag">🇩🇪</div><div class="buy-card-name">Parfumo</div><div class="buy-card-note">Community prices</div></div>' +
-      '</div>' +
-      '<div class="buy-section-label" style="margin-top:14px">Samples &amp; decants</div>' +
-      '<div class="buy-grid">' +
-        '<div class="buy-card" data-url="https://www.luckyscent.com/search?q=' + buyQ + '"><div class="buy-card-flag">🇺🇸</div><div class="buy-card-name">LuckyScent</div><div class="buy-card-note">Authorised samples</div></div>' +
-        '<div class="buy-card" data-url="https://www.theperfumedcourt.com/search.aspx?q=' + buyQ + '"><div class="buy-card-flag">🇺🇸</div><div class="buy-card-name">Perfumed Court</div><div class="buy-card-note">Trusted decants</div></div>' +
-      '</div>' +
-      '<div class="buy-section-label" style="margin-top:14px">Community &amp; info</div>' +
-      '<div class="buy-grid">' +
-        '<div class="buy-card" data-url="https://www.fragrantica.com/search/?query=' + buyQ + '"><div class="buy-card-flag">🌐</div><div class="buy-card-name">Fragrantica</div><div class="buy-card-note">Community ratings</div></div>' +
-        '<div class="buy-card" data-url="https://www.google.com/search?tbm=shop&q=' + buyQ + '"><div class="buy-card-flag">🔍</div><div class="buy-card-name">Google Shopping</div><div class="buy-card-note">Compare all prices</div></div>' +
-      '</div>' +
-    '</div><div style="height:40px"></div>';
+    buildBuySection(buyQ);
 
   // Wire buttons
   document.querySelectorAll('#frag-content .frag-btn').forEach(b => {
@@ -2719,19 +2816,24 @@ function openEditProfile() {
   if (!user) { toast('Sign in to edit your profile'); return; }
   const name = user.user_metadata?.name || user.email?.split('@')[0] || '';
   const bio = user.user_metadata?.bio || '';
+  const country = getUserCountry();
   document.getElementById('edit-display-name').value = name;
   document.getElementById('edit-bio').value = bio;
+  const countryEl = document.getElementById('edit-country');
+  if (countryEl) countryEl.value = country;
   openModal('modal-profile-edit');
 }
 
 async function saveProfileName() {
   const name = document.getElementById('edit-display-name').value.trim();
   const bio = document.getElementById('edit-bio').value.trim();
+  const country = document.getElementById('edit-country')?.value || getUserCountry();
   if (!name) { toast('Please enter a name'); return; }
   try {
-    const { error } = await sb.auth.updateUser({ data: { name, bio } });
+    const { error } = await sb.auth.updateUser({ data: { name, bio, country } });
     if (error) throw error;
-    if (user && user.user_metadata) { user.user_metadata.name = name; user.user_metadata.bio = bio; }
+    if (user && user.user_metadata) { user.user_metadata.name = name; user.user_metadata.bio = bio; user.user_metadata.country = country; }
+    localStorage.setItem('sh_country', country);
     closeModal('modal-profile-edit');
     renderProfile();
     toast('✓ Profile updated');

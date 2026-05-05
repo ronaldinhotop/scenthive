@@ -41,6 +41,27 @@
     <input class="auth-input" id="auth-email" type="email" placeholder="Email" autocomplete="email">
     <input class="auth-input" id="auth-password" type="password" placeholder="Password" autocomplete="current-password">
     <input class="auth-input" id="auth-name" type="text" placeholder="Your name" autocomplete="name" style="display:none">
+    <select class="auth-input" id="auth-country" style="display:none;color:var(--white2)">
+      <option value="" disabled selected>Your country</option>
+      <option value="NO">🇳🇴 Norway</option>
+      <option value="SE">🇸🇪 Sweden</option>
+      <option value="DK">🇩🇰 Denmark</option>
+      <option value="FI">🇫🇮 Finland</option>
+      <option value="GB">🇬🇧 United Kingdom</option>
+      <option value="US">🇺🇸 United States</option>
+      <option value="CA">🇨🇦 Canada</option>
+      <option value="AU">🇦🇺 Australia</option>
+      <option value="DE">🇩🇪 Germany</option>
+      <option value="AT">🇦🇹 Austria</option>
+      <option value="CH">🇨🇭 Switzerland</option>
+      <option value="FR">🇫🇷 France</option>
+      <option value="NL">🇳🇱 Netherlands</option>
+      <option value="BE">🇧🇪 Belgium</option>
+      <option value="IT">🇮🇹 Italy</option>
+      <option value="ES">🇪🇸 Spain</option>
+      <option value="PL">🇵🇱 Poland</option>
+      <option value="OTHER">🌍 Other</option>
+    </select>
     <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Sign in</button>
     <div class="auth-msg" id="auth-msg"></div>
     <button class="auth-skip" onclick="enterAsGuest()">Continue without an account</button>
@@ -754,6 +775,27 @@
     <input class="modal-input" id="edit-display-name" type="text" placeholder="Your name" maxlength="40" autocomplete="name">
     <label class="modal-label">Bio <span style="color:var(--grey);font-size:9px">optional</span></label>
     <textarea class="modal-input" id="edit-bio" placeholder="Two sentences about your nose…" style="height:70px;resize:none;line-height:1.5" maxlength="160"></textarea>
+    <label class="modal-label">Country</label>
+    <select class="modal-input" id="edit-country" style="color:var(--white2)">
+      <option value="NO">🇳🇴 Norway</option>
+      <option value="SE">🇸🇪 Sweden</option>
+      <option value="DK">🇩🇰 Denmark</option>
+      <option value="FI">🇫🇮 Finland</option>
+      <option value="GB">🇬🇧 United Kingdom</option>
+      <option value="US">🇺🇸 United States</option>
+      <option value="CA">🇨🇦 Canada</option>
+      <option value="AU">🇦🇺 Australia</option>
+      <option value="DE">🇩🇪 Germany</option>
+      <option value="AT">🇦🇹 Austria</option>
+      <option value="CH">🇨🇭 Switzerland</option>
+      <option value="FR">🇫🇷 France</option>
+      <option value="NL">🇳🇱 Netherlands</option>
+      <option value="BE">🇧🇪 Belgium</option>
+      <option value="IT">🇮🇹 Italy</option>
+      <option value="ES">🇪🇸 Spain</option>
+      <option value="PL">🇵🇱 Poland</option>
+      <option value="OTHER">🌍 Other</option>
+    </select>
     <button class="modal-submit" onclick="saveProfileName()">Save changes</button>
     <button class="modal-cancel" data-close="modal-profile-edit">Cancel</button>
   </div>
