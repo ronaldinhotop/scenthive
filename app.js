@@ -1166,7 +1166,7 @@ function buildMoodPoster(f) {
   return {
     key: mood.key,
     label: mood.label,
-    html: `<div class="mood-poster mood-${mood.key}" style="${escapeAttr(style)}" aria-hidden="true"><span>${escapeHtml(mood.label)}</span></div>`
+    html: `<div class="mood-poster mood-${mood.key}" style="${escapeAttr(style)}" aria-hidden="true"></div>`
   };
 }
 
@@ -1936,7 +1936,7 @@ function openFrag(key) {
       '<div class="frag-hero-body">' +
         '<div class="frag-hero-eyebrow">' + safeHouse + '</div>' +
         '<div class="frag-hero-name">' + safeName + '</div>' +
-        '<div class="frag-hero-meta">' + [mood.label, f.family, f.oil_type, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' +
+        '<div class="frag-hero-meta">' + [f.family, f.oil_type, f.launch_year, f.gender].filter(Boolean).map(escapeHtml).join(' · ') + '</div>' +
         statusBar +
         fragActionsHtml +
       '</div>' +
