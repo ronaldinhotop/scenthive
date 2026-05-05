@@ -24,6 +24,7 @@ img{max-width:100%;display:block}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;position:sticky;top:0;z-index:100;background:rgba(13,16,24,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2)}
 .logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;display:flex;align-items:center;gap:8px;letter-spacing:-0.02em}
 .logo em{font-style:italic;color:var(--gold);font-weight:500}
+.brand-mark{width:27px;height:27px;object-fit:cover;display:block;flex-shrink:0;border-radius:6px}
 .tbar-btn{width:34px;height:34px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--white2);cursor:pointer}
 .tbar-btn:active{background:var(--bg3)}
 
@@ -41,6 +42,7 @@ img{max-width:100%;display:block}
 #screen-auth{align-items:center;justify-content:center;padding:40px 24px;min-height:100vh;background:radial-gradient(ellipse at top,#1a0d30 0%,var(--bg) 65%)}
 .auth-wrap{width:100%;max-width:360px}
 .auth-logo{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:8px}
+.auth-logo-img{width:min(330px,100%);height:auto;display:block}
 .auth-wordmark{font-family:'Playfair Display',serif;font-size:44px;letter-spacing:-0.03em;line-height:1;text-align:center}
 .auth-wordmark em{font-style:italic;color:var(--gold)}
 .auth-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.16em;text-transform:uppercase;text-align:center;margin-bottom:36px}
@@ -542,6 +544,7 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
     display:flex;align-items:center;gap:9px;letter-spacing:-0.01em;text-decoration:none;color:var(--white);
     flex-shrink:0;
   }
+  .gtnav-logo .brand-mark{width:29px;height:29px}
   .gtnav-logo em{font-style:italic;color:var(--gold)}
   .gtnav-links{display:flex;align-items:center;gap:4px}
   .gtnav-link{
@@ -811,6 +814,7 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 
 /* ═══ SIDEBAR LOGO BRAND ═══ */
 .sidebar-logo{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:28px;padding:0 8px;letter-spacing:-0.01em}
+.sidebar-logo{display:flex;align-items:center;gap:9px}
 .sidebar-logo em{font-style:italic;color:var(--gold)}
 .logo em{color:var(--gold)}
 
