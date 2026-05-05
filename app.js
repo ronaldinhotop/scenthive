@@ -253,6 +253,7 @@ async function updateRightSidebar() {
 async function renderHome() {
   updateHero();
   renderContinueStrip();
+  renderNoseCta();
   renderRecentsShelf();
   renderSimilarRecentShelf();
   renderTasteModule();
@@ -377,6 +378,20 @@ async function renderHome() {
   loadCommunityFeed();
   renderJournalGuides();
   loadArticlesList();
+}
+
+function renderNoseCta() {
+  const strip = document.getElementById('nose-cta-strip');
+  const sub = document.getElementById('nose-cta-sub');
+  if (!strip) return;
+  const show = diary.length >= 3;
+  strip.style.display = show ? '' : 'none';
+  if (show && sub) {
+    const tp = getTasteProfile();
+    sub.textContent = tp
+      ? `Knows your ${tp.name} profile and ${diary.length} logged fragrances.`
+      : `Reads your ${diary.length} logged fragrances before answering.`;
+  }
 }
 
 function renderRecentsShelf() {
@@ -3041,6 +3056,161 @@ function openAI() {
   }
   openModal('modal-ai');
   setTimeout(() => document.getElementById('ai-prompt')?.focus(), 200);
+}
+
+// ── NOSE ADVISOR ────────────────────────────────────────────────────────────
+const NOSE_LIMIT = 3;
+
+function getNoseUsage() {
+  const month = new Date().toISOString().slice(0, 7);
+  try {
+    const stored = JSON.parse(localStorage.getItem('sh_nose_usage') || '{}');
+    if (stored.month !== month) return { month, count: 0 };
+    return { month, count: stored.count || 0 };
+  } catch (e) {
+    return { month, count: 0 };
+  }
+}
+
+function incrementNoseUsage() {
+  const usage = getNoseUsage();
+  usage.count = (usage.count || 0) + 1;
+  try { localStorage.setItem('sh_nose_usage', JSON.stringify(usage)); } catch (e) {}
+}
+
+function buildUserContext() {
+  const diaryCtx = diary.slice(0, 40).map(e => ({
+    name: e.fragrance_name || '',
+    house: e.house || '',
+    rating: e.rating || null,
+    notes: e.notes || ''
+  }));
+  const collectionCtx = collection.map(b => ({ name: b.name || '', house: b.house || '' }));
+  const wishlistCtx = wishlist.map(w => ({ name: w.name || '', house: w.house || '' }));
+  const tp = getTasteProfile();
+  const tasteCtx = tp ? { name: tp.name, tagline: tp.tagline, traits: tp.traits || [] } : null;
+  const families = computeTasteProfile();
+  const topFamilies = Object.entries(families)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .filter(([, v]) => v > 0)
+    .map(([k, v]) => `${k} ${v}%`)
+    .join(', ');
+  return { diary: diaryCtx, collection: collectionCtx, wishlist: wishlistCtx, tasteProfile: tasteCtx, topFamilies };
+}
+
+function updateNoseUsageLabel() {
+  const usage = getNoseUsage();
+  const remaining = Math.max(0, NOSE_LIMIT - usage.count);
+  const label = document.getElementById('nose-usage-label');
+  if (!label) return;
+  label.textContent = remaining > 0
+    ? `${remaining} of ${NOSE_LIMIT} free queries remaining this month`
+    : 'Monthly limit reached — upgrade to Pro for unlimited';
+  label.style.color = remaining > 0 ? 'var(--grey)' : 'var(--gold)';
+}
+
+function openNoseAdvisor() {
+  const ctxLine = document.getElementById('nose-context-line');
+  if (ctxLine) {
+    const parts = [];
+    if (diary.length) parts.push(`${diary.length} logged`);
+    if (collection.length) parts.push(`${collection.length} in collection`);
+    const tp = getTasteProfile();
+    if (tp) parts.push(tp.name);
+    ctxLine.textContent = parts.length
+      ? `Reading your profile — ${parts.join(' · ')}`
+      : 'Log fragrances to get truly personal recommendations.';
+  }
+
+  updateNoseUsageLabel();
+  const result = document.getElementById('nose-result');
+  if (result) {
+    result.innerHTML = '<div class="nose-empty">Ask for a recommendation, a buying decision, a cheaper alternative, or what to sample next.</div>';
+  }
+  const input = document.getElementById('nose-input');
+  if (input) input.value = '';
+  openModal('modal-nose');
+  if (input) setTimeout(() => input.focus(), 250);
+}
+
+function renderNoseLimitReached(result) {
+  result.innerHTML = `
+    <div class="nose-limit">
+      <div class="nose-limit-icon">⬡</div>
+      <div class="nose-limit-title">Monthly limit reached</div>
+      <div class="nose-limit-copy">Upgrade to Pro for unlimited personal recommendations, sample sets, and blind-buy advice.</div>
+      <button onclick="closeModal('modal-nose');openUpgrade()">Preview Pro →</button>
+    </div>`;
+}
+
+async function submitNoseQuery() {
+  const input = document.getElementById('nose-input');
+  const result = document.getElementById('nose-result');
+  const submitBtn = document.getElementById('nose-submit');
+  if (!input || !result || !submitBtn) return;
+
+  const q = input.value.trim();
+  if (!q) return;
+
+  const usage = getNoseUsage();
+  if (usage.count >= NOSE_LIMIT) {
+    renderNoseLimitReached(result);
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = '...';
+  result.innerHTML = '<div class="nose-empty"><div class="spinner" style="margin:0 auto 10px"></div>Reading your fragrance history...</div>';
+
+  try {
+    const ctx = buildUserContext();
+    const res = await fetch(AI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: q,
+        diary: ctx.diary,
+        collection: ctx.collection,
+        wishlist: ctx.wishlist,
+        tasteProfile: ctx.tasteProfile,
+        topFamilies: ctx.topFamilies
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Request failed');
+
+    incrementNoseUsage();
+    updateNoseUsageLabel();
+
+    const recs = Array.isArray(data.recommendations) ? data.recommendations.slice(0, 5) : [];
+    const recsHtml = recs.map(r => `
+      <div class="nose-rec-card">
+        <div class="nose-rec-top">
+          <div>
+            <div class="nose-rec-name">${escapeHtml(r.name || '')}</div>
+            <div class="nose-rec-house">${escapeHtml(r.house || '')}</div>
+          </div>
+          ${r.is_dupe ? '<span class="nose-dupe">DUPE</span>' : ''}
+        </div>
+        <div class="nose-rec-why">${escapeHtml(r.why || '')}</div>
+        <div class="nose-rec-meta">
+          ${(r.notes || []).slice(0, 4).map(n => `<span>${escapeHtml(n)}</span>`).join('')}
+          ${r.occasion ? `<span>${escapeHtml(r.occasion)}</span>` : ''}
+          ${r.price ? `<span>${escapeHtml(r.price)}</span>` : ''}
+        </div>
+      </div>`).join('');
+
+    result.innerHTML = `
+      <div class="nose-intro">${escapeHtml(data.intro || 'Here is what your nose is telling me.')}</div>
+      ${recsHtml || '<div class="nose-empty">No recommendations returned. Try asking in a more specific way.</div>'}`;
+  } catch (err) {
+    result.innerHTML = '<div class="nose-empty">Something went wrong. Try again with a simpler question.</div>';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Ask →';
+  }
 }
 
 let _sampleVibe = 'signature';

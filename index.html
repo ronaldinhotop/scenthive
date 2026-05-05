@@ -53,9 +53,9 @@
     <button class="gtnav-link" data-tab="profile">Profile</button>
   </div>
   <div class="gtnav-actions">
-    <button class="gtnav-ai" onclick="openAI()">
+    <button class="gtnav-ai" onclick="openNoseAdvisor()">
       <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      AI Recs
+      Ask your Nose
     </button>
     <button class="gtnav-log" onclick="openLog()">+ Log</button>
     <button class="gtnav-avatar" id="gtnav-avatar" onclick="goToProfile()">E</button>
@@ -86,9 +86,9 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Log a fragrance
     </div>
-    <div class="sidebar-item" onclick="openAI()" style="margin-top:8px;color:var(--purple-light)">
+    <div class="sidebar-item" onclick="openNoseAdvisor()" style="margin-top:8px;color:var(--purple-light)">
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      AI Recs
+      Ask your Nose
     </div>
     <div class="sidebar-footer">scenthive.app · Beta</div>
   </div>
@@ -145,6 +145,12 @@
           </div>
         </div>
         <div class="continue-strip" id="continue-strip"></div>
+      </div>
+
+      <div id="nose-cta-strip" style="display:none;margin:0 20px 24px;background:linear-gradient(135deg,var(--bg3) 0%,#1a1430 100%);border:1px solid var(--border);border-radius:14px;padding:16px 18px;cursor:pointer" onclick="openNoseAdvisor()">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px">Personalized for you</div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:4px">Ask your Nose →</div>
+        <div style="font-size:11px;color:var(--white2)" id="nose-cta-sub">Your AI advisor reads your diary before answering.</div>
       </div>
 
       <!-- Recently viewed (hidden when empty) -->
@@ -848,6 +854,32 @@
     <button class="modal-submit" onclick="buildSampleSet()">Build my 5 samples</button>
     <div id="sample-builder-results" class="sample-builder-results"></div>
     <button class="modal-cancel" data-close="modal-sample-builder">Close</button>
+  </div>
+</div>
+
+<!-- ═══ ASK YOUR NOSE MODAL ═══ -->
+<div class="modal-overlay" id="modal-nose">
+  <div class="modal nose-modal">
+    <div class="nose-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div class="modal-kicker">Your personal advisor</div>
+        <button class="nose-close" onclick="closeModal('modal-nose')">×</button>
+      </div>
+      <div class="modal-title">Ask your Nose</div>
+      <div id="nose-context-line" class="nose-context-line"></div>
+    </div>
+
+    <div class="nose-usage-bar">
+      <span id="nose-usage-label"></span>
+      <span id="nose-pro-badge" style="display:none">PRO</span>
+    </div>
+
+    <div id="nose-result" class="nose-result"></div>
+
+    <div class="nose-input-row">
+      <textarea id="nose-input" rows="2" placeholder="What are you looking for? e.g. something dark and smoky for evenings..."></textarea>
+      <button id="nose-submit" onclick="submitNoseQuery()">Ask →</button>
+    </div>
   </div>
 </div>
 

@@ -944,6 +944,36 @@ img{max-width:100%;display:block}
 .ai-intro{font-size:13px;color:var(--white2);font-style:italic;line-height:1.6;padding:12px 14px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--gold-dim);margin-bottom:14px}
 .ai-dupe-badge{font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;background:rgba(34,197,94,0.12);color:#4ade80;border-radius:2px;letter-spacing:0.06em;text-transform:uppercase;flex-shrink:0}
 
+/* ═══ NOSE ADVISOR ═══ */
+.nose-modal{max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden}
+.nose-header{padding:20px 20px 16px;border-bottom:1px solid var(--border2);flex-shrink:0}
+.nose-close{background:none;border:none;color:var(--grey);font-size:18px;cursor:pointer;padding:0;line-height:1}
+.nose-context-line{font-size:11px;color:var(--white2);margin-top:4px;line-height:1.45}
+.nose-usage-bar{padding:10px 20px;border-bottom:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.nose-usage-bar span:first-child{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.06em;line-height:1.4}
+#nose-pro-badge{font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.08em;border:1px solid var(--gold-dim);border-radius:20px;padding:2px 8px}
+.nose-result{flex:1;overflow-y:auto;padding:20px;min-height:120px}
+.nose-input-row{padding:14px 20px;border-top:1px solid var(--border2);flex-shrink:0;background:var(--bg2);display:flex;gap:10px;align-items:flex-end}
+.nose-input-row textarea{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--white);font-size:13px;padding:10px 12px;resize:none;outline:none;line-height:1.4}
+.nose-input-row textarea:focus{border-color:var(--gold-dim)}
+.nose-input-row button{background:var(--gold);color:var(--bg);border:none;border-radius:10px;padding:10px 16px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;height:44px}
+.nose-input-row button:disabled{opacity:0.6;cursor:default}
+.nose-empty{padding:18px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;text-align:center;font-size:12px;color:var(--grey);font-style:italic;line-height:1.5}
+.nose-intro{font-size:13px;color:var(--white2);font-style:italic;line-height:1.65;padding-bottom:16px;border-bottom:1px solid var(--border2);margin-bottom:4px}
+.nose-rec-card{padding:15px 0;border-bottom:1px solid var(--border2)}
+.nose-rec-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:7px}
+.nose-rec-name{font-family:'Playfair Display',serif;font-size:17px;font-style:italic;line-height:1.18;color:var(--white)}
+.nose-rec-house{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px}
+.nose-rec-why{font-size:12px;color:var(--white2);line-height:1.55;margin-bottom:9px}
+.nose-rec-meta{display:flex;gap:6px;flex-wrap:wrap}
+.nose-rec-meta span,.nose-dupe{font-family:'DM Mono',monospace;font-size:8px;padding:3px 7px;border-radius:12px;background:var(--bg3);color:var(--grey);letter-spacing:0.06em;text-transform:uppercase}
+.nose-dupe{color:var(--purple-light);border:1px solid var(--purple-dim);background:var(--purple-pale);flex-shrink:0}
+.nose-limit{text-align:center;padding:24px 0}
+.nose-limit-icon{font-size:28px;margin-bottom:12px;color:var(--gold)}
+.nose-limit-title{font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:8px}
+.nose-limit-copy{font-size:12px;color:var(--white2);line-height:1.55;margin:0 auto 20px;max-width:280px}
+.nose-limit button{background:var(--gold);color:var(--bg);border:none;border-radius:20px;padding:10px 24px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase}
+
 /* ═══ SAMPLE SET BUILDER ═══ */
 .sample-options{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .sample-options.compact{margin-bottom:20px}

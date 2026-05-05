@@ -35,6 +35,65 @@ JSON format:
   ]
 }`;
 
+function buildPersonalPrompt(diary, collection, wishlist, tasteProfile, topFamilies) {
+  const diaryLines = diary.slice(0, 40).map(e => {
+    const stars = e.rating ? `${e.rating}/5` : 'unrated';
+    const note = e.notes ? ` — "${String(e.notes).slice(0, 80)}"` : '';
+    return `  • ${e.name || e.fragrance_name || ''} by ${e.house || ''} (${stars})${note}`;
+  }).join('\n') || '  (none logged yet)';
+
+  const collectionLines = collection.length
+    ? collection.map(b => `  • ${b.name || ''} by ${b.house || ''}`).join('\n')
+    : '  (none logged yet)';
+
+  const wishlistLines = wishlist.length
+    ? wishlist.map(w => `  • ${w.name || ''} by ${w.house || ''}`).join('\n')
+    : '  (empty)';
+
+  const profileLine = tasteProfile
+    ? `${tasteProfile.name || 'Unknown'} — ${tasteProfile.tagline || ''}${Array.isArray(tasteProfile.traits) ? ` (${tasteProfile.traits.join(', ')})` : ''}`
+    : 'Not yet determined';
+
+  return `You are a personal fragrance advisor with encyclopaedic knowledge of perfumery. You know this user's taste because you have access to their real fragrance history.
+
+THEIR SCENT IDENTITY: ${profileLine}
+TOP FRAGRANCE FAMILIES: ${topFamilies || 'Unknown'}
+
+THEIR DIARY (${diary.length} fragrances logged, most recent first):
+${diaryLines}
+
+THEIR COLLECTION (bottles they own — do not recommend these):
+${collectionLines}
+
+THEIR WISHLIST:
+${wishlistLines}
+
+RULES:
+1. Respond ONLY with valid JSON, no markdown, no extra text.
+2. Start your intro by referencing something specific from their diary or taste.
+3. Every recommendation must be a real fragrance that exists.
+4. Never recommend something they already own.
+5. Use high ratings as preference signals and low ratings as dislike signals.
+6. Mention fragrances they've logged by name when explaining why a recommendation fits.
+7. Max 5 recommendations.
+
+JSON format:
+{
+  "intro": "one sentence that references something specific from their history",
+  "recommendations": [
+    {
+      "name": "Exact Fragrance Name",
+      "house": "Exact House Name",
+      "why": "specific reason based on their actual diary/taste",
+      "notes": ["Note1", "Note2", "Note3"],
+      "occasion": "when to wear",
+      "price": "$XX–$XX per 100ml",
+      "is_dupe": false
+    }
+  ]
+}`;
+}
+
 let _cachedModel = null;
 
 async function pickModel(apiKey) {
@@ -66,9 +125,16 @@ export default async function handler(req, res) {
     const body = req.body || {};
     const prompt = body.prompt || 'recommend a fragrance';
     const collection = body.collection || [];
-    const system = body.system || SYSTEM_PROMPT;
+    const diary = body.diary || [];
+    const wishlist = body.wishlist || [];
+    const tasteProfile = body.tasteProfile || null;
+    const topFamilies = body.topFamilies || null;
+    const usePersonal = Array.isArray(diary) && diary.length > 0;
+    const system = usePersonal
+      ? buildPersonalPrompt(diary, collection, wishlist, tasteProfile, topFamilies)
+      : (body.system || SYSTEM_PROMPT);
 
-    const colCtx = collection.length > 0
+    const colCtx = !usePersonal && collection.length > 0
       ? '\n\nUser currently owns: ' + collection.map(b => b.name + ' by ' + b.house).join(', ') + '. Avoid recommending these.'
       : '';
 

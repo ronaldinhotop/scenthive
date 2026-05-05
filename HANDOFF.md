@@ -2570,7 +2570,7 @@ Preferred answer format:
 ---
 
 ### TASK 18 — Ask your Nose (Personalized AI Advisor)
-**Status:** ready for implementation
+**Status:** ✅ DONE
 
 **Why:** The current "AI RECS" button sends a generic prompt to Claude with no user context — anyone could get the same answer from ChatGPT. ScentHive's moat is personal data: diary entries, ratings, notes, collection, wishlist, taste profile. "Ask your Nose" feeds all of that to Claude before answering, producing recommendations that feel like they come from someone who actually knows your taste. This is the core Pro feature.
 
