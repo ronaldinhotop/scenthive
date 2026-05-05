@@ -21,9 +21,10 @@ let fragStore = {};
 // ═══════ COUNTRY STORES ═══════
 const COUNTRY_STORES = {
   NO: { label:'Norway', flag:'🇳🇴', stores:[
-    { name:'Notino',     note:'Free ship over 299 kr', url: q=>`https://www.notino.no/search/?phrase=${q}` },
-    { name:'Kicks',      note:'Same-day delivery',     url: q=>`https://www.kicks.no/search?q=${q}` },
-    { name:'Parfyme.no', note:'Norwegian specialist',  url: q=>`https://www.parfyme.no/?s=${q}` },
+    { name:'Kicks',        note:'Beauty chain',          url: q=>`https://www.kicks.no/search?q=${q}` },
+    { name:'Vita',         note:'Free ship over 499 kr', url: q=>`https://www.vita.no/search?q=${q}` },
+    { name:'Parfyme.no',   note:'Norwegian specialist',  url: q=>`https://www.parfyme.no/?s=${q}` },
+    { name:'Nordicfeel',   note:'Wide selection',        url: q=>`https://www.nordicfeel.no/search?query=${q}` },
   ]},
   SE: { label:'Sweden', flag:'🇸🇪', stores:[
     { name:'Notino',   note:'Fast delivery',     url: q=>`https://www.notino.se/search/?phrase=${q}` },
