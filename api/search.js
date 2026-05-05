@@ -254,6 +254,10 @@ async function fetchFragella(query, apiKey) {
 const CACHE_SUFFICIENT_COUNT = 1;
 const CACHE_SUFFICIENT_SCORE = 50;
 
+// Cost brake: ScentHive should operate from Supabase/static cache by default.
+// Set FRAGELLA_FALLBACK_ENABLED=true only during controlled seed/import work.
+const FRAGELLA_FALLBACK_ENABLED = process.env.FRAGELLA_FALLBACK_ENABLED === 'true';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -302,22 +306,27 @@ export default async function handler(req, res) {
 
     // ── 2. Return cache if sufficient ────────────────────────────────────────
     if (cacheGoodEnough) {
+      res.setHeader('X-ScentHive-Search-Source', 'cache');
       return res.status(200).json({
         fragrances: cacheRanked.fragrances,
         source: 'cache',
       });
     }
 
-    // ── 3. Fragella API fallback ──────────────────────────────────────────────
-    if (!fragellaKey) {
-      // No Fragella key — return whatever cache we have (even if thin)
+    // ── 3. Cost brake: do not hit Fragella during normal app usage ───────────
+    if (!FRAGELLA_FALLBACK_ENABLED || !fragellaKey) {
+      // Return whatever cache we have, even if thin. This keeps browsing and
+      // search functional without silently burning external Fragella requests.
+      res.setHeader('X-ScentHive-Search-Source', FRAGELLA_FALLBACK_ENABLED ? 'cache-missing-key' : 'cache-only');
       return res.status(200).json({
         fragrances: cacheRanked.fragrances,
         source: 'cache',
-        warning: 'Missing FRAGELLA_API_KEY',
+        cache_only: true,
+        warning: FRAGELLA_FALLBACK_ENABLED ? 'Missing FRAGELLA_API_KEY' : 'Fragella fallback disabled',
       });
     }
 
+    // ── 4. Fragella API fallback ──────────────────────────────────────────────
     let fragellaRanked = { bestScore: 0, fragrances: [] };
 
     if (alias) {
@@ -333,14 +342,15 @@ export default async function handler(req, res) {
       fragellaRanked = rankFragrances(await fetchFragella(query, fragellaKey), query);
     }
 
-    // ── 4. Write Fragella results back to Supabase (fire-and-forget) ─────────
+    // ── 5. Write Fragella results back to Supabase (fire-and-forget) ─────────
     if (sbUrl && sbKey && fragellaRanked.fragrances.length) {
       upsertSupabaseCache(fragellaRanked.fragrances, sbUrl, sbKey);
       // intentionally not awaited — response is already ready
     }
 
-    // ── 5. Merge: Fragella primary, cache fills any gaps ─────────────────────
+    // ── 6. Merge: Fragella primary, cache fills any gaps ─────────────────────
     const final = mergeRanked(fragellaRanked, cacheRanked);
+    res.setHeader('X-ScentHive-Search-Source', 'fragella');
     return res.status(200).json({ fragrances: final, source: 'fragella' });
 
   } catch (err) {
