@@ -1902,8 +1902,10 @@ function buildBlindBuyAdvisorHtml(f) {
 
 // ═══════ FRAGRANCE DETAIL ═══════
 function openFrag(key) {
-  const f = fragStore[key];
+  let f = fragStore[key];
   if (!f) return;
+  f = hydrateFragranceFromStatic(f);
+  fragStore[key] = f;
   saveRecent(f);
   const top = f.notes_top || f['Top Notes'] || [];
   const heart = f.notes_heart || f['Middle Notes'] || [];
@@ -2033,6 +2035,42 @@ function openFrag(key) {
       });
     });
   }
+}
+
+function hydrateFragranceFromStatic(f) {
+  const hasNotes = (f.notes_top && f.notes_top.length) ||
+    (f.notes_heart && f.notes_heart.length) ||
+    (f.notes_base && f.notes_base.length) ||
+    (f['Top Notes'] && f['Top Notes'].length) ||
+    (f['Middle Notes'] && f['Middle Notes'].length) ||
+    (f['Base Notes'] && f['Base Notes'].length);
+  const hasAccords = f.accords && f.accords.length;
+  if (hasNotes && hasAccords) return f;
+
+  const q = (f.name || '') + (f.house ? ' ' + f.house : '');
+  const hits = staticSearch(q);
+  if (!hits.length) return f;
+  const norm = v => String(v || '').toLowerCase().normalize('NFD')
+    .replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const targetName = norm(f.name);
+  const targetHouse = norm(f.house);
+  const match = hits.find(h => norm(h.name) === targetName && (!targetHouse || norm(h.house).includes(targetHouse) || targetHouse.includes(norm(h.house)))) ||
+    hits.find(h => norm(h.name) === targetName) ||
+    hits[0];
+  return {
+    ...match,
+    ...f,
+    notes_top: f.notes_top?.length ? f.notes_top : match.notes_top,
+    notes_heart: f.notes_heart?.length ? f.notes_heart : match.notes_heart,
+    notes_base: f.notes_base?.length ? f.notes_base : match.notes_base,
+    accords: f.accords?.length ? f.accords : match.accords,
+    family: f.family || match.family,
+    longevity: f.longevity || match.longevity,
+    sillage: f.sillage || match.sillage,
+    gender: f.gender || match.gender,
+    image_url: f.image_url || match.image_url,
+    fragella_id: f.fragella_id || match.fragella_id
+  };
 }
 
 async function loadFragReviews(fragName) {
