@@ -334,14 +334,7 @@ function buildBuySection(buyQ, house) {
       card('🔍','Google Shopping','All retailers · compare prices',`https://www.google.com/search?tbm=shop&q=${buyQ}`, false) +
     '</div>';
 
-  // 3 — Generic country specialists (only if no authorized list for this brand)
-  const fallbackLocal = (!authorized && market.stores.length)
-    ? `<div class="buy-section-label" style="margin-top:14px">${countryFlag} ${countryLabel}</div><div class="buy-grid">` +
-        market.stores.map(s => card(countryFlag, s.name, s.note, s.url(buyQ), false)).join('') +
-      '</div>'
-    : '';
-
-  // 4 — Samples & decants
+  // 3 — Samples & decants (always useful regardless of brand tier)
   const samplesHtml =
     '<div class="buy-section-label" style="margin-top:14px">Samples &amp; decants</div>' +
     '<div class="buy-grid">' +
@@ -349,7 +342,7 @@ function buildBuySection(buyQ, house) {
       card('🇺🇸','Perfumed Court','Trusted decants',`https://www.theperfumedcourt.com/search.aspx?q=${buyQ}`, false) +
     '</div>';
 
-  // 5 — Fragrantica
+  // 4 — Fragrantica — has its own verified "where to buy" per fragrance
   const fragHtml =
     '<div class="buy-section-label" style="margin-top:14px">Community</div>' +
     '<div class="buy-grid">' +
@@ -357,7 +350,7 @@ function buildBuySection(buyQ, house) {
     '</div>';
 
   return '<div class="detail-sec"><div class="detail-label">Where to buy</div>' +
-    authorizedHtml + findHtml + fallbackLocal + samplesHtml + fragHtml +
+    authorizedHtml + findHtml + samplesHtml + fragHtml +
   '</div><div style="height:40px"></div>';
 }
 
