@@ -16,6 +16,7 @@
     { "src": "/api/search", "dest": "/api/search.js" },
     { "src": "/api/scan", "dest": "/api/scan.js" },
     { "src": "/api/seed", "dest": "/api/seed.js" },
+    { "src": "/api/dump", "dest": "/api/dump.js" },
     { "src": "/styles.css", "dest": "/styles.css" },
     { "src": "/app.js", "dest": "/app.js" },
     { "src": "/manifest.json", "dest": "/manifest.json" },
