@@ -342,15 +342,8 @@ function buildBuySection(buyQ, house) {
       card('🇺🇸','Perfumed Court','Trusted decants',`https://www.theperfumedcourt.com/search.aspx?q=${buyQ}`, false) +
     '</div>';
 
-  // 4 — Fragrantica — has its own verified "where to buy" per fragrance
-  const fragHtml =
-    '<div class="buy-section-label" style="margin-top:14px">Community</div>' +
-    '<div class="buy-grid">' +
-      card('🌐','Fragrantica','Reviews &amp; verified sellers',`https://www.fragrantica.com/search/?query=${buyQ}`, false) +
-    '</div>';
-
   return '<div class="detail-sec"><div class="detail-label">Where to buy</div>' +
-    authorizedHtml + findHtml + samplesHtml + fragHtml +
+    authorizedHtml + findHtml + samplesHtml +
   '</div><div style="height:40px"></div>';
 }
 
