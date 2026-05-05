@@ -18,82 +18,156 @@ let curScreen = 'auth';
 let searchTimer = null;
 let fragStore = {};
 
+// ═══════ BRAND WEBSITES ═══════
+// Official brand stores — always carry the fragrance. Add affiliate param here when ready.
+const BRAND_SITES = {
+  // Niche / luxury
+  'le labo':          q=>`https://www.lelabofragrances.com/en-us/search?q=${q}`,
+  'creed':            q=>`https://www.creedperfume.com/pages/search-results?q=${q}`,
+  'byredo':           q=>`https://www.byredo.com/en_us/search?q=${q}`,
+  'diptyque':         q=>`https://www.diptyqueparis.com/en_us/search/?q=${q}`,
+  'jo malone':        q=>`https://www.jomalone.com/search?q=${q}`,
+  'jo malone london': q=>`https://www.jomalone.com/search?q=${q}`,
+  'tom ford':         q=>`https://www.tomford.com/search?q=${q}`,
+  'maison margiela':  q=>`https://www.maisonmargiela-fragrances.com/search?q=${q}`,
+  'mancera':          q=>`https://www.manceraparis.com/search?q=${q}`,
+  'xerjoff':          q=>`https://www.xerjoff.com/search?q=${q}`,
+  'initio':           q=>`https://www.initiouniqueparfums.com/search?q=${q}`,
+  'nishane':          q=>`https://www.nishane.com.tr/en/search?q=${q}`,
+  'parfums de marly': q=>`https://www.parfumsdemarly.com/en-us/search?q=${q}`,
+  'frederic malle':   q=>`https://www.fredericmalle.com/search?q=${q}`,
+  'serge lutens':     q=>`https://www.sergelutens.com/en/search?q=${q}`,
+  'acqua di parma':   q=>`https://www.acquadiparma.com/en/search?q=${q}`,
+  'penhaligons':      q=>`https://www.penhaligons.com/search?q=${q}`,
+  "penhaligon's":     q=>`https://www.penhaligons.com/search?q=${q}`,
+  'amouage':          q=>`https://www.amouage.com/search?q=${q}`,
+  'roja dove':        q=>`https://rojadove.com/search?q=${q}`,
+  'memo paris':       q=>`https://www.memoparis.com/en/search?q=${q}`,
+  'ex nihilo':        q=>`https://www.exnihiloparis.com/search?q=${q}`,
+  'zoologist':        q=>`https://www.zoologistperfumes.com/search?q=${q}`,
+  'ds & durga':       q=>`https://www.dsdurga.com/search?q=${q}`,
+  'ds durga':         q=>`https://www.dsdurga.com/search?q=${q}`,
+  'orto parisi':      q=>`https://www.ortoparisi.com/search?q=${q}`,
+  'nasomatto':        q=>`https://www.nasomatto.com/search?q=${q}`,
+  'juliette has a gun': q=>`https://www.juliettehasa gun.com/en/search?q=${q}`,
+  'vilhelm parfumerie': q=>`https://www.vilhelmparfumerie.com/search?q=${q}`,
+  'maison francis kurkdjian': q=>`https://www.maisonfk.com/en/search?q=${q}`,
+  'mfk':              q=>`https://www.maisonfk.com/en/search?q=${q}`,
+  'kilian':           q=>`https://www.bykilian.com/en-us/search?q=${q}`,
+  'by kilian':        q=>`https://www.bykilian.com/en-us/search?q=${q}`,
+  // Designer
+  'chanel':           q=>`https://www.chanel.com/en_US/fragrance/search/${q}/`,
+  'dior':             q=>`https://www.dior.com/en_us/search#?q=${q}`,
+  'christian dior':   q=>`https://www.dior.com/en_us/search#?q=${q}`,
+  'gucci':            q=>`https://www.gucci.com/us/en/search?q=${q}`,
+  'yves saint laurent': q=>`https://www.ysl.com/en-us/search?q=${q}`,
+  'ysl':              q=>`https://www.ysl.com/en-us/search?q=${q}`,
+  'armani':           q=>`https://www.armanibeauty.com/search?q=${q}`,
+  'giorgio armani':   q=>`https://www.armanibeauty.com/search?q=${q}`,
+  'prada':            q=>`https://www.prada.com/us/en/search.html?query=${q}`,
+  'valentino':        q=>`https://www.valentino.com/en-us/search?q=${q}`,
+  'versace':          q=>`https://www.versace.com/us/en/search/?q=${q}`,
+  'burberry':         q=>`https://www.burberry.com/search?q=${q}`,
+  'givenchy':         q=>`https://www.givenchy.com/en/search?q=${q}`,
+  'hermes':           q=>`https://www.hermes.com/us/en/search/?q=${q}`,
+  'hermès':           q=>`https://www.hermes.com/us/en/search/?q=${q}`,
+  'cartier':          q=>`https://www.cartier.com/en-us/search.html?q=${q}`,
+  'montblanc':        q=>`https://www.montblanc.com/en-us/search?q=${q}`,
+  'mont blanc':       q=>`https://www.montblanc.com/en-us/search?q=${q}`,
+  'hugo boss':        q=>`https://www.hugoboss.com/en_US/search?q=${q}`,
+  'boss':             q=>`https://www.hugoboss.com/en_US/search?q=${q}`,
+  'carolina herrera': q=>`https://www.carolinaherrera.com/us/en/search?q=${q}`,
+  'viktor&rolf':      q=>`https://www.viktor-rolf.com/en_US/search?q=${q}`,
+  'viktor & rolf':    q=>`https://www.viktor-rolf.com/en_US/search?q=${q}`,
+  'issey miyake':     q=>`https://www.isseymiyake.com/en/search?q=${q}`,
+  'calvin klein':     q=>`https://www.calvinklein.com/en/search?q=${q}`,
+  'ralph lauren':     q=>`https://www.ralphlauren.com/search?q=${q}`,
+  'bvlgari':          q=>`https://www.bulgari.com/en-us/search.html?q=${q}`,
+  'bulgari':          q=>`https://www.bulgari.com/en-us/search.html?q=${q}`,
+  'lacoste':          q=>`https://www.lacoste.com/en/search?q=${q}`,
+  'lancome':          q=>`https://www.lancome-usa.com/search?q=${q}`,
+  'lancôme':          q=>`https://www.lancome-usa.com/search?q=${q}`,
+  'kenzo':            q=>`https://www.kenzo.com/en/search?q=${q}`,
+  'davidoff':         q=>`https://www.zino-davidoff.com/en/search?q=${q}`,
+  'azzaro':           q=>`https://www.azzaro.com/en-us/search?q=${q}`,
+};
+
 // ═══════ COUNTRY STORES ═══════
+// Only specialist fragrance stores that carry a broad selection including niche.
+// Do NOT list general beauty chains — they usually won't have what the user is looking for.
 const COUNTRY_STORES = {
   NO: { label:'Norway', flag:'🇳🇴', stores:[
-    { name:'Kicks',        note:'Beauty chain',          url: q=>`https://www.kicks.no/search?q=${q}` },
-    { name:'Vita',         note:'Free ship over 499 kr', url: q=>`https://www.vita.no/search?q=${q}` },
-    { name:'Parfyme.no',   note:'Norwegian specialist',  url: q=>`https://www.parfyme.no/?s=${q}` },
-    { name:'Nordicfeel',   note:'Wide selection',        url: q=>`https://www.nordicfeel.no/search?query=${q}` },
+    { name:'Parfyme.no',   note:'Norwegian perfume specialist', url: q=>`https://www.parfyme.no/?s=${q}` },
+    { name:'Nordicfeel',   note:'Wide niche selection',         url: q=>`https://www.nordicfeel.no/search?query=${q}` },
   ]},
   SE: { label:'Sweden', flag:'🇸🇪', stores:[
-    { name:'Notino',   note:'Fast delivery',     url: q=>`https://www.notino.se/search/?phrase=${q}` },
-    { name:'Kicks',    note:'Beauty specialist', url: q=>`https://www.kicks.se/search?q=${q}` },
-    { name:'Lyko',     note:'Wide selection',    url: q=>`https://www.lyko.se/sv/sok?query=${q}` },
+    { name:'Parfym.se',   note:'Swedish specialist',    url: q=>`https://www.parfym.se/search?q=${q}` },
+    { name:'Nordicfeel',  note:'Wide niche selection',  url: q=>`https://www.nordicfeel.se/search?query=${q}` },
+    { name:'Lyko',        note:'Fast delivery',         url: q=>`https://www.lyko.se/sv/sok?query=${q}` },
   ]},
   DK: { label:'Denmark', flag:'🇩🇰', stores:[
-    { name:'Notino', note:'Fast delivery',     url: q=>`https://www.notino.dk/search/?phrase=${q}` },
-    { name:'Matas',  note:'Danish beauty chain', url: q=>`https://www.matas.dk/search?query=${q}` },
+    { name:'Matas',       note:'Beauty specialist',  url: q=>`https://www.matas.dk/search?query=${q}` },
+    { name:'Nordicfeel',  note:'Niche selection',    url: q=>`https://www.nordicfeel.dk/search?query=${q}` },
   ]},
   FI: { label:'Finland', flag:'🇫🇮', stores:[
-    { name:'Notino FI', note:'Fast delivery', url: q=>`https://www.notino.fi/search/?phrase=${q}` },
-    { name:'Sokos',     note:'Finnish chain', url: q=>`https://www.s-kaupat.fi/search?q=${q}` },
+    { name:'Nordicfeel FI', note:'Niche selection',  url: q=>`https://www.nordicfeel.fi/search?query=${q}` },
+    { name:'Lyko FI',       note:'Fast delivery',    url: q=>`https://www.lyko.fi/fi/haku?query=${q}` },
   ]},
   GB: { label:'United Kingdom', flag:'🇬🇧', stores:[
-    { name:'The Fragrance Shop', note:'UK specialist',   url: q=>`https://www.thefragranceshop.co.uk/search?q=${q}` },
-    { name:'Notino UK',          note:'Fast delivery',   url: q=>`https://www.notino.co.uk/search/?phrase=${q}` },
-    { name:'Selfridges',         note:'Luxury selection',url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}` },
+    { name:'The Fragrance Shop', note:'UK's largest specialist',   url: q=>`https://www.thefragranceshop.co.uk/search?q=${q}` },
+    { name:'Selfridges',         note:'Luxury & niche selection',  url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}` },
+    { name:'Harvey Nichols',     note:'Premium selection',         url: q=>`https://www.harveynichols.com/brand/all-beauty/?q=${q}` },
   ]},
   US: { label:'United States', flag:'🇺🇸', stores:[
-    { name:'Sephora',   note:'Free ship $50+', url: q=>`https://www.sephora.com/search?keyword=${q}` },
-    { name:'Ulta',      note:'Beauty specialist', url: q=>`https://www.ulta.com/search?searchPhrase=${q}` },
-    { name:'Nordstrom', note:'Free shipping',  url: q=>`https://www.nordstrom.com/sr?origin=keywordsearch&keyword=${q}` },
+    { name:'Sephora',   note:'Niche & designer',  url: q=>`https://www.sephora.com/search?keyword=${q}` },
+    { name:'Nordstrom', note:'Premium selection', url: q=>`https://www.nordstrom.com/sr?origin=keywordsearch&keyword=${q}` },
+    { name:'Bloomingdale\'s', note:'Luxury brands', url: q=>`https://www.bloomingdales.com/shop/search?keyword=${q}` },
   ]},
   CA: { label:'Canada', flag:'🇨🇦', stores:[
-    { name:"Sephora CA",    note:'Free ship $50+',   url: q=>`https://www.sephora.com/ca/en/search?keyword=${q}` },
-    { name:"Hudson's Bay",  note:'Department store', url: q=>`https://www.thebay.com/search?q=${q}` },
+    { name:'Sephora CA',  note:'Niche & designer',  url: q=>`https://www.sephora.com/ca/en/search?keyword=${q}` },
+    { name:'Hudson\'s Bay', note:'Luxury selection', url: q=>`https://www.thebay.com/search?q=${q}` },
   ]},
   AU: { label:'Australia', flag:'🇦🇺', stores:[
-    { name:'Scentstore', note:'AUS specialist', url: q=>`https://www.scentstore.com.au/search?q=${q}` },
-    { name:'Myer',       note:'Department store', url: q=>`https://www.myer.com.au/search?query=${q}` },
+    { name:'Scentstore AU', note:'Niche specialist',  url: q=>`https://www.scentstore.com.au/search?q=${q}` },
+    { name:'David Jones',   note:'Luxury & designer', url: q=>`https://www.davidjones.com/search?q=${q}` },
   ]},
   DE: { label:'Germany', flag:'🇩🇪', stores:[
-    { name:'Douglas',  note:'Beauty chain',     url: q=>`https://www.douglas.de/de/search?q=${q}` },
-    { name:'Notino DE',note:'Fast delivery',    url: q=>`https://www.notino.de/search/?phrase=${q}` },
-    { name:'Flaconi',  note:'Online specialist',url: q=>`https://www.flaconi.de/search/?q=${q}` },
+    { name:'Flaconi',    note:'Large niche selection', url: q=>`https://www.flaconi.de/search/?q=${q}` },
+    { name:'Notino DE',  note:'Fast delivery',         url: q=>`https://www.notino.de/search/?phrase=${q}` },
+    { name:'Douglas',    note:'Wide selection',        url: q=>`https://www.douglas.de/de/search?q=${q}` },
   ]},
   AT: { label:'Austria', flag:'🇦🇹', stores:[
-    { name:'Douglas AT', note:'Beauty chain',  url: q=>`https://www.douglas.at/de/search?q=${q}` },
-    { name:'Notino AT',  note:'Fast delivery', url: q=>`https://www.notino.at/search/?phrase=${q}` },
+    { name:'Flaconi AT', note:'Large niche selection', url: q=>`https://www.flaconi.at/search/?q=${q}` },
+    { name:'Notino AT',  note:'Fast delivery',         url: q=>`https://www.notino.at/search/?phrase=${q}` },
   ]},
   CH: { label:'Switzerland', flag:'🇨🇭', stores:[
-    { name:'Douglas CH', note:'Beauty chain',  url: q=>`https://www.douglas.ch/de/search?q=${q}` },
-    { name:'Notino CH',  note:'Fast delivery', url: q=>`https://www.notino.ch/search/?phrase=${q}` },
+    { name:'Flaconi CH', note:'Large niche selection', url: q=>`https://www.flaconi.ch/search/?q=${q}` },
+    { name:'Douglas CH', note:'Wide selection',        url: q=>`https://www.douglas.ch/de/search?q=${q}` },
   ]},
   FR: { label:'France', flag:'🇫🇷', stores:[
-    { name:'Sephora',   note:'Click & collect', url: q=>`https://www.sephora.fr/search/?q=${q}` },
-    { name:'Nocibé',    note:'French specialist',url: q=>`https://www.nocibe.fr/search?q=${q}` },
-    { name:'Notino FR', note:'Fast delivery',    url: q=>`https://www.notino.fr/search/?phrase=${q}` },
+    { name:'Sephora FR', note:'Click & collect',      url: q=>`https://www.sephora.fr/search/?q=${q}` },
+    { name:'Nocibé',     note:'French specialist',    url: q=>`https://www.nocibe.fr/search?q=${q}` },
+    { name:'Notino FR',  note:'Fast delivery',        url: q=>`https://www.notino.fr/search/?phrase=${q}` },
   ]},
   NL: { label:'Netherlands', flag:'🇳🇱', stores:[
-    { name:'Notino NL', note:'Fast delivery',   url: q=>`https://www.notino.nl/search/?phrase=${q}` },
-    { name:'Bol.com',   note:'Dutch marketplace',url: q=>`https://www.bol.com/nl/nl/s/?searchtext=${q}` },
+    { name:'Notino NL',       note:'Fast delivery',  url: q=>`https://www.notino.nl/search/?phrase=${q}` },
+    { name:'Skins Cosmetics', note:'Niche specialist',url: q=>`https://www.skins.nl/search?q=${q}` },
   ]},
   BE: { label:'Belgium', flag:'🇧🇪', stores:[
-    { name:'Notino BE', note:'Fast delivery',  url: q=>`https://www.notino.be/search/?phrase=${q}` },
-    { name:'ICI Paris XL', note:'Beauty chain',url: q=>`https://www.iciparisxl.be/search?q=${q}` },
+    { name:'Notino BE',    note:'Fast delivery',  url: q=>`https://www.notino.be/search/?phrase=${q}` },
+    { name:'ICI Paris XL', note:'Wide selection', url: q=>`https://www.iciparisxl.be/search?q=${q}` },
   ]},
   IT: { label:'Italy', flag:'🇮🇹', stores:[
-    { name:'Notino IT', note:'Fast delivery', url: q=>`https://www.notino.it/search/?phrase=${q}` },
-    { name:'Douglas IT',note:'Beauty chain',  url: q=>`https://www.douglas.it/it/search?q=${q}` },
+    { name:'Notino IT', note:'Fast delivery',  url: q=>`https://www.notino.it/search/?phrase=${q}` },
+    { name:'Douglas IT',note:'Wide selection', url: q=>`https://www.douglas.it/it/search?q=${q}` },
   ]},
   ES: { label:'Spain', flag:'🇪🇸', stores:[
-    { name:'Notino ES', note:'Fast delivery', url: q=>`https://www.notino.es/search/?phrase=${q}` },
-    { name:'Douglas ES',note:'Beauty chain',  url: q=>`https://www.douglas.es/es/search?q=${q}` },
+    { name:'Notino ES', note:'Fast delivery',  url: q=>`https://www.notino.es/search/?phrase=${q}` },
+    { name:'Douglas ES',note:'Wide selection', url: q=>`https://www.douglas.es/es/search?q=${q}` },
   ]},
   PL: { label:'Poland', flag:'🇵🇱', stores:[
-    { name:'Notino PL', note:'Fast delivery', url: q=>`https://www.notino.pl/search/?phrase=${q}` },
-    { name:'Douglas PL',note:'Beauty chain',  url: q=>`https://www.douglas.pl/pl/search?q=${q}` },
+    { name:'Notino PL', note:'Fast delivery',  url: q=>`https://www.notino.pl/search/?phrase=${q}` },
+    { name:'Douglas PL',note:'Wide selection', url: q=>`https://www.douglas.pl/pl/search?q=${q}` },
   ]},
   OTHER: { label:'International', flag:'🌍', stores:[] },
 };
@@ -102,7 +176,7 @@ function getUserCountry() {
   return (user?.user_metadata?.country) || localStorage.getItem('sh_country') || 'NO';
 }
 
-function buildBuySection(buyQ) {
+function buildBuySection(buyQ, house) {
   const code = getUserCountry();
   const market = COUNTRY_STORES[code] || COUNTRY_STORES['OTHER'];
   const card = (flag, name, note, url) =>
@@ -111,25 +185,42 @@ function buildBuySection(buyQ) {
       `<div class="buy-card-name">${name}</div>` +
       `<div class="buy-card-note">${note}</div>` +
     `</div>`;
+
+  // Brand's own website — guaranteed to carry it
+  const brandFn = house ? BRAND_SITES[(house||'').toLowerCase().trim()] : null;
+  const brandHtml = brandFn
+    ? '<div class="buy-section-label">Official store</div><div class="buy-grid">' +
+        card('🏷️', escapeHtml(house), 'Buy direct from the brand', brandFn(buyQ)) +
+        card('🔍','Google Shopping','All retailers · compare prices',`https://www.google.com/search?tbm=shop&q=${buyQ}`) +
+      '</div>'
+    : '<div class="buy-section-label">Find it online</div><div class="buy-grid">' +
+        card('🔍','Google Shopping','All retailers · compare prices',`https://www.google.com/search?tbm=shop&q=${buyQ}`) +
+      '</div>';
+
+  // Local specialist stores (only genuinely carry niche brands)
   const localHtml = market.stores.length
-    ? `<div class="buy-section-label">${market.flag} ${market.label}</div><div class="buy-grid">` +
+    ? `<div class="buy-section-label" style="margin-top:14px">${market.flag} ${market.label}</div><div class="buy-grid">` +
         market.stores.map(s => card(market.flag, s.name, s.note, s.url(buyQ))).join('') +
       '</div>'
     : '';
+
+  // Samples & decants
   const samplesHtml =
     '<div class="buy-section-label" style="margin-top:14px">Samples &amp; decants</div>' +
     '<div class="buy-grid">' +
       card('🇺🇸','LuckyScent','Authorised samples',`https://www.luckyscent.com/search?q=${buyQ}`) +
       card('🇺🇸','Perfumed Court','Trusted decants',`https://www.theperfumedcourt.com/search.aspx?q=${buyQ}`) +
     '</div>';
-  const communityHtml =
-    '<div class="buy-section-label" style="margin-top:14px">Community &amp; info</div>' +
+
+  // Fragrantica — shows verified "where to buy" for the exact fragrance
+  const fragranticaHtml =
+    '<div class="buy-section-label" style="margin-top:14px">Community</div>' +
     '<div class="buy-grid">' +
-      card('🌐','Fragrantica','Community ratings',`https://www.fragrantica.com/search/?query=${buyQ}`) +
-      card('🔍','Google Shopping','Compare all prices',`https://www.google.com/search?tbm=shop&q=${buyQ}`) +
+      card('🌐','Fragrantica','Reviews &amp; verified sellers',`https://www.fragrantica.com/search/?query=${buyQ}`) +
     '</div>';
+
   return '<div class="detail-sec"><div class="detail-label">Where to buy</div>' +
-    localHtml + samplesHtml + communityHtml +
+    brandHtml + localHtml + samplesHtml + fragranticaHtml +
   '</div><div style="height:40px"></div>';
 }
 
@@ -1611,7 +1702,7 @@ function openFrag(key) {
       '<div class="detail-label">You might also like</div>' +
       '<div class="poster-row"><div class="loading-row"><div class="spinner"></div></div></div>' +
     '</div>' +
-    buildBuySection(buyQ);
+    buildBuySection(buyQ, f.house);
 
   // Wire buttons
   document.querySelectorAll('#frag-content .frag-btn').forEach(b => {
