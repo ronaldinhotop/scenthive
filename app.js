@@ -172,6 +172,133 @@ const COUNTRY_STORES = {
   OTHER: { label:'International', flag:'🌍', stores:[] },
 };
 
+// ═══════ AUTHORIZED RETAILER MAP ═══════
+// brand (lowercase) → country code → retailers
+// Retailers with affiliate programs are marked affiliate:true — add your tracking ID to the url fn when ready.
+// To add a new entry: 'brand name': { CC: [{ name, note, url: q=>..., affiliate:bool }] }
+const BRAND_RETAILERS = {
+  'maison francis kurkdjian': {
+    NO: [{ name:'Heavenscent',    note:'Only MFK retailer in Norway',       url: q=>`https://www.heavenscent.no/?s=${q}`,           affiliate:false }],
+    SE: [{ name:'Skins Cosmetics',note:'Authorized MFK retailer',           url: q=>`https://www.skins.se/search?q=${q}`,            affiliate:false }],
+    DK: [{ name:'Skins Cosmetics',note:'Authorized MFK retailer',           url: q=>`https://www.skins.dk/search?q=${q}`,            affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Authorized · affiliate coming',     url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  },
+         { name:'Harvey Nichols', note:'Authorized MFK retailer',           url: q=>`https://www.harveynichols.com/brand/all-beauty/?q=${q}`,affiliate:false }],
+    US: [{ name:'Sephora',        note:'Authorized MFK retailer',           url: q=>`https://www.sephora.com/search?keyword=${q}`,   affiliate:true  },
+         { name:'Neiman Marcus',  note:'Authorized retailer',               url: q=>`https://www.neimanmarcus.com/search.jsp?q=${q}`,affiliate:false }],
+    DE: [{ name:'Skins Cosmetics',note:'Authorized MFK retailer',           url: q=>`https://www.skins.de/search?q=${q}`,            affiliate:false }],
+    FR: [{ name:'Sephora FR',     note:'Authorized retailer',               url: q=>`https://www.sephora.fr/search/?q=${q}`,         affiliate:true  }],
+  },
+  'mfk': 'maison francis kurkdjian',
+
+  'roja dove': {
+    NO: [{ name:'Tuxedo Parfyme', note:'Only Roja retailer in Norway',      url: q=>`https://www.tuxedoparfyme.no/?s=${q}`,          affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Authorized · affiliate coming',     url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  },
+         { name:'Harrods',        note:'Authorized Roja retailer',          url: q=>`https://www.harrods.com/en-gb/search?q=${q}`,   affiliate:false }],
+    US: [{ name:'Neiman Marcus',  note:'Authorized retailer',               url: q=>`https://www.neimanmarcus.com/search.jsp?q=${q}`,affiliate:false }],
+  },
+  'roja parfums': 'roja dove',
+
+  'creed': {
+    NO: [{ name:'Parfyme.no',     note:'Carries Creed in Norway',           url: q=>`https://www.parfyme.no/?s=${q}`,                affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Large Creed selection',             url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'Nordstrom',      note:'Authorized Creed retailer',         url: q=>`https://www.nordstrom.com/sr?origin=keywordsearch&keyword=${q}`,affiliate:true }],
+  },
+
+  'le labo': {
+    NO: [{ name:'Parfyme.no',     note:'Carries Le Labo in Norway',         url: q=>`https://www.parfyme.no/?s=${q}`,                affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Large Le Labo selection',           url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  },
+         { name:'Liberty London', note:'Authorized retailer',               url: q=>`https://www.libertylondon.com/search?q=${q}`,   affiliate:false }],
+    US: [{ name:'Sephora',        note:'Authorized Le Labo retailer',       url: q=>`https://www.sephora.com/search?keyword=${q}`,   affiliate:true  }],
+  },
+
+  'byredo': {
+    NO: [{ name:'Nordicfeel',     note:'Carries Byredo in Norway',          url: q=>`https://www.nordicfeel.no/search?query=${q}`,   affiliate:false }],
+    SE: [{ name:'Nordicfeel',     note:'Carries Byredo in Sweden',          url: q=>`https://www.nordicfeel.se/search?query=${q}`,   affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Authorized Byredo retailer',        url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'Sephora',        note:'Authorized Byredo retailer',        url: q=>`https://www.sephora.com/search?keyword=${q}`,   affiliate:true  }],
+  },
+
+  'diptyque': {
+    NO: [{ name:'Nordicfeel',     note:'Carries Diptyque in Norway',        url: q=>`https://www.nordicfeel.no/search?query=${q}`,   affiliate:false }],
+    SE: [{ name:'Nordicfeel',     note:'Carries Diptyque in Sweden',        url: q=>`https://www.nordicfeel.se/search?query=${q}`,   affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Large Diptyque selection',          url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'Sephora',        note:'Authorized Diptyque retailer',      url: q=>`https://www.sephora.com/search?keyword=${q}`,   affiliate:true  }],
+  },
+
+  'tom ford': {
+    NO: [{ name:'Nordicfeel',     note:'Carries Tom Ford in Norway',        url: q=>`https://www.nordicfeel.no/search?query=${q}`,   affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Large Tom Ford selection',          url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  },
+         { name:'Harvey Nichols', note:'Authorized retailer',               url: q=>`https://www.harveynichols.com/brand/all-beauty/?q=${q}`,affiliate:false }],
+    US: [{ name:'Nordstrom',      note:'Authorized Tom Ford retailer',      url: q=>`https://www.nordstrom.com/sr?origin=keywordsearch&keyword=${q}`,affiliate:true }],
+    DE: [{ name:'Flaconi',        note:'Carries Tom Ford in Germany',       url: q=>`https://www.flaconi.de/search/?q=${q}`,         affiliate:true  }],
+  },
+
+  'jo malone': {
+    NO: [{ name:'Nordicfeel',     note:'Carries Jo Malone in Norway',       url: q=>`https://www.nordicfeel.no/search?query=${q}`,   affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Large Jo Malone selection',         url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'Nordstrom',      note:'Authorized Jo Malone retailer',     url: q=>`https://www.nordstrom.com/sr?origin=keywordsearch&keyword=${q}`,affiliate:true }],
+  },
+  'jo malone london': 'jo malone',
+
+  'parfums de marly': {
+    NO: [{ name:'Parfyme.no',     note:'Carries Parfums de Marly in Norway',url: q=>`https://www.parfyme.no/?s=${q}`,                affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Authorized retailer',               url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'Sephora',        note:'Authorized retailer',               url: q=>`https://www.sephora.com/search?keyword=${q}`,   affiliate:true  }],
+  },
+
+  'maison margiela': {
+    NO: [{ name:'Nordicfeel',     note:'Carries Replica line in Norway',    url: q=>`https://www.nordicfeel.no/search?query=${q}`,   affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Full Replica collection',           url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'Sephora',        note:'Authorized retailer',               url: q=>`https://www.sephora.com/search?keyword=${q}`,   affiliate:true  }],
+    DE: [{ name:'Douglas',        note:'Carries Maison Margiela',           url: q=>`https://www.douglas.de/de/search?q=${q}`,       affiliate:false }],
+  },
+
+  'amouage': {
+    GB: [{ name:'Selfridges',     note:'Authorized Amouage retailer',       url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'LuckyScent',     note:'Authorized niche retailer',         url: q=>`https://www.luckyscent.com/search?q=${q}`,     affiliate:false }],
+  },
+
+  'xerjoff': {
+    GB: [{ name:'Selfridges',     note:'Authorized Xerjoff retailer',       url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'LuckyScent',     note:'Authorized niche retailer',         url: q=>`https://www.luckyscent.com/search?q=${q}`,     affiliate:false }],
+  },
+
+  'initio': {
+    GB: [{ name:'Selfridges',     note:'Authorized Initio retailer',        url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'Sephora',        note:'Authorized retailer',               url: q=>`https://www.sephora.com/search?keyword=${q}`,   affiliate:true  }],
+  },
+
+  'acqua di parma': {
+    NO: [{ name:'Nordicfeel',     note:'Carries Acqua di Parma',            url: q=>`https://www.nordicfeel.no/search?query=${q}`,   affiliate:false }],
+    GB: [{ name:'Selfridges',     note:'Large selection',                   url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'Nordstrom',      note:'Authorized retailer',               url: q=>`https://www.nordstrom.com/sr?origin=keywordsearch&keyword=${q}`,affiliate:true }],
+  },
+
+  'frederic malle': {
+    US: [{ name:'Sephora',        note:'Authorized Frederic Malle retailer',url: q=>`https://www.sephora.com/search?keyword=${q}`,   affiliate:true  }],
+    GB: [{ name:'Liberty London', note:'Authorized retailer',               url: q=>`https://www.libertylondon.com/search?q=${q}`,   affiliate:false }],
+  },
+  'frédéric malle': 'frederic malle',
+
+  'nishane': {
+    GB: [{ name:'Selfridges',     note:'Authorized Nishane retailer',       url: q=>`https://www.selfridges.com/GB/en/search/?q=${q}`,affiliate:true  }],
+    US: [{ name:'LuckyScent',     note:'Authorized niche retailer',         url: q=>`https://www.luckyscent.com/search?q=${q}`,     affiliate:false }],
+  },
+
+  // ── Add more below as you discover them ──
+  // 'brand name': {
+  //   NO: [{ name:'Store', note:'...', url: q=>`https://...${q}`, affiliate:false }],
+  // },
+};
+
+function getAuthorizedRetailers(house, countryCode) {
+  if (!house) return null;
+  let entry = BRAND_RETAILERS[(house||'').toLowerCase().trim()];
+  if (typeof entry === 'string') entry = BRAND_RETAILERS[entry]; // follow alias
+  if (!entry) return null;
+  return entry[countryCode] || null;
+}
+
 function getUserCountry() {
   return (user?.user_metadata?.country) || localStorage.getItem('sh_country') || 'NO';
 }
@@ -179,48 +306,58 @@ function getUserCountry() {
 function buildBuySection(buyQ, house) {
   const code = getUserCountry();
   const market = COUNTRY_STORES[code] || COUNTRY_STORES['OTHER'];
-  const card = (flag, name, note, url) =>
-    `<div class="buy-card" data-buy="${url.replace(/"/g,'&quot;')}" role="link" tabindex="0">` +
+
+  const card = (flag, name, note, url, isAffiliate) =>
+    `<div class="buy-card${isAffiliate ? ' buy-card-affiliate' : ''}" data-buy="${url.replace(/"/g,'&quot;')}" role="link" tabindex="0">` +
       `<div class="buy-card-flag">${flag}</div>` +
       `<div class="buy-card-name">${name}</div>` +
-      `<div class="buy-card-note">${note}</div>` +
+      `<div class="buy-card-note">${escapeHtml(note)}</div>` +
     `</div>`;
 
-  // Brand's own website — guaranteed to carry it
-  const brandFn = house ? BRAND_SITES[(house||'').toLowerCase().trim()] : null;
-  const brandHtml = brandFn
-    ? '<div class="buy-section-label">Official store</div><div class="buy-grid">' +
-        card('🏷️', escapeHtml(house), 'Buy direct from the brand', brandFn(buyQ)) +
-        card('🔍','Google Shopping','All retailers · compare prices',`https://www.google.com/search?tbm=shop&q=${buyQ}`) +
-      '</div>'
-    : '<div class="buy-section-label">Find it online</div><div class="buy-grid">' +
-        card('🔍','Google Shopping','All retailers · compare prices',`https://www.google.com/search?tbm=shop&q=${buyQ}`) +
-      '</div>';
-
-  // Local specialist stores (only genuinely carry niche brands)
-  const localHtml = market.stores.length
-    ? `<div class="buy-section-label" style="margin-top:14px">${market.flag} ${market.label}</div><div class="buy-grid">` +
-        market.stores.map(s => card(market.flag, s.name, s.note, s.url(buyQ))).join('') +
+  // 1 — Authorized retailers for this brand in this country (most specific)
+  const authorized = getAuthorizedRetailers(house, code);
+  const countryFlag = (COUNTRY_STORES[code] || {}).flag || '🌍';
+  const countryLabel = (COUNTRY_STORES[code] || {}).label || 'Local';
+  const authorizedHtml = authorized && authorized.length
+    ? `<div class="buy-section-label">${countryFlag} ${countryLabel} — authorized</div><div class="buy-grid">` +
+        authorized.map(r => card(countryFlag, r.name, r.note, r.url(buyQ), r.affiliate)).join('') +
       '</div>'
     : '';
 
-  // Samples & decants
+  // 2 — Brand's own website + Google Shopping (always shown, fallback if no authorized retailers)
+  const brandFn = house ? BRAND_SITES[(house||'').toLowerCase().trim()] : null;
+  const findHtml =
+    `<div class="buy-section-label" style="margin-top:${authorizedHtml ? '14px' : '0'}">` +
+      (brandFn ? 'Official store' : 'Find it online') +
+    '</div><div class="buy-grid">' +
+      (brandFn ? card('🏷️', escapeHtml(house||''), 'Buy direct from the brand', brandFn(buyQ), false) : '') +
+      card('🔍','Google Shopping','All retailers · compare prices',`https://www.google.com/search?tbm=shop&q=${buyQ}`, false) +
+    '</div>';
+
+  // 3 — Generic country specialists (only if no authorized list for this brand)
+  const fallbackLocal = (!authorized && market.stores.length)
+    ? `<div class="buy-section-label" style="margin-top:14px">${countryFlag} ${countryLabel}</div><div class="buy-grid">` +
+        market.stores.map(s => card(countryFlag, s.name, s.note, s.url(buyQ), false)).join('') +
+      '</div>'
+    : '';
+
+  // 4 — Samples & decants
   const samplesHtml =
     '<div class="buy-section-label" style="margin-top:14px">Samples &amp; decants</div>' +
     '<div class="buy-grid">' +
-      card('🇺🇸','LuckyScent','Authorised samples',`https://www.luckyscent.com/search?q=${buyQ}`) +
-      card('🇺🇸','Perfumed Court','Trusted decants',`https://www.theperfumedcourt.com/search.aspx?q=${buyQ}`) +
+      card('🇺🇸','LuckyScent','Authorised samples',`https://www.luckyscent.com/search?q=${buyQ}`, false) +
+      card('🇺🇸','Perfumed Court','Trusted decants',`https://www.theperfumedcourt.com/search.aspx?q=${buyQ}`, false) +
     '</div>';
 
-  // Fragrantica — shows verified "where to buy" for the exact fragrance
-  const fragranticaHtml =
+  // 5 — Fragrantica
+  const fragHtml =
     '<div class="buy-section-label" style="margin-top:14px">Community</div>' +
     '<div class="buy-grid">' +
-      card('🌐','Fragrantica','Reviews &amp; verified sellers',`https://www.fragrantica.com/search/?query=${buyQ}`) +
+      card('🌐','Fragrantica','Reviews &amp; verified sellers',`https://www.fragrantica.com/search/?query=${buyQ}`, false) +
     '</div>';
 
   return '<div class="detail-sec"><div class="detail-label">Where to buy</div>' +
-    brandHtml + localHtml + samplesHtml + fragranticaHtml +
+    authorizedHtml + findHtml + fallbackLocal + samplesHtml + fragHtml +
   '</div><div style="height:40px"></div>';
 }
 
