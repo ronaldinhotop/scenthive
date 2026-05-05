@@ -2567,6 +2567,369 @@ Preferred answer format:
 - Exact next task spec for Codex
 
 
+---
+
+### TASK 18 — Ask your Nose (Personalized AI Advisor)
+**Status:** ready for implementation
+
+**Why:** The current "AI RECS" button sends a generic prompt to Claude with no user context — anyone could get the same answer from ChatGPT. ScentHive's moat is personal data: diary entries, ratings, notes, collection, wishlist, taste profile. "Ask your Nose" feeds all of that to Claude before answering, producing recommendations that feel like they come from someone who actually knows your taste. This is the core Pro feature.
+
+**Goal:** Replace or augment the AI RECS button with a full-screen advisor modal. The AI reads the user's diary, collection, wishlist, and taste profile before answering. The response is personal, specific, and references fragrances the user has actually logged. Gate at 3 free queries/month with a Pro upgrade prompt.
+
+---
+
+#### Files to edit
+- `index.html` — add `#modal-nose` modal
+- `app.js` — add `openNoseAdvisor()`, `buildUserContext()`, `submitNoseQuery()`, usage gate
+- `api/ai.js` — accept `diary`, `wishlist`, `tasteProfile` in request body, build personal system prompt
+- `styles.css` — styles for the advisor modal
+
+---
+
+#### 1. `api/ai.js` — personal context system prompt
+
+At the top of the handler, after reading `body`:
+
+```javascript
+const diary      = body.diary      || [];   // array of {name, house, rating, notes}
+const wishlist   = body.wishlist   || [];   // array of {name, house}
+const tasteProfile = body.tasteProfile || null; // {name, tagline, traits[]}
+const topFamilies  = body.topFamilies  || null; // string e.g. "Oriental 80%, Fresh 60%"
+```
+
+If `diary.length > 0`, replace the generic `SYSTEM_PROMPT` with a personal one:
+
+```javascript
+function buildPersonalPrompt(diary, collection, wishlist, tasteProfile, topFamilies) {
+  const diaryLines = diary.slice(0, 40).map(e => {
+    const stars = e.rating ? `${e.rating}/5` : 'unrated';
+    const note = e.notes ? ` — "${e.notes.slice(0, 80)}"` : '';
+    return `  • ${e.name} by ${e.house} (${stars})${note}`;
+  }).join('\n');
+
+  const collectionLines = collection.length
+    ? collection.map(b => `  • ${b.name} by ${b.house}`).join('\n')
+    : '  (none logged yet)';
+
+  const wishlistLines = wishlist.length
+    ? wishlist.map(w => `  • ${w.name} by ${w.house}`).join('\n')
+    : '  (empty)';
+
+  const profileLine = tasteProfile
+    ? `${tasteProfile.name} — ${tasteProfile.tagline}`
+    : 'Not yet determined';
+
+  return `You are a personal fragrance advisor with encyclopaedic knowledge of perfumery. You know this user's taste intimately because you have access to their real fragrance history.
+
+THEIR SCENT IDENTITY: ${profileLine}
+TOP FRAGRANCE FAMILIES: ${topFamilies || 'Unknown'}
+
+THEIR DIARY (${diary.length} fragrances logged, most recent first):
+${diaryLines}
+
+THEIR COLLECTION (bottles they own — do not recommend these):
+${collectionLines}
+
+THEIR WISHLIST:
+${wishlistLines}
+
+RULES:
+1. Respond ONLY with valid JSON — no markdown, no extra text.
+2. Start your intro by referencing something specific from their diary or taste — make it feel personal.
+3. Every recommendation must be a real fragrance that exists.
+4. Never recommend something they already own (in their collection).
+5. If they've rated a fragrance, use that to infer taste — high ratings reveal preferences, low ratings reveal dislikes.
+6. Be specific: mention fragrances they've logged by name when explaining why a rec fits.
+7. Max 5 recommendations.
+
+JSON format:
+{
+  "intro": "one sentence that references something specific from their history",
+  "recommendations": [
+    {
+      "name": "Exact Fragrance Name",
+      "house": "Exact House Name",
+      "why": "specific reason based on their actual diary/taste",
+      "notes": ["Note1", "Note2", "Note3"],
+      "occasion": "when to wear",
+      "price": "$XX–$XX per 100ml",
+      "is_dupe": false
+    }
+  ]
+}`;
+}
+```
+
+In the handler body — use personal prompt when diary data is present:
+
+```javascript
+const usePersonal = diary.length > 0;
+const systemPrompt = usePersonal
+  ? buildPersonalPrompt(diary, collection, wishlist, tasteProfile, topFamilies)
+  : (body.system || SYSTEM_PROMPT);
+
+// Pass to Anthropic as before, with systemPrompt instead of system/SYSTEM_PROMPT
+```
+
+Remove the old `colCtx` append logic — personal prompt already handles collection.
+
+---
+
+#### 2. `index.html` — add `#modal-nose` modal
+
+Add this modal before the closing `</body>` tag:
+
+```html
+<!-- ═══ ASK YOUR NOSE MODAL ═══ -->
+<div class="modal" id="modal-nose">
+  <div class="modal-box" style="max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+
+    <!-- Header -->
+    <div style="padding:20px 20px 16px;border-bottom:1px solid var(--border2);flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase">Your personal advisor</div>
+        <button onclick="closeModal('modal-nose')" style="background:none;border:none;color:var(--grey);font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>
+      </div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-style:italic;color:var(--white)">Ask your Nose</div>
+      <div id="nose-context-line" style="font-size:11px;color:var(--white2);margin-top:4px"></div>
+    </div>
+
+    <!-- Usage counter -->
+    <div id="nose-usage-bar" style="padding:10px 20px;border-bottom:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+      <span id="nose-usage-label" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.06em"></span>
+      <span id="nose-pro-badge" style="display:none;font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.08em;border:1px solid var(--gold-dim);border-radius:20px;padding:2px 8px">PRO</span>
+    </div>
+
+    <!-- Result area -->
+    <div id="nose-result" style="flex:1;overflow-y:auto;padding:20px;min-height:80px"></div>
+
+    <!-- Input area -->
+    <div style="padding:14px 20px;border-top:1px solid var(--border2);flex-shrink:0;background:var(--bg2)">
+      <div style="display:flex;gap:10px;align-items:flex-end">
+        <textarea id="nose-input" rows="2" placeholder="What are you looking for? e.g. something dark and smoky for evenings..." style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--white);font-size:13px;font-family:'DM Sans',sans-serif;padding:10px 12px;resize:none;outline:none;line-height:1.4"></textarea>
+        <button id="nose-submit" onclick="submitNoseQuery()" style="background:var(--gold);color:var(--bg);border:none;border-radius:10px;padding:10px 16px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;height:44px">Ask →</button>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+---
+
+#### 3. `app.js` — advisor functions
+
+Add these functions near the AI RECS section:
+
+```javascript
+// ─── NOSE ADVISOR ────────────────────────────────────────────────────────────
+const NOSE_LIMIT = 3; // free queries per month
+
+function getNoseUsage() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('sh_nose_usage') || '{}');
+    const month = new Date().toISOString().slice(0, 7); // "2026-05"
+    if (stored.month !== month) return { month, count: 0 };
+    return stored;
+  } catch { return { month: new Date().toISOString().slice(0, 7), count: 0 }; }
+}
+
+function incrementNoseUsage() {
+  const usage = getNoseUsage();
+  usage.count = (usage.count || 0) + 1;
+  try { localStorage.setItem('sh_nose_usage', JSON.stringify(usage)); } catch {}
+}
+
+function buildUserContext() {
+  const diaryCtx = diary.slice(0, 40).map(e => ({
+    name: e.fragrance_name || '',
+    house: e.house || '',
+    rating: e.rating || null,
+    notes: e.notes || ''
+  }));
+
+  const collectionCtx = collection.map(b => ({ name: b.name || '', house: b.house || '' }));
+  const wishlistCtx   = wishlist.map(w => ({ name: w.name || '', house: w.house || '' }));
+
+  const tp = getTasteProfile();
+  const tasteCtx = tp ? { name: tp.name, tagline: tp.tagline, traits: tp.traits } : null;
+
+  const families = computeTasteProfile();
+  const topFamilies = Object.entries(families)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .filter(([, v]) => v > 0)
+    .map(([k, v]) => `${k} ${v}%`)
+    .join(', ');
+
+  return { diary: diaryCtx, collection: collectionCtx, wishlist: wishlistCtx, tasteProfile: tasteCtx, topFamilies };
+}
+
+function openNoseAdvisor() {
+  const usage = getNoseUsage();
+  const remaining = Math.max(0, NOSE_LIMIT - usage.count);
+
+  // Update context line
+  const ctxLine = document.getElementById('nose-context-line');
+  if (ctxLine) {
+    const parts = [];
+    if (diary.length) parts.push(`${diary.length} logged`);
+    if (collection.length) parts.push(`${collection.length} in collection`);
+    const tp = getTasteProfile();
+    if (tp) parts.push(tp.name);
+    ctxLine.textContent = parts.length
+      ? `Reading your profile — ${parts.join(' · ')}`
+      : 'Log some fragrances to get personal recommendations.';
+  }
+
+  // Usage label
+  const usageLabel = document.getElementById('nose-usage-label');
+  const proBadge   = document.getElementById('nose-pro-badge');
+  if (usageLabel) {
+    usageLabel.textContent = remaining > 0
+      ? `${remaining} of ${NOSE_LIMIT} free queries remaining this month`
+      : 'Monthly limit reached — upgrade to Pro for unlimited';
+    usageLabel.style.color = remaining > 0 ? 'var(--grey)' : 'var(--gold)';
+  }
+
+  // Clear previous result
+  const result = document.getElementById('nose-result');
+  if (result) result.innerHTML = '';
+  const input = document.getElementById('nose-input');
+  if (input) input.value = '';
+
+  openModal('modal-nose');
+  if (input) setTimeout(() => input.focus(), 300);
+}
+
+async function submitNoseQuery() {
+  const input = document.getElementById('nose-input');
+  const result = document.getElementById('nose-result');
+  const submitBtn = document.getElementById('nose-submit');
+  if (!input || !result) return;
+
+  const q = input.value.trim();
+  if (!q) return;
+
+  // Check usage limit
+  const usage = getNoseUsage();
+  if (usage.count >= NOSE_LIMIT) {
+    result.innerHTML = `
+      <div style="text-align:center;padding:24px 0">
+        <div style="font-size:28px;margin-bottom:12px">🐝</div>
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;margin-bottom:8px">Monthly limit reached</div>
+        <div style="font-size:12px;color:var(--white2);margin-bottom:20px">Upgrade to Pro for unlimited personal recommendations.</div>
+        <button onclick="closeModal('modal-nose')" style="background:var(--gold);color:var(--bg);border:none;border-radius:20px;padding:10px 24px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.08em;cursor:pointer">Upgrade to Pro →</button>
+      </div>`;
+    return;
+  }
+
+  // Loading state
+  submitBtn.disabled = true;
+  submitBtn.textContent = '...';
+  result.innerHTML = `<div style="color:var(--grey);font-size:12px;font-style:italic;padding:8px 0">Reading your fragrance history...</div>`;
+
+  try {
+    const ctx = buildUserContext();
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: q,
+        diary: ctx.diary,
+        collection: ctx.collection,
+        wishlist: ctx.wishlist,
+        tasteProfile: ctx.tasteProfile,
+        topFamilies: ctx.topFamilies
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Request failed');
+
+    incrementNoseUsage();
+
+    // Update usage label
+    const newUsage = getNoseUsage();
+    const remaining = Math.max(0, NOSE_LIMIT - newUsage.count);
+    const usageLabel = document.getElementById('nose-usage-label');
+    if (usageLabel) {
+      usageLabel.textContent = remaining > 0
+        ? `${remaining} of ${NOSE_LIMIT} free queries remaining this month`
+        : 'Monthly limit reached — upgrade to Pro for unlimited';
+      usageLabel.style.color = remaining > 0 ? 'var(--grey)' : 'var(--gold)';
+    }
+
+    // Render response
+    const { intro, recommendations = [] } = data;
+    const recsHtml = recommendations.map(r => `
+      <div style="padding:14px 0;border-bottom:1px solid var(--border2)">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <div style="font-family:'Playfair Display',serif;font-size:15px;font-style:italic">${escapeHtml(r.name)}</div>
+          ${r.is_dupe ? '<span style="font-family:'DM Mono',monospace;font-size:8px;color:var(--purple);letter-spacing:0.08em;border:1px solid var(--purple-dim);border-radius:10px;padding:1px 7px">DUPE</span>' : ''}
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:8.5px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">${escapeHtml(r.house || '')}</div>
+        <div style="font-size:12px;color:var(--white2);line-height:1.5;margin-bottom:6px">${escapeHtml(r.why || '')}</div>
+        <div style="font-size:11px;color:var(--grey)">${(r.notes || []).join(' · ')}${r.price ? ' · ' + r.price : ''}</div>
+      </div>`).join('');
+
+    result.innerHTML = `
+      <div style="font-size:13px;color:var(--white2);font-style:italic;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border2)">${escapeHtml(intro || '')}</div>
+      ${recsHtml}`;
+
+  } catch (err) {
+    result.innerHTML = `<div style="color:var(--grey);font-size:12px">Something went wrong — try again.</div>`;
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Ask →';
+  }
+}
+```
+
+---
+
+#### 4. Wire up the entry point
+
+Find the existing AI RECS button in `index.html` (in the topbar) and change its `onclick` from whatever it currently calls to `openNoseAdvisor()`.
+
+Also add a home screen CTA card for users with diary data. Find `#section-continue` in `index.html` and add after it:
+
+```html
+<!-- Nose advisor CTA — shown when user has diary data -->
+<div id="nose-cta-strip" style="display:none;margin:0 20px 24px;background:linear-gradient(135deg,var(--bg3) 0%,#1a1430 100%);border:1px solid var(--border);border-radius:14px;padding:16px 18px;cursor:pointer" onclick="openNoseAdvisor()">
+  <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px">Personalized for you</div>
+  <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:4px">Ask your Nose →</div>
+  <div style="font-size:11px;color:var(--white2)" id="nose-cta-sub">Your AI advisor reads your diary before answering.</div>
+</div>
+```
+
+In `renderHome()` in `app.js`, show/hide the strip based on diary length:
+```javascript
+const noseCta = document.getElementById('nose-cta-strip');
+if (noseCta) noseCta.style.display = diary.length >= 3 ? '' : 'none';
+const noseCtaSub = document.getElementById('nose-cta-sub');
+if (noseCtaSub && diary.length >= 3) {
+  const tp = getTasteProfile();
+  noseCtaSub.textContent = tp
+    ? `Knows your ${tp.name} profile and ${diary.length} logged fragrances.`
+    : `Reads your ${diary.length} logged fragrances before answering.`;
+}
+```
+
+---
+
+#### Acceptance criteria
+- [ ] "Ask your Nose" modal opens from both the topbar AI RECS button and the home CTA strip.
+- [ ] Context line in modal header shows diary count, collection count, and taste profile name.
+- [ ] Submitting a query sends diary (last 40 entries with ratings/notes), collection, wishlist, taste profile, and top families to `/api/ai`.
+- [ ] API responds with a personalized intro that references the user's history, plus up to 5 recommendations.
+- [ ] Recommendations display with name, house (gold mono), why (personal reason), notes, price.
+- [ ] Usage counter shows "X of 3 free queries remaining this month" and decrements on each successful query.
+- [ ] At 0 remaining, submit shows upgrade prompt instead of making API call.
+- [ ] Counter resets each calendar month (keyed by "YYYY-MM").
+- [ ] Home CTA strip only appears when user has ≥ 3 diary entries.
+- [ ] No regressions on existing AI RECS flow or other screens.
+
+
 ## Workflow
 
 ```
