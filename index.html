@@ -62,7 +62,7 @@
       <option value="PL">🇵🇱 Poland</option>
       <option value="OTHER">🌍 Other</option>
     </select>
-    <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Sign in</button>
+    <button class="auth-btn" id="auth-btn" onclick="try{handleAuth()}catch(e){var m=document.getElementById('auth-msg');if(m){m.textContent='JS error: '+e.message;m.className='auth-msg error';}}">Sign in</button>
     <div class="auth-msg" id="auth-msg"></div>
     <button class="auth-skip" onclick="enterAsGuest()">Continue without an account</button>
   </div>

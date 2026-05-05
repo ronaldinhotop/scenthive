@@ -437,37 +437,55 @@ function setMsg(text, cls) {
 }
 
 async function handleAuth() {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const name = document.getElementById('auth-name').value.trim();
-  const country = document.getElementById('auth-country')?.value || 'NO';
-  const btn = document.getElementById('auth-btn');
-  if (!email || !password) { setMsg('Please fill in all fields.', 'error'); return; }
-  btn.disabled = true;
-  btn.textContent = 'Please wait…';
+  // Wrap the entire body so any unexpected error surfaces in the UI
+  const msgEl = document.getElementById('auth-msg');
+  const showErr = (msg) => { if (msgEl) { msgEl.textContent = msg; msgEl.className = 'auth-msg error'; } };
   try {
-    if (authMode === 'signup') {
-      const { error } = await sb.auth.signUp({ email, password, options: { data: { name: name || email.split('@')[0], country } } });
-      if (error) throw error;
-      const { data, error: e2 } = await sb.auth.signInWithPassword({ email, password });
-      if (!e2 && data.user) {
+    const emailEl    = document.getElementById('auth-email');
+    const passwordEl = document.getElementById('auth-password');
+    const nameEl     = document.getElementById('auth-name');
+    const countryEl  = document.getElementById('auth-country');
+    const btn        = document.getElementById('auth-btn');
+
+    if (!emailEl || !passwordEl || !btn) { showErr('Page error — please reload.'); return; }
+
+    const email    = emailEl.value.trim();
+    const password = passwordEl.value;
+    const name     = nameEl ? nameEl.value.trim() : '';
+    const country  = countryEl ? (countryEl.value || 'NO') : 'NO';
+
+    if (!email || !password) { showErr('Please fill in all fields.'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Please wait…';
+    if (msgEl) { msgEl.textContent = ''; msgEl.className = 'auth-msg'; }
+
+    try {
+      if (authMode === 'signup') {
+        const { error } = await sb.auth.signUp({ email, password, options: { data: { name: name || email.split('@')[0], country } } });
+        if (error) throw error;
+        const { data, error: e2 } = await sb.auth.signInWithPassword({ email, password });
+        if (!e2 && data.user) {
+          user = data.user;
+          localStorage.setItem('sh_country', country);
+          await initApp();
+          setTimeout(() => toast('🐝 Welcome to the hive! Start by logging what you\'re wearing today.'), 800);
+        } else setMsg('Account created! Please sign in.', 'success');
+      } else {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
         user = data.user;
-        localStorage.setItem('sh_country', country);
+        if (user.user_metadata?.country) localStorage.setItem('sh_country', user.user_metadata.country);
         await initApp();
-        setTimeout(() => toast('🐝 Welcome to the hive! Start by logging what you\'re wearing today.'), 800);
-      } else setMsg('Account created! Please sign in.', 'success');
-    } else {
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      user = data.user;
-      if (user.user_metadata?.country) localStorage.setItem('sh_country', user.user_metadata.country);
-      await initApp();
+      }
+    } catch (e) {
+      showErr(e.message || 'Something went wrong.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = authMode === 'signup' ? 'Create account' : 'Sign in';
     }
-  } catch (e) {
-    setMsg(e.message || 'Something went wrong.', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = authMode === 'signup' ? 'Create account' : 'Sign in';
+  } catch (outerErr) {
+    showErr('Unexpected error: ' + (outerErr.message || String(outerErr)));
   }
 }
 
