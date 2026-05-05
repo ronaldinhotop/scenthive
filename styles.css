@@ -44,6 +44,7 @@ img{max-width:100%;display:block}
 .auth-wrap{width:100%;max-width:360px}
 .auth-logo{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:8px}
 .auth-logo-img{width:min(330px,100%);height:auto;display:block}
+.auth-mark-img{width:74px;height:74px;object-fit:cover;border-radius:14px;display:block}
 .auth-wordmark{font-family:'Playfair Display',serif;font-size:44px;letter-spacing:-0.03em;line-height:1;text-align:center}
 .auth-wordmark em{font-style:italic;color:var(--gold)}
 .auth-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.16em;text-transform:uppercase;text-align:center;margin-bottom:36px}
