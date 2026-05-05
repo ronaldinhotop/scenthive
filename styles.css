@@ -25,6 +25,7 @@ img{max-width:100%;display:block}
 .logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;display:flex;align-items:center;gap:8px;letter-spacing:-0.02em}
 .logo em{font-style:italic;color:var(--gold);font-weight:500}
 .brand-mark{width:27px;height:27px;object-fit:cover;display:block;flex-shrink:0;border-radius:6px}
+.brand-lockup{width:132px;height:38px;object-fit:contain;object-position:left center;display:block;flex-shrink:0}
 .tbar-btn{width:34px;height:34px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--white2);cursor:pointer}
 .tbar-btn:active{background:var(--bg3)}
 
@@ -545,6 +546,7 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
     flex-shrink:0;
   }
   .gtnav-logo .brand-mark{width:29px;height:29px}
+  .gtnav-logo .brand-lockup{width:150px;height:43px}
   .gtnav-logo em{font-style:italic;color:var(--gold)}
   .gtnav-links{display:flex;align-items:center;gap:4px}
   .gtnav-link{
@@ -815,6 +817,7 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 /* ═══ SIDEBAR LOGO BRAND ═══ */
 .sidebar-logo{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:28px;padding:0 8px;letter-spacing:-0.01em}
 .sidebar-logo{display:flex;align-items:center;gap:9px}
+.sidebar-logo .brand-lockup{width:158px;height:45px}
 .sidebar-logo em{font-style:italic;color:var(--gold)}
 .logo em{color:var(--gold)}
 
