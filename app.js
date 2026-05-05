@@ -104,24 +104,28 @@ function getUserCountry() {
 function buildBuySection(buyQ) {
   const code = getUserCountry();
   const market = COUNTRY_STORES[code] || COUNTRY_STORES['OTHER'];
+  const card = (flag, name, note, url) =>
+    `<a class="buy-card" href="${url}" target="_blank" rel="noopener noreferrer">` +
+      `<div class="buy-card-flag">${flag}</div>` +
+      `<div class="buy-card-name">${name}</div>` +
+      `<div class="buy-card-note">${note}</div>` +
+    `</a>`;
   const localHtml = market.stores.length
     ? `<div class="buy-section-label">${market.flag} ${market.label}</div><div class="buy-grid">` +
-        market.stores.map(s =>
-          `<div class="buy-card" data-url="${s.url(buyQ)}"><div class="buy-card-flag">${market.flag}</div><div class="buy-card-name">${s.name}</div><div class="buy-card-note">${s.note}</div></div>`
-        ).join('') +
+        market.stores.map(s => card(market.flag, s.name, s.note, s.url(buyQ))).join('') +
       '</div>'
     : '';
   const samplesHtml =
     '<div class="buy-section-label" style="margin-top:14px">Samples &amp; decants</div>' +
     '<div class="buy-grid">' +
-      `<div class="buy-card" data-url="https://www.luckyscent.com/search?q=${buyQ}"><div class="buy-card-flag">🇺🇸</div><div class="buy-card-name">LuckyScent</div><div class="buy-card-note">Authorised samples</div></div>` +
-      `<div class="buy-card" data-url="https://www.theperfumedcourt.com/search.aspx?q=${buyQ}"><div class="buy-card-flag">🇺🇸</div><div class="buy-card-name">Perfumed Court</div><div class="buy-card-note">Trusted decants</div></div>` +
+      card('🇺🇸','LuckyScent','Authorised samples',`https://www.luckyscent.com/search?q=${buyQ}`) +
+      card('🇺🇸','Perfumed Court','Trusted decants',`https://www.theperfumedcourt.com/search.aspx?q=${buyQ}`) +
     '</div>';
   const communityHtml =
     '<div class="buy-section-label" style="margin-top:14px">Community &amp; info</div>' +
     '<div class="buy-grid">' +
-      `<div class="buy-card" data-url="https://www.fragrantica.com/search/?query=${buyQ}"><div class="buy-card-flag">🌐</div><div class="buy-card-name">Fragrantica</div><div class="buy-card-note">Community ratings</div></div>` +
-      `<div class="buy-card" data-url="https://www.google.com/search?tbm=shop&q=${buyQ}"><div class="buy-card-flag">🔍</div><div class="buy-card-name">Google Shopping</div><div class="buy-card-note">Compare all prices</div></div>` +
+      card('🌐','Fragrantica','Community ratings',`https://www.fragrantica.com/search/?query=${buyQ}`) +
+      card('🔍','Google Shopping','Compare all prices',`https://www.google.com/search?tbm=shop&q=${buyQ}`) +
     '</div>';
   return '<div class="detail-sec"><div class="detail-label">Where to buy</div>' +
     localHtml + samplesHtml + communityHtml +
@@ -1622,9 +1626,7 @@ function openFrag(key) {
       else if (act === 'wish') addToWishlist({ name, house, image_url: b.getAttribute('data-img'), fragella_id: b.getAttribute('data-fid') });
     });
   });
-  document.querySelectorAll('#frag-content .buy-row, #frag-content .buy-card').forEach(b => {
-    b.addEventListener('click', () => window.open(b.getAttribute('data-url'), '_blank', 'noopener'));
-  });
+  // buy-card links are <a href> elements — no JS handler needed
 
   showScreen('frag');
   if (f.name) loadFragReviews(f.name);
