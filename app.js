@@ -1913,6 +1913,7 @@ function openFrag(key) {
   const general = f['General Notes'] || [];
   const hasNotes = top.length || heart.length || base.length || general.length;
   const accords = f.accords || [];
+  const noteFallback = buildNotesFallbackHtml(hasNotes, accords, f.family);
   const buyQ = encodeURIComponent((f.name || '') + ' ' + (f.house || ''));
   const safeName = escapeHtml(f.name || '');
   const safeHouse = escapeHtml(f.house || '');
@@ -1960,7 +1961,7 @@ function openFrag(key) {
       (heart.length ? '<div class="note-tier-head note-tier-heart">Heart notes</div><div class="note-tile-grid">' + buildHexNotes(heart, 'heart') + '</div>' : '') +
       (base.length ? '<div class="note-tier-head note-tier-base">Base notes</div><div class="note-tile-grid">' + buildHexNotes(base, 'base') + '</div>' : '') +
       (!top.length && !heart.length && !base.length && general.length ? '<div class="note-tier-head note-tier-base">Notes</div><div class="note-tile-grid">' + buildHexNotes(general.slice(0,12), 'base') + '</div>' : '') +
-    '</div>' : '') +
+    '</div>' : noteFallback) +
     (accords && accords.length ? '<div class="detail-sec"><div class="detail-label">Scent character</div>' +
       accords.slice(0,7).map(function(a, ai) {
         var nm = typeof a === 'string' ? a : (a.name || String(a));
@@ -2035,6 +2036,23 @@ function openFrag(key) {
       });
     });
   }
+}
+
+function buildNotesFallbackHtml(hasNotes, accords, family) {
+  if (hasNotes) return '';
+  const fallback = [
+    ...(family ? [family] : []),
+    ...(Array.isArray(accords) ? accords : [])
+  ].map(a => typeof a === 'string' ? a : (a?.name || String(a || '')))
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i)
+    .slice(0, 12);
+  if (!fallback.length) return '';
+  return '<div class="detail-sec">' +
+    '<div class="detail-label">Fragrance notes <span style="font-size:9px;color:var(--grey);font-weight:400;cursor:help" title="Top/heart/base notes are not cached for this fragrance yet, so ScentHive is showing the main accords instead.">ⓘ</span></div>' +
+    '<div class="note-tier-head note-tier-base">Main accords</div>' +
+    '<div class="note-tile-grid">' + buildHexNotes(fallback, 'base') + '</div>' +
+  '</div>';
 }
 
 function hydrateFragranceFromStatic(f) {
