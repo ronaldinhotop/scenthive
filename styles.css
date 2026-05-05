@@ -25,7 +25,7 @@ img{max-width:100%;display:block}
 .logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;display:flex;align-items:center;gap:8px;letter-spacing:-0.02em}
 .logo em{font-style:italic;color:var(--gold);font-weight:500}
 .brand-mark{width:27px;height:27px;object-fit:cover;display:block;flex-shrink:0;border-radius:6px}
-.brand-lockup{width:132px;height:38px;object-fit:contain;object-position:left center;display:block;flex-shrink:0}
+.brand-lockup{width:132px;height:38px;object-fit:contain;object-position:left center;display:block;flex-shrink:0;mix-blend-mode:screen}
 .tbar-btn{width:34px;height:34px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--white2);cursor:pointer}
 .tbar-btn:active{background:var(--bg3)}
 
@@ -44,7 +44,7 @@ img{max-width:100%;display:block}
 .auth-wrap{width:100%;max-width:360px}
 .auth-logo{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:8px}
 .auth-logo-img{width:min(330px,100%);height:auto;display:block}
-.auth-mark-img{width:74px;height:74px;object-fit:cover;border-radius:14px;display:block}
+.auth-mark-img{width:74px;height:74px;object-fit:cover;display:block;mix-blend-mode:screen}
 .auth-wordmark{font-family:'Playfair Display',serif;font-size:44px;letter-spacing:-0.03em;line-height:1;text-align:center}
 .auth-wordmark em{font-style:italic;color:var(--gold)}
 .auth-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.16em;text-transform:uppercase;text-align:center;margin-bottom:36px}
