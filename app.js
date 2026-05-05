@@ -101,11 +101,22 @@ function getUserCountry() {
   return (user?.user_metadata?.country) || localStorage.getItem('sh_country') || 'NO';
 }
 
+// Open external links safely — handles iOS standalone PWA where target="_blank" is silently ignored
+function openExternal(e, el) {
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandalone) {
+    e.preventDefault();
+    const w = window.open(el.href, '_blank');
+    if (!w) window.location.href = el.href;
+  }
+  // In regular browser: let the native <a href target="_blank"> handle it
+}
+
 function buildBuySection(buyQ) {
   const code = getUserCountry();
   const market = COUNTRY_STORES[code] || COUNTRY_STORES['OTHER'];
   const card = (flag, name, note, url) =>
-    `<a class="buy-card" href="${url}" target="_blank" rel="noopener noreferrer">` +
+    `<a class="buy-card" href="${url}" target="_blank" rel="noopener noreferrer" onclick="openExternal(event,this)">` +
       `<div class="buy-card-flag">${flag}</div>` +
       `<div class="buy-card-name">${name}</div>` +
       `<div class="buy-card-note">${note}</div>` +
