@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ScentHive — Your Fragrance Diary</title>
+<meta name="description" content="ScentHive — log every fragrance you wear, rate it, discover your nose, and join a community of scent lovers.">
+<meta name="theme-color" content="#0d1018">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ScentHive">
+<link rel="manifest" href="/manifest.json">
+<meta property="og:title" content="ScentHive — Your Fragrance Diary">
+<meta property="og:description" content="Log every scent. Rate it. Discover your nose. Join the hive.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://scenthive.app">
+<meta property="og:image" content="https://scenthive.app/icon-512.png">
+<meta name="twitter:image" content="https://scenthive.app/icon-512.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ScentHive — Your Fragrance Diary">
+<meta name="twitter:description" content="Log every scent. Rate it. Discover your nose.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ═══ AUTH ═══ -->
+<div class="screen active" id="screen-auth">
+  <div class="auth-wrap">
+    <div class="auth-logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <div class="auth-tag">Your fragrance diary</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin" onclick="setAuthMode('signin')">Sign in</button>
+      <button class="auth-tab" id="tab-signup" onclick="setAuthMode('signup')">Sign up</button>
+    </div>
+    <input class="auth-input" id="auth-email" type="email" placeholder="Email" autocomplete="email">
+    <input class="auth-input" id="auth-password" type="password" placeholder="Password" autocomplete="current-password">
+    <input class="auth-input" id="auth-name" type="text" placeholder="Your name" autocomplete="name" style="display:none">
+    <button class="auth-btn" id="auth-btn" onclick="handleAuth()">Sign in</button>
+    <div class="auth-msg" id="auth-msg"></div>
+    <button class="auth-skip" onclick="enterAsGuest()">Continue without an account</button>
+  </div>
+</div>
+
+<nav id="global-topnav">
+  <div class="gtnav-logo" onclick="showTab('home')" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg><span>Scent<em>Hive</em></span></div>
+  <div class="gtnav-links">
+    <button class="gtnav-link active" data-tab="home">Home</button>
+    <button class="gtnav-link" data-tab="diary">Diary</button>
+    <button class="gtnav-link" data-tab="collection">Hive</button>
+    <button class="gtnav-link" data-tab="profile">Profile</button>
+  </div>
+  <div class="gtnav-actions">
+    <button class="gtnav-ai" onclick="openAI()">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      AI Recs
+    </button>
+    <button class="gtnav-log" onclick="openLog()">+ Log</button>
+    <button class="gtnav-avatar" id="gtnav-avatar" onclick="goToProfile()">E</button>
+  </div>
+</nav>
+
+<!-- ═══ HOME ═══ -->
+<div class="screen" id="screen-home">
+  <div class="desktop-sidebar" id="sidebar-home">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <div class="sidebar-item active" data-tab="home">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 9l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h4v6" stroke="currentColor" stroke-width="1.5"/></svg>
+      Home
+    </div>
+    <div class="sidebar-item" data-tab="diary">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Diary
+    </div>
+    <div class="sidebar-item" data-tab="collection">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"/></svg>
+      Hive
+    </div>
+    <div class="sidebar-item" data-tab="profile">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Profile
+    </div>
+    <div class="sidebar-log-btn" id="sidebar-log-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Log a fragrance
+    </div>
+    <div class="sidebar-item" onclick="openAI()" style="margin-top:8px;color:var(--purple-light)">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      AI Recs
+    </div>
+    <div class="sidebar-footer">scenthive.app · Beta</div>
+  </div>
+  <div class="screen-main">
+  <div class="topbar">
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <button class="tbar-btn" onclick="goToProfile()">👤</button>
+  </div>
+  <div class="home-screen">
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="Search any fragrance…" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="search-results-wrap" id="search-results"></div>
+
+    <!-- PWA install banner -->
+    <div id="pwa-banner" style="display:none;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;background:var(--gold-pale);border-bottom:1px solid var(--gold-dim)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">🐝</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--white)">Add ScentHive to your home screen</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:0.06em">Works offline · No app store needed</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="installPWA()" style="font-family:'DM Mono',monospace;font-size:9px;padding:6px 12px;background:var(--gold);color:var(--bg);border-radius:2px;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer">Install</button>
+        <button onclick="dismissPWA()" style="font-family:'DM Mono',monospace;font-size:9px;padding:6px 8px;background:transparent;color:var(--grey);border-radius:2px;letter-spacing:0.06em;cursor:pointer">✕</button>
+      </div>
+    </div>
+
+    <div id="home-content">
+      <div class="home-greeting" id="home-greeting" style="display:none">
+        <div class="home-greeting-text">
+          <span class="home-greeting-name" id="greeting-name"></span>
+          <span class="home-greeting-stats" id="greeting-stats"></span>
+        </div>
+        <div class="home-greeting-streak" id="greeting-streak" style="display:none">
+          <span class="greeting-streak-num" id="greeting-streak-num">0</span>
+          <span class="greeting-streak-label">day streak 🔥</span>
+        </div>
+      </div>
+
+      <div class="section" id="section-continue" style="display:none">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Pick up where you left off</div>
+            <div class="section-title">Continue <em>wearing</em></div>
+          </div>
+        </div>
+        <div class="continue-strip" id="continue-strip"></div>
+      </div>
+
+      <!-- Recently viewed (hidden when empty) -->
+      <div class="section" id="section-recents" style="display:none">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Last looked at</div>
+            <div class="section-title">Recently <em>viewed</em></div>
+          </div>
+          <span class="section-more" id="recents-clear" style="color:var(--grey);font-size:9px;cursor:pointer">Clear</span>
+        </div>
+        <div class="poster-row" id="shelf-recents"></div>
+      </div>
+
+      <div class="section tinted" id="section-similar-recent" style="display:none">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Because you looked at</div>
+            <div class="section-title">Similar <em>to this</em></div>
+            <div class="section-sub" id="similar-recent-source"></div>
+          </div>
+          <span class="section-more" id="similar-recent-more">Explore →</span>
+        </div>
+        <div class="poster-row" id="shelf-similar-recent"></div>
+      </div>
+
+      <div class="section" id="section-foryou">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow" id="foryou-eyebrow">Tuned to your taste</div>
+            <div class="section-title" id="foryou-title">Picked <em>for you</em></div>
+            <div class="section-sub" id="foryou-sub"></div>
+          </div>
+        </div>
+        <div class="poster-row" id="shelf-foryou"><div class="loading-row">Loading…</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Fresh drops</div>
+            <div class="section-title">New <em>releases</em></div>
+            <div class="section-sub">Recent launches and modern hype bottles worth sniffing.</div>
+          </div>
+          <span class="section-more" onclick="triggerSearch('new perfume releases 2025')">Explore →</span>
+        </div>
+        <div class="poster-row" id="shelf-new"><div class="loading-row">Loading…</div></div>
+      </div>
+
+      <div class="section tinted">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Daily rotation</div>
+            <div class="section-title">Today’s <em>recommendations</em></div>
+            <div class="section-sub" id="daily-recs-sub">A fresh set every day, tuned for discovery.</div>
+          </div>
+          <span class="section-more" onclick="triggerSearch('signature fragrance')">Explore →</span>
+        </div>
+        <div class="poster-row" id="shelf-daily"><div class="loading-row">Loading…</div></div>
+      </div>
+
+      <div class="section" id="section-recent-yours" style="display:none">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Your diary</div>
+            <div class="section-title">Recently <em>worn</em></div>
+          </div>
+          <span class="section-more" onclick="showTab('diary')">See all →</span>
+        </div>
+        <div class="poster-row" id="shelf-yours"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Popular this week</div>
+            <div class="section-title">Most logged <em>right now</em></div>
+          </div>
+          <span class="section-more" onclick="document.getElementById('search-input').focus();document.getElementById('search-input').scrollIntoView({behavior:'smooth'})">Search all →</span>
+        </div>
+        <div class="poster-row" id="shelf-popular"><div class="loading-row">Loading…</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Curated shelf</div>
+            <div class="section-title">Dark & <em>brooding</em></div>
+            <div class="section-sub">Oud, tobacco, leather. For the cold months.</div>
+          </div>
+          <span class="section-more" onclick="triggerSearch('oud tobacco leather')">Explore →</span>
+        </div>
+        <div class="poster-row" id="shelf-dark"><div class="loading-row">Loading…</div></div>
+      </div>
+
+      <div class="section tinted">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Curated shelf</div>
+            <div class="section-title">Warm & <em>oriental</em></div>
+            <div class="section-sub">Amber, vanilla, oud. Skin-close and seductive.</div>
+          </div>
+          <span class="section-more" onclick="triggerSearch('amber vanilla oriental')">Explore →</span>
+        </div>
+        <div class="poster-row" id="shelf-oriental"><div class="loading-row">Loading…</div></div>
+      </div>
+
+      <div class="section" id="section-taste-module">
+        <div id="taste-profile-card" style="display:none"></div>
+        <div class="poster-row" id="shelf-taste-matches" style="display:none"></div>
+        <div class="taste-cta" id="taste-cta" onclick="openTasteTest()">
+          <div class="taste-cta-hex"></div>
+          <div class="taste-cta-body">
+            <div class="taste-cta-eyebrow">Taste intelligence</div>
+            <div class="taste-cta-title">What does your nose actually want?</div>
+            <div class="taste-cta-sub">Answer 5 quick questions and get a personalised scent profile.</div>
+            <div class="taste-cta-btn">Take the taste test →</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="section-pro-seed">
+        <div class="pro-seed-card" onclick="openSampleBuilder()">
+          <div class="pro-seed-top">
+            <div>
+              <div class="pro-seed-kicker">Taste Intelligence Pro</div>
+              <div class="pro-seed-title">Find the gaps in your wardrobe</div>
+            </div>
+            <div class="pro-badge">Pro</div>
+          </div>
+          <div class="pro-seed-grid">
+            <div class="pro-seed-point"><span>01</span>Blind spot map</div>
+            <div class="pro-seed-point"><span>02</span>Sample set builder</div>
+            <div class="pro-seed-point"><span>03</span>Occasion rotation</div>
+          </div>
+          <div class="pro-seed-cta">Build sample set →</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Curated shelf</div>
+            <div class="section-title">Fresh <em>classics</em></div>
+            <div class="section-sub">Office-friendly signatures that never fail.</div>
+          </div>
+          <span class="section-more" onclick="triggerSearch('fresh aquatic citrus')">Explore →</span>
+        </div>
+        <div class="poster-row" id="shelf-fresh"><div class="loading-row">Loading…</div></div>
+      </div>
+
+      <!-- Articles list -->
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">From the journal</div>
+            <div class="section-title"><em>Latest</em> articles</div>
+            <div class="section-sub">Guides, buying strategy, and better ways to build your nose.</div>
+          </div>
+        </div>
+        <div class="journal-guide-row" id="journal-guide-row"></div>
+        <div id="article-featured"></div>
+        <div class="article-row" id="article-list"><div class="loading-row">Loading articles…</div></div>
+      </div>
+
+      <div class="section tinted" id="community-reviews-section">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">The community diary</div>
+            <div class="section-title">What people are <em>wearing</em></div>
+          </div>
+        </div>
+        <div id="community-diary-feed">
+          <div style="padding:32px 24px;text-align:center;color:var(--grey)">
+            <div style="font-size:28px;opacity:0.4;margin-bottom:10px">🐝</div>
+            <div style="font-size:13px;font-style:italic;margin-bottom:6px">The hive is quiet</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em">Log a fragrance to appear in the community diary.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:40px 20px 24px;border-top:1px solid var(--border2)">
+        <div style="font-size:32px;margin-bottom:10px">🐝</div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:4px">Built for serious noses</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.12em">scenthive.app</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bnav" id="nav-home"></div>
+  </div><!-- end screen-main -->
+  <div class="desktop-right" id="right-home">
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:16px">Quick actions</div>
+    <div onclick="openLog()" style="padding:12px 16px;background:var(--gold);color:var(--bg);border-radius:2px;cursor:pointer;font-size:13px;font-weight:500;letter-spacing:0.06em;text-align:center;margin-bottom:10px">+ Log a fragrance</div>
+    <div onclick="openAdd()" style="padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:2px;cursor:pointer;font-size:13px;color:var(--white2);text-align:center;margin-bottom:24px">+ Add to hive</div>
+    
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:14px">Your stats</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border2);border:1px solid var(--border2);border-radius:2px;overflow:hidden;margin-bottom:24px">
+      <div style="background:var(--bg2);padding:14px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--gold)" id="rs-logged">0</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-top:3px;letter-spacing:0.06em;text-transform:uppercase">Logged</div></div>
+      <div style="background:var(--bg2);padding:14px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--gold)" id="rs-collection">0</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-top:3px;letter-spacing:0.06em;text-transform:uppercase">Collection</div></div>
+    </div>
+    
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:14px">Recent diary</div>
+    <div id="rs-recent" style="display:flex;flex-direction:column;gap:1px;background:var(--border2)"></div>
+  </div>
+</div>
+
+<!-- ═══ DIARY ═══ -->
+<div class="screen" id="screen-diary">
+  <div class="desktop-sidebar">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <div class="sidebar-item" data-tab="home"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 9l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h4v6" stroke="currentColor" stroke-width="1.5"/></svg>Home</div>
+    <div class="sidebar-item active" data-tab="diary"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</div>
+    <div class="sidebar-item" data-tab="collection"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"/></svg>Hive</div>
+    <div class="sidebar-item" data-tab="profile"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</div>
+    <div class="sidebar-log-btn">+ Log a fragrance</div>
+    <div class="sidebar-footer">scenthive.app</div>
+  </div>
+  <div class="screen-main">
+  <div class="topbar">
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <button class="tbar-btn" onclick="openLog()" style="color:var(--gold)">+</button>
+  </div>
+  <div class="diary-screen">
+    <div class="diary-header">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div>
+          <h2>Your <em>diary</em></h2>
+          <p>Every fragrance you've worn, rated, remembered.</p>
+        </div>
+        <button class="yr-btn" onclick="openYearReview()">📊 Year in review</button>
+      </div>
+    </div>
+    <div class="streak-bar" id="streak-bar">
+      <div class="streak-block">
+        <div class="streak-num fire" id="streak-current">0</div>
+        <div class="streak-label">day streak 🔥</div>
+      </div>
+      <div class="streak-divider"></div>
+      <div class="streak-block">
+        <div class="streak-num" id="streak-longest">0</div>
+        <div class="streak-label">longest streak</div>
+      </div>
+      <div class="streak-divider"></div>
+      <div class="streak-block">
+        <div class="streak-num" id="streak-total">0</div>
+        <div class="streak-label">total logged</div>
+      </div>
+    </div>
+    <div class="heatmap-outer" id="heatmap-outer">
+      <div class="heatmap-title">
+        <span>Activity — last 26 weeks</span>
+        <span id="heatmap-year-count" style="color:var(--gold-dim)"></span>
+      </div>
+      <div class="heatmap-scroll">
+        <div class="heatmap-inner">
+          <div class="heatmap-months-row" id="heatmap-months"></div>
+          <div class="heatmap-days-wrap">
+            <div class="heatmap-day-labels">
+              <div class="heatmap-day-label" style="height:13px"></div><!-- spacer for month row -->
+              <div class="heatmap-day-label">M</div>
+              <div class="heatmap-day-label"></div>
+              <div class="heatmap-day-label">W</div>
+              <div class="heatmap-day-label"></div>
+              <div class="heatmap-day-label">F</div>
+              <div class="heatmap-day-label"></div>
+              <div class="heatmap-day-label">S</div>
+            </div>
+            <div class="heatmap-cols" id="heatmap-cols"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="diary-list"></div>
+  </div>
+  <div class="bnav" id="nav-diary"></div>
+  </div>
+</div>
+
+<!-- ═══ COLLECTION ═══ -->
+<div class="screen" id="screen-collection">
+  <div class="desktop-sidebar">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <div class="sidebar-item" data-tab="home"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 9l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.5"/><path d="M8 20v-6h4v6" stroke="currentColor" stroke-width="1.5"/></svg>Home</div>
+    <div class="sidebar-item" data-tab="diary"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Diary</div>
+    <div class="sidebar-item active" data-tab="collection"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5"/></svg>Hive</div>
+    <div class="sidebar-item" data-tab="profile"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</div>
+    <div class="sidebar-log-btn">+ Log a fragrance</div>
+    <div class="sidebar-footer">scenthive.app</div>
+  </div>
+  <div class="screen-main">
+  <div class="topbar">
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <button class="tbar-btn" onclick="openAdd()" style="color:var(--gold)">+</button>
+  </div>
+  <div class="col-screen">
+    <div class="col-tabs">
+      <div class="col-tab active" id="tab-hive" onclick="switchColTab('hive')">🐝 My Hive</div>
+      <div class="col-tab" id="tab-wishlist" onclick="switchColTab('wishlist')">✨ Want to Try</div>
+    </div>
+    <!-- HIVE VIEW -->
+    <div id="col-hive-view">
+      <div class="col-stats">
+        <div class="col-stat"><span class="col-stat-num" id="col-count">0</span><span class="col-stat-label">Bottles</span></div>
+        <div class="col-stat"><span class="col-stat-num" id="col-houses">0</span><span class="col-stat-label">Houses</span></div>
+        <div class="col-stat"><span class="col-stat-num" id="col-value">—</span><span class="col-stat-label">Est. Value</span></div>
+      </div>
+      <div style="display:flex;gap:8px;padding:0 16px 12px">
+        <button class="col-add-btn" id="col-add-btn" style="flex:1;margin:0">+ Add manually</button>
+        <button onclick="openScan()" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;color:var(--white2);letter-spacing:0.06em;cursor:pointer;text-transform:uppercase">📷 Scan bottle</button>
+      </div>
+      <div class="col-grid" id="col-grid"></div>
+    </div>
+    <!-- WISHLIST VIEW -->
+    <div id="col-wishlist-view" style="display:none">
+      <div style="padding:14px 16px 10px;font-size:12px;color:var(--grey);font-style:italic;border-bottom:1px solid var(--border2)">Fragrances you want to try before you buy. Tap to search, long-press to remove.</div>
+      <div class="wishlist-grid" id="wishlist-grid"></div>
+      <div style="padding:16px 16px 24px">
+        <button class="col-add-btn" onclick="openAddWishlist()" style="margin-top:0">+ Add to want-to-try</button>
+      </div>
+    </div>
+  </div>
+  <div class="bnav" id="nav-collection"></div>
+  </div>
+</div>
+
+<!-- ═══ PROFILE (rich) ═══ -->
+<div class="screen" id="screen-profile">
+  <div class="topbar">
+    <button class="tbar-btn" onclick="goBack()">←</button>
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <div style="display:flex;gap:4px">
+      <button class="tbar-btn" onclick="openYearReview()" title="Year in review" style="font-size:16px">🍯</button>
+      <button class="tbar-btn" onclick="openShareProfile()" title="Share profile">↗</button>
+      <button class="tbar-btn" onclick="openModal('modal-settings')">⚙</button>
+    </div>
+  </div>
+  <div class="profile-screen">
+    <div class="profile-cover"></div>
+    <div class="profile-header">
+      <div class="profile-avatar-row">
+        <div class="profile-avatar-ring">
+          <div class="profile-avatar" id="prof-avatar">👤</div>
+        </div>
+        <button class="profile-edit-btn" onclick="openEditProfile()">Edit profile</button>
+      </div>
+      <div class="profile-name" id="prof-name">Guest</div>
+      <div class="profile-handle" id="prof-handle">@guest</div>
+      <div class="profile-bio" id="prof-bio">"Building my fragrance diary one wear at a time."</div>
+    </div>
+
+    <div class="profile-stats">
+      <div class="profile-stat" onclick="showTab('diary')"><span class="profile-stat-num" id="prof-logged">0</span><span class="profile-stat-label">Logged</span></div>
+      <div class="profile-stat" onclick="showTab('collection')"><span class="profile-stat-num" id="prof-collection">0</span><span class="profile-stat-label">Collection</span></div>
+      <div class="profile-stat"><span class="profile-stat-num" id="prof-houses">0</span><span class="profile-stat-label">Houses</span></div>
+      <div class="profile-stat"><span class="profile-stat-num" id="prof-avg">—</span><span class="profile-stat-label">Avg</span></div>
+    </div>
+
+    <!-- Upgrade strip (logged-in only) -->
+    <div class="upgrade-strip" id="upgrade-strip" onclick="openUpgrade()" style="display:none">
+      <div class="upgrade-strip-text">Unlock wardrobe gaps, sample-set builder, and deeper taste intelligence — <strong>ScentHive Pro</strong></div>
+      <div class="upgrade-strip-btn">Preview</div>
+    </div>
+
+    <!-- Guest sign-in CTA -->
+    <div id="guest-cta" style="display:none;margin:0;padding:20px;background:var(--bg2);border-bottom:1px solid var(--border2)">
+      <div style="text-align:center;padding:12px 0 20px">
+        <div style="font-size:32px;margin-bottom:10px">🐝</div>
+        <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;margin-bottom:6px">Start your scent diary</div>
+        <div style="font-size:13px;color:var(--grey);line-height:1.6;max-width:280px;margin:0 auto 20px">Create a free account to save your diary, build your collection, and discover your nose.</div>
+        <button onclick="showScreen('auth')" style="font-family:'DM Mono',monospace;font-size:11px;padding:12px 28px;background:var(--gold);color:var(--bg);border-radius:2px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-weight:500;width:100%">Create free account →</button>
+        <button onclick="showScreen('auth')" style="margin-top:10px;font-family:'DM Mono',monospace;font-size:10px;padding:10px;background:transparent;color:var(--grey);border:1px solid var(--border);border-radius:2px;letter-spacing:0.06em;cursor:pointer;width:100%">Already have an account? Sign in</button>
+      </div>
+    </div>
+
+    <!-- Favourites -->
+    <div class="profile-section" id="fav-section">
+      <div class="profile-sec-header">
+        <div class="profile-sec-title">Favourite four</div>
+        <span class="profile-sec-more" id="fav-edit-btn" onclick="openPickFav(0)" style="cursor:pointer">Edit →</span>
+      </div>
+      <div class="favourites-grid" id="favourites-grid"></div>
+    </div>
+
+    <!-- Recent reviews -->
+    <div class="profile-section">
+      <div class="profile-sec-header">
+        <div class="profile-sec-title">Recent <em style="font-style:italic;color:var(--gold-light)">reviews</em></div>
+        <span class="profile-sec-more" onclick="showTab('diary')">All →</span>
+      </div>
+      <div class="profile-review-stack" id="profile-reviews"></div>
+    </div>
+
+    <!-- Top houses -->
+    <div class="profile-section">
+      <div class="profile-sec-header">
+        <div class="profile-sec-title">Top houses</div>
+      </div>
+      <div class="top-houses" id="top-houses"></div>
+    </div>
+
+    <!-- Taste breakdown -->
+    <div class="profile-section">
+      <div class="profile-sec-header">
+        <div class="profile-sec-title">Your <em style="font-style:italic;color:var(--gold-light)">taste</em></div>
+      </div>
+      <div id="profile-taste-identity" style="margin-bottom:16px"></div>
+      <div class="taste-bars" id="taste-bars">
+        <div class="taste-row"><div class="taste-top"><span class="taste-name">Oriental</span><span class="taste-pct">—</span></div><div class="taste-track"><div class="taste-fill" style="width:0%"></div></div></div>
+        <div class="taste-row"><div class="taste-top"><span class="taste-name">Woody</span><span class="taste-pct">—</span></div><div class="taste-track"><div class="taste-fill" style="width:0%"></div></div></div>
+        <div class="taste-row"><div class="taste-top"><span class="taste-name">Fresh</span><span class="taste-pct">—</span></div><div class="taste-track"><div class="taste-fill" style="width:0%"></div></div></div>
+        <div class="taste-row"><div class="taste-top"><span class="taste-name">Sweet</span><span class="taste-pct">—</span></div><div class="taste-track"><div class="taste-fill" style="width:0%"></div></div></div>
+      </div>
+    </div>
+
+    <div style="height:40px"></div>
+  </div>
+  <div class="bnav" id="nav-profile"></div>
+</div>
+
+<!-- ═══ FRAGRANCE DETAIL ═══ -->
+<div class="screen" id="screen-frag">
+  <div class="topbar">
+    <button class="tbar-btn" onclick="goBack()">←</button>
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="frag-screen" id="frag-content"></div>
+</div>
+
+<!-- ═══ PUBLIC PROFILE ═══ -->
+<div class="screen" id="screen-public">
+  <div class="topbar">
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <div style="width:34px"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;max-width:520px;margin:0 auto;width:100%;padding:0 0 80px">
+    <div style="padding:24px 20px 0">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+        <div id="pub-avatar" style="width:52px;height:52px;border-radius:50%;background:var(--gold-pale);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🐝</div>
+        <div>
+          <div id="pub-name" style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;color:var(--white)">Loading…</div>
+          <div id="pub-sub" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.07em;margin-top:2px">SCENTHIVE MEMBER</div>
+        </div>
+      </div>
+      <div id="pub-stats" style="display:flex;gap:2px;margin-bottom:20px"></div>
+    </div>
+    <div style="padding:0 20px">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px">Recent Reviews</div>
+      <div id="pub-reviews"></div>
+    </div>
+    <div style="padding:20px">
+      <button onclick="showScreen('auth')" style="width:100%;padding:14px;background:var(--gold);color:var(--bg);border-radius:2px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-weight:500">Join ScentHive free →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ARTICLE ═══ -->
+<div class="screen" id="screen-article">
+  <div class="topbar">
+    <button class="tbar-btn" onclick="goBack()">←</button>
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 36 36" fill="none" style="flex-shrink:0"><path d="M18 2L33 10.5V27.5L18 36L3 27.5V10.5Z" fill="rgba(240,192,64,0.1)" stroke="#f0c040" stroke-width="1.2"/><ellipse cx="18" cy="22" rx="4.2" ry="5.5" fill="#f0c040"/><circle cx="18" cy="14.5" r="2.8" fill="#f0c040"/><rect x="13.8" y="19" width="8.4" height="1.4" rx="0.7" fill="#080810"/><rect x="13.8" y="22" width="8.4" height="1.4" rx="0.7" fill="#080810"/><line x1="15.5" y1="12" x2="13" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><line x1="20.5" y1="12" x2="23" y2="9" stroke="#f0c040" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="9" r="1.2" fill="#f0c040"/><circle cx="23" cy="9" r="1.2" fill="#f0c040"/><ellipse cx="11.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(-25 11.5 17.5)"/><ellipse cx="24.5" cy="17.5" rx="4.5" ry="2" fill="rgba(255,255,255,0.22)" transform="rotate(25 24.5 17.5)"/></svg>Scent<em>Hive</em></div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="article-page" id="article-content"></div>
+</div>
+
+<!-- ═══ LOG MODAL — search-first ═══ -->
+<div class="modal-overlay" id="modal-log">
+  <div class="modal">
+    <div class="modal-handle"></div>
+
+    <!-- STEP 1: Search for fragrance -->
+    <div id="log-step-1">
+      <div class="modal-kicker">Daily wear</div>
+      <div class="modal-title">What did you wear?</div>
+      <div class="modal-sub">Search first, then add a rating or a quick note. The goal is speed: capture the memory while it is fresh.</div>
+      <div style="position:relative">
+        <input class="modal-input" id="log-search" type="text" placeholder="Try 'Naxos', 'Oud Wood', 'Another 13'…" autocomplete="off" style="padding-right:40px">
+        <div id="log-search-spinner" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%)"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div></div>
+      </div>
+      <div id="log-search-results" style="max-height:280px;overflow-y:auto;margin-bottom:10px"></div>
+      <div style="border-top:1px solid var(--border2);padding-top:12px;margin-top:4px">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Can't find it? Add manually</div>
+        <div style="display:flex;gap:8px">
+          <input class="modal-input" id="log-name-manual" type="text" placeholder="Fragrance name" style="margin-bottom:0;flex:1">
+          <input class="modal-input" id="log-house-manual" type="text" placeholder="House" style="margin-bottom:0;width:120px">
+        </div>
+        <button onclick="selectManualFrag()" style="width:100%;margin-top:8px;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--white2);font-size:12px;cursor:pointer;letter-spacing:0.04em">Use this →</button>
+      </div>
+      <button class="modal-cancel" data-close="modal-log">Cancel</button>
+    </div>
+
+    <!-- STEP 2: Rate and review -->
+    <div id="log-step-2" style="display:none">
+      <div class="log-step-card">
+        <div class="log-step-title">Make this useful for future you.</div>
+        <div class="log-step-body">A rating is enough. Add one line if the scent surprised you, disappointed you, or worked perfectly for the moment.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg3);border-radius:2px;margin-bottom:18px;cursor:pointer" id="log-selected-frag" onclick="resetLogStep()">
+        <div id="log-selected-img" style="width:44px;height:56px;background:var(--bg2);border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0">🏺</div>
+        <div style="flex:1;min-width:0">
+          <div id="log-selected-name" style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+          <div id="log-selected-house" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px"></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey)">← change</div>
+      </div>
+
+      <label class="modal-label">Your rating</label>
+      <div class="star-picker" id="star-picker">
+        <span class="star-pick" data-r="1">★</span>
+        <span class="star-pick" data-r="2">★</span>
+        <span class="star-pick" data-r="3">★</span>
+        <span class="star-pick" data-r="4">★</span>
+        <span class="star-pick" data-r="5">★</span>
+      </div>
+
+      <label class="modal-label">Memory note <span style="color:var(--grey);font-size:9px">optional</span></label>
+      <textarea class="modal-input" id="log-review" placeholder="Opening, drydown, compliments, performance, mood…" style="height:80px;resize:none;line-height:1.5"></textarea>
+
+      <label class="modal-label">Occasion</label>
+      <div class="occ-chips" id="log-occ">
+        <div class="occ-chip" data-v="Morning">Morning</div>
+        <div class="occ-chip" data-v="Work">Work</div>
+        <div class="occ-chip" data-v="Evening">Evening</div>
+        <div class="occ-chip" data-v="Date">Date</div>
+        <div class="occ-chip" data-v="Casual">Casual</div>
+        <div class="occ-chip" data-v="Formal">Formal</div>
+      </div>
+
+      <label class="modal-label" style="margin-top:16px">Share with community</label>
+      <div id="log-public-toggle" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;cursor:pointer;margin-bottom:16px" onclick="toggleLogPublic()">
+        <div>
+          <div style="font-size:13px;color:var(--white2)">Share this note publicly</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-top:2px;letter-spacing:0.04em">Private by default. Turn on only when the note is useful to others.</div>
+        </div>
+        <div id="log-public-pill" style="width:38px;height:22px;border-radius:11px;background:var(--bg4);border:1px solid var(--border);position:relative;transition:background 0.2s;flex-shrink:0">
+          <div id="log-public-dot" style="width:16px;height:16px;border-radius:50%;background:var(--grey2);position:absolute;top:2px;left:2px;transition:all 0.2s"></div>
+        </div>
+      </div>
+
+      <button class="modal-submit" id="log-save-btn">Save wear</button>
+      <button class="modal-cancel" data-close="modal-log">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD COLLECTION MODAL ═══ -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <!-- Step 1: Search -->
+    <div id="add-step-1">
+      <div class="modal-title">Add to your hive</div>
+      <div class="modal-sub">Search for a bottle you own.</div>
+      <div style="position:relative">
+        <input class="modal-input" id="add-search" type="text" placeholder="Search any fragrance…" autocomplete="off" style="padding-right:40px">
+        <div id="add-search-spinner" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%)"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div></div>
+      </div>
+      <div id="add-search-results" style="max-height:240px;overflow-y:auto;margin-bottom:10px"></div>
+      <div style="border-top:1px solid var(--border2);padding-top:12px;margin-top:4px">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Can't find it? Add manually</div>
+        <div style="display:flex;gap:8px">
+          <input class="modal-input" id="add-name-manual" type="text" placeholder="Fragrance name" style="margin-bottom:0;flex:1">
+          <input class="modal-input" id="add-house-manual" type="text" placeholder="House" style="margin-bottom:0;width:110px">
+        </div>
+        <button onclick="selectManualAdd()" style="width:100%;margin-top:8px;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--white2);font-size:12px;cursor:pointer">Use this →</button>
+      </div>
+      <button class="modal-cancel" data-close="modal-add">Cancel</button>
+    </div>
+    <!-- Step 2: Size & price -->
+    <div id="add-step-2" style="display:none">
+      <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg3);border-radius:2px;margin-bottom:18px;cursor:pointer" id="add-selected-frag" onclick="resetAddStep()">
+        <div id="add-selected-img" style="width:44px;height:56px;background:var(--bg2);border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex-shrink:0">🏺</div>
+        <div style="flex:1;min-width:0">
+          <div id="add-selected-name" style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+          <div id="add-selected-house" style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px"></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey)">← change</div>
+      </div>
+      <div class="modal-grid">
+        <div><label class="modal-label">Size (ml)</label><input class="modal-input" id="add-size" type="number" inputmode="decimal" placeholder="100"></div>
+        <div><label class="modal-label">Price paid (€)</label><input class="modal-input" id="add-price" type="number" inputmode="decimal" placeholder="180"></div>
+      </div>
+      <button class="modal-submit" id="add-save-btn">Add to hive 🐝</button>
+      <button class="modal-cancel" data-close="modal-add">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROFILE EDIT MODAL ═══ -->
+<div class="modal-overlay" id="modal-profile-edit">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit profile</div>
+    <div class="modal-sub">How you appear in the community.</div>
+    <label class="modal-label">Display name</label>
+    <input class="modal-input" id="edit-display-name" type="text" placeholder="Your name" maxlength="40" autocomplete="name">
+    <label class="modal-label">Bio <span style="color:var(--grey);font-size:9px">optional</span></label>
+    <textarea class="modal-input" id="edit-bio" placeholder="Two sentences about your nose…" style="height:70px;resize:none;line-height:1.5" maxlength="160"></textarea>
+    <button class="modal-submit" onclick="saveProfileName()">Save changes</button>
+    <button class="modal-cancel" data-close="modal-profile-edit">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS MODAL ═══ -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Settings</div>
+    <div class="settings-section" style="padding:0;margin-top:16px">
+      <div class="settings-row" id="account-row" data-action="signin">
+        <div class="settings-left">
+          <div class="settings-icon gold">⭐</div>
+          <div><div class="settings-text-name" id="account-name">Sign in</div><div class="settings-text-sub" id="account-sub">Save your data across devices</div></div>
+        </div>
+        <span class="settings-arrow">›</span>
+      </div>
+      <div class="settings-row" data-action="privacy">
+        <div class="settings-left">
+          <div class="settings-icon dark">🔒</div>
+          <div><div class="settings-text-name">Privacy & Data</div><div class="settings-text-sub">How we handle your information</div></div>
+        </div>
+        <span class="settings-arrow">›</span>
+      </div>
+      <div class="settings-row" data-action="about">
+        <div class="settings-left">
+          <div class="settings-icon dark">ℹ️</div>
+          <div><div class="settings-text-name">About ScentHive</div><div class="settings-text-sub">v2.0 · scenthive.app</div></div>
+        </div>
+        <span class="settings-arrow">›</span>
+      </div>
+      <div class="settings-row" id="signout-row" data-action="signout" style="display:none">
+        <div class="settings-left">
+          <div class="settings-icon red">🚪</div>
+          <div><div class="settings-text-name danger">Sign out</div></div>
+        </div>
+      </div>
+    </div>
+    <button class="modal-cancel" data-close="modal-settings" style="margin-top:14px">Close</button>
+  </div>
+</div>
+
+<!-- ═══ UPGRADE MODAL ═══ -->
+<div class="modal-overlay" id="modal-upgrade">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:4px 0 18px">
+      <div style="font-size:34px;margin-bottom:10px">⬡</div>
+      <div class="modal-title" style="font-size:26px">ScentHive <em style="color:var(--gold);font-style:italic">Pro</em></div>
+      <div style="font-size:12px;color:var(--grey);margin-top:4px;line-height:1.55">Personal taste intelligence for buying fewer wrong bottles.</div>
+    </div>
+    <div class="pro-promise-grid">
+      <div class="pro-promise"><div class="pro-promise-num">01</div><div class="pro-promise-title">Blind spots</div><div class="pro-promise-sub">See the styles your wardrobe is missing.</div></div>
+      <div class="pro-promise"><div class="pro-promise-num">02</div><div class="pro-promise-title">Sample sets</div><div class="pro-promise-sub">Build a 5-sample path before buying full bottles.</div></div>
+      <div class="pro-promise"><div class="pro-promise-num">03</div><div class="pro-promise-title">Wear strategy</div><div class="pro-promise-sub">Rotate by weather, mood, setting, and projection.</div></div>
+    </div>
+    <div class="pro-compare">
+      <div class="pro-compare-head"><span>Feature</span><span style="text-align:center">Free</span><span style="text-align:center;color:var(--gold)">Pro</span></div>
+      <div class="pro-compare-row"><span>Diary entries</span><span class="pro-compare-check">✓</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>Collection</span><span class="pro-compare-check">✓</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>AI recommendations</span><span class="pro-compare-check" style="color:var(--grey)">3/mo</span><span class="pro-compare-check" style="color:var(--gold)">Deep</span></div>
+      <div class="pro-compare-row"><span>Wardrobe gap analysis</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>Sample set builder</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>Occasion rotation</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+      <div class="pro-compare-row"><span>Full taste analytics</span><span class="pro-compare-check" style="color:var(--grey)">—</span><span class="pro-compare-check" style="color:var(--gold)">✓</span></div>
+    </div>
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-family:'Playfair Display',serif;font-size:34px;line-height:1">€3.99<em style="font-family:'DM Mono',monospace;font-size:13px;color:var(--grey);font-style:normal"> / month</em></div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-top:4px;letter-spacing:0.1em">OR €34.99 / YEAR · SAVE 27%</div>
+    </div>
+    <button class="modal-submit" onclick="toast('🐝 You\'re on the waitlist — we\'ll be in touch!');closeModal('modal-upgrade')">Join the waitlist</button>
+    <button class="modal-cancel" data-close="modal-upgrade">Maybe later</button>
+  </div>
+</div>
+
+<!-- ═══ SAMPLE SET BUILDER MODAL ═══ -->
+<div class="modal-overlay" id="modal-sample-builder">
+  <div class="modal" style="max-height:92vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-kicker">Taste Intelligence Pro · Preview</div>
+    <div class="modal-title">Build a sample set</div>
+    <div class="modal-sub">Pick a mission and ScentHive will create a 5-sample path before you buy a full bottle.</div>
+
+    <label class="modal-label">Mission</label>
+    <div class="sample-options" id="sample-vibe-options">
+      <button class="sample-option active" data-value="signature">Signature scent</button>
+      <button class="sample-option" data-value="office">Office-safe</button>
+      <button class="sample-option" data-value="date">Date night</button>
+      <button class="sample-option" data-value="summer">Summer daily</button>
+      <button class="sample-option" data-value="wildcard">Surprise me</button>
+    </div>
+
+    <label class="modal-label">Budget</label>
+    <div class="sample-options compact" id="sample-budget-options">
+      <button class="sample-option active" data-value="35">Under €35</button>
+      <button class="sample-option" data-value="60">Under €60</button>
+      <button class="sample-option" data-value="100">No limit</button>
+    </div>
+
+    <button class="modal-submit" onclick="buildSampleSet()">Build my 5 samples</button>
+    <div id="sample-builder-results" class="sample-builder-results"></div>
+    <button class="modal-cancel" data-close="modal-sample-builder">Close</button>
+  </div>
+</div>
+
+<!-- ═══ AI RECOMMENDATIONS MODAL ═══ -->
+<div class="modal-overlay" id="modal-ai">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:4px 0 16px">
+      <div style="font-size:30px;margin-bottom:8px">🤖</div>
+      <div class="modal-title" style="font-size:22px">AI Recommendations</div>
+      <div style="font-size:12px;color:var(--grey);margin-top:4px;line-height:1.5">Tell me what you love and I'll find your next obsession.</div>
+    </div>
+    <textarea id="ai-prompt" class="modal-input" rows="3" placeholder="e.g. I love warm oud and vanilla, hate citrus, looking for something to wear in winter evenings…" style="resize:none;line-height:1.55;font-size:13px"></textarea>
+    <div id="ai-context-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px"></div>
+    <button class="modal-submit" id="ai-ask-btn" onclick="askAI()">✨ Get recommendations</button>
+    <div id="ai-results" style="margin-top:16px"></div>
+    <button class="modal-cancel" data-close="modal-ai" style="margin-top:8px">Close</button>
+  </div>
+</div>
+
+<!-- ═══ BOTTLE SCAN MODAL ═══ -->
+<div class="modal-overlay" id="modal-scan">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:4px 0 14px">
+      <div style="font-size:28px;margin-bottom:6px">📷</div>
+      <div class="modal-title" style="font-size:20px">Scan Your Collection</div>
+      <div style="font-size:12px;color:var(--grey);margin-top:4px;line-height:1.5">Point your camera at any bottle — AI identifies it and adds it to your hive instantly.</div>
+    </div>
+    <div id="scan-preview" style="display:none;margin-bottom:14px;border-radius:4px;overflow:hidden;background:var(--bg3);border:1px solid var(--border2);text-align:center">
+      <img id="scan-img" style="max-width:100%;max-height:200px;object-fit:contain;display:block;margin:0 auto">
+    </div>
+    <div id="scan-drop" style="border:2px dashed var(--border);border-radius:4px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color 0.2s" onclick="document.getElementById('scan-file').click()">
+      <div style="font-size:36px;margin-bottom:10px">🏺</div>
+      <div style="font-size:14px;color:var(--white2);margin-bottom:4px;font-weight:500">Tap to photograph a bottle</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.06em">Works with any perfume — just make sure the label is visible</div>
+    </div>
+    <input type="file" id="scan-file" accept="image/*" capture="environment" style="display:none">
+    <div id="scan-result" style="margin-top:14px"></div>
+    <button class="modal-submit" id="scan-btn" style="margin-top:12px;display:none" onclick="runScan()">🔍 Identify &amp; add to hive</button>
+    <button class="modal-cancel" data-close="modal-scan" style="margin-top:8px">Close</button>
+  </div>
+</div>
+
+<!-- ═══ PICK FAVOURITE MODAL ═══ -->
+<div class="modal-overlay" id="modal-pick-fav">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Pick a favourite</div>
+    <div class="modal-sub">Search for a fragrance to pin to your profile.</div>
+    <div style="position:relative">
+      <input class="modal-input" id="pick-fav-search" type="text" placeholder="Search fragrances…" autocomplete="off" style="padding-right:40px">
+      <div id="pick-fav-spinner" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%)"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div></div>
+    </div>
+    <div id="pick-fav-results" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
+    <button class="modal-cancel" data-close="modal-pick-fav">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ YEAR IN REVIEW MODAL ═══ -->
+<div class="modal-overlay" id="modal-yr">
+  <div class="modal" style="padding:0;overflow:hidden;max-height:92vh;overflow-y:auto">
+    <div class="modal-handle" style="position:sticky;top:0;z-index:2;padding-top:10px;background:var(--bg2)"></div>
+    <div id="yr-content"></div>
+    <div style="padding:16px 20px 24px;background:var(--bg2)">
+      <button class="modal-submit" onclick="shareYearReview()">↗ Share this</button>
+      <button class="modal-cancel" data-close="modal-yr">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SHARE PROFILE MODAL ═══ -->
+<div class="modal-overlay" id="modal-share">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Share your profile</div>
+    <div class="share-card">
+      <div style="font-size:28px;margin-bottom:8px">🐝</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:4px" id="share-card-name">Your profile</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:0.1em" id="share-card-stats"></div>
+    </div>
+    <div class="share-modal-url" id="share-url">scenthive.app</div>
+    <button class="modal-submit" onclick="copyShareUrl()">Copy link</button>
+    <button class="modal-cancel" data-close="modal-share">Done</button>
+  </div>
+</div>
+
+<!-- ═══ ONBOARDING MODAL ═══ -->
+<div class="modal-overlay" id="modal-onboard">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:8px 0 20px">
+      <div style="font-size:40px;margin-bottom:10px">🐝</div>
+      <div class="modal-title" style="font-size:22px;margin:0">Welcome to ScentHive</div>
+      <div style="font-size:13px;color:var(--white2);margin-top:6px;line-height:1.5">Your personal fragrance diary. Here's what you can do:</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
+        <div style="font-size:24px;flex-shrink:0">📝</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Log your diary</div>
+          <div style="font-size:12px;color:var(--grey2);line-height:1.5">Track what you wear each day, add ratings and notes. Build your streak.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
+        <div style="font-size:24px;flex-shrink:0">🐝</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Build your hive</div>
+          <div style="font-size:12px;color:var(--grey2);line-height:1.5">Add fragrances you own to your collection. Track what you want to try.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
+        <div style="font-size:24px;flex-shrink:0">🔍</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Discover scents</div>
+          <div style="font-size:12px;color:var(--grey2);line-height:1.5">Search 100k+ fragrances. Get AI recommendations. Read community reviews.</div>
+        </div>
+      </div>
+    </div>
+    <button class="modal-submit" onclick="closeModal('modal-onboard');setTimeout(()=>openLog(),300)">Log my first scent →</button>
+    <button class="modal-cancel" data-close="modal-onboard" style="margin-top:8px">Explore first</button>
+  </div>
+</div>
+
+<!-- ═══ WISHLIST ADD MODAL ═══ -->
+<div class="modal-overlay" id="modal-wishlist">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add to want-to-try</div>
+    <div class="modal-sub">Search for a fragrance to add to your wishlist.</div>
+    <div style="position:relative">
+      <input class="modal-input" id="wishlist-search" type="text" placeholder="Search fragrances…" autocomplete="off" style="padding-right:40px">
+      <div id="wishlist-spinner" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%)"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div></div>
+    </div>
+    <div id="wishlist-results" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
+    <button class="modal-cancel" data-close="modal-wishlist">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ TASTE TEST MODAL ═══ -->
+<div class="modal-overlay" id="modal-taste">
+  <div class="modal" style="max-height:92vh;overflow-y:auto;padding-bottom:40px">
+    <div class="modal-handle"></div>
+
+    <div id="taste-step">
+      <div class="taste-progress-bar">
+        <div class="taste-progress-fill" id="taste-progress-fill" style="width:0%"></div>
+      </div>
+      <div class="taste-progress-label" id="taste-progress-label">1 / 5</div>
+      <div class="taste-question" id="taste-question"></div>
+      <div class="taste-choices" id="taste-choices"></div>
+      <button class="modal-cancel" onclick="closeModal('modal-taste')" style="margin-top:18px">Cancel</button>
+    </div>
+
+    <div id="taste-loading" style="display:none;text-align:center;padding:48px 0">
+      <div class="spinner" style="margin:0 auto 16px"></div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:6px">Reading your nose…</div>
+      <div style="font-size:12px;color:var(--grey)">Building your scent profile</div>
+    </div>
+
+    <div id="taste-result" style="display:none"></div>
+  </div>
+</div>
+
+<div id="entry-sheet" class="entry-sheet" style="display:none">
+  <div class="entry-sheet-backdrop" onclick="closeEntrySheet()"></div>
+  <div class="entry-sheet-panel">
+    <button class="entry-sheet-close" onclick="closeEntrySheet()">✕</button>
+    <div id="entry-sheet-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
