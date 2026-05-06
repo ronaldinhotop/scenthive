@@ -3520,27 +3520,54 @@ async function applyCacheMerge() {
   if (!window.confirm('Merge exact duplicate fragrance cache rows now? This keeps the best row and deletes weaker exact duplicates.')) return;
   const el = document.getElementById('cache-debug-body');
   if (!el) return;
-  el.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+  const totals = { rounds: 0, merged: 0, deleted: 0, failed: 0, lastGroups: 0, remaining: null, errors: [] };
+  const renderProgress = (label) => {
+    el.innerHTML = '<div class="cache-merge-summary">' +
+      '<div class="cache-debug-label">' + escapeHtml(label || 'Cleaning duplicates') + '</div>' +
+      '<div class="cache-debug-note">Running in small Vercel-safe batches. Keep this modal open.</div>' +
+      '<div class="loading-row"><div class="spinner"></div></div>' +
+      '<div class="cache-stats">' +
+        '<div class="cache-stat"><span>Rounds</span><strong>' + escapeHtml(totals.rounds) + '</strong></div>' +
+        '<div class="cache-stat"><span>Merged</span><strong>' + escapeHtml(totals.merged) + '</strong></div>' +
+        '<div class="cache-stat"><span>Deleted</span><strong>' + escapeHtml(totals.deleted) + '</strong></div>' +
+        '<div class="cache-stat"><span>Remaining</span><strong>' + escapeHtml(totals.remaining == null ? '-' : totals.remaining) + '</strong></div>' +
+      '</div>' +
+    '</div>';
+  };
+  renderProgress('Starting cleanup');
   try {
-    const res = await fetch(CACHE_MERGE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apply: true })
-    });
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Could not merge duplicates');
-    const errorHtml = Array.isArray(data.errors) && data.errors.length
-      ? '<div class="cache-debug-error">' + data.errors.map(err =>
+    for (let round = 0; round < 120; round++) {
+      const res = await fetch(CACHE_MERGE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apply: true })
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Could not merge duplicates');
+      totals.rounds += 1;
+      totals.merged += data.merged || 0;
+      totals.deleted += data.deleted || 0;
+      totals.failed += Array.isArray(data.failed) ? data.failed.length : 0;
+      totals.lastGroups = data.groups || 0;
+      totals.remaining = data.remaining_groups || 0;
+      if (Array.isArray(data.errors)) totals.errors.push(...data.errors);
+      renderProgress('Cleaning duplicates');
+      if (!data.remaining_groups || (!data.merged && !data.deleted)) break;
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    const errorHtml = totals.errors.length
+      ? '<div class="cache-debug-error">' + totals.errors.slice(0, 6).map(err =>
           escapeHtml((err.action || 'error') + ' ' + (err.status || '') + ': ' + (err.detail || err.key || 'Unknown error'))
         ).join('<br>') + '</div>'
       : '';
     el.innerHTML = '<div class="cache-merge-summary">' +
       '<div class="cache-debug-label">Cleanup complete</div>' +
       '<div class="cache-stats">' +
-        '<div class="cache-stat"><span>Groups</span><strong>' + escapeHtml(data.groups || 0) + '</strong></div>' +
-        '<div class="cache-stat"><span>Merged</span><strong>' + escapeHtml(data.merged || 0) + '</strong></div>' +
-        '<div class="cache-stat"><span>Deleted</span><strong>' + escapeHtml(data.deleted || 0) + '</strong></div>' +
-        '<div class="cache-stat"><span>Failed</span><strong>' + escapeHtml((data.failed || []).length) + '</strong></div>' +
+        '<div class="cache-stat"><span>Rounds</span><strong>' + escapeHtml(totals.rounds) + '</strong></div>' +
+        '<div class="cache-stat"><span>Merged</span><strong>' + escapeHtml(totals.merged) + '</strong></div>' +
+        '<div class="cache-stat"><span>Deleted</span><strong>' + escapeHtml(totals.deleted) + '</strong></div>' +
+        '<div class="cache-stat"><span>Remaining</span><strong>' + escapeHtml(totals.remaining == null ? '-' : totals.remaining) + '</strong></div>' +
+        '<div class="cache-stat"><span>Failed</span><strong>' + escapeHtml(totals.failed) + '</strong></div>' +
       '</div>' +
       errorHtml +
       '<button class="modal-submit" onclick="loadCacheDebug()">Reload cache debug</button>' +

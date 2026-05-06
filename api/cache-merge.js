@@ -31,6 +31,8 @@ const SB_HEADERS = key => ({
 
 const CACHE_PAGE_SIZE = 1000;
 const CACHE_MAX_ROWS = 50000;
+const APPLY_GROUP_LIMIT = 12;
+const APPLY_DELETE_LIMIT = 600;
 
 async function fetchAllCacheRows(sbUrl, sbKey) {
   const rows = [];
@@ -130,12 +132,22 @@ async function patchById(id, row, sbUrl, sbKey) {
   return { ok: false, status: response.status, detail: text.slice(0, 240) };
 }
 
-async function deleteById(id, sbUrl, sbKey) {
-  const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache?fragella_id=eq.${encodeURIComponent(id)}`, {
+function quotePostgrestValue(value) {
+  return `"${String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+async function deleteByIds(ids, sbUrl, sbKey) {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (!uniqueIds.length) return { ok: true, deleted: 0 };
+  const filter = `in.(${uniqueIds.map(quotePostgrestValue).join(',')})`;
+  const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache?fragella_id=${encodeURIComponent(filter)}`, {
     method: 'DELETE',
-    headers: { ...SB_HEADERS(sbKey), Prefer: 'return=minimal' },
+    headers: { ...SB_HEADERS(sbKey), Prefer: 'return=representation' },
   });
-  if (response.ok) return { ok: true };
+  if (response.ok) {
+    const rows = await response.json().catch(() => []);
+    return { ok: true, deleted: Array.isArray(rows) ? rows.length : uniqueIds.length };
+  }
   const text = await response.text();
   return { ok: false, status: response.status, detail: text.slice(0, 240) };
 }
@@ -207,11 +219,15 @@ export default async function handler(req, res) {
     let deleted = 0;
     const failed = [];
     const errors = [];
+    let processedGroups = 0;
+    let deleteBudget = APPLY_DELETE_LIMIT;
 
     for (const group of duplicateGroups) {
+      if (processedGroups >= APPLY_GROUP_LIMIT || deleteBudget <= 0) break;
       const winnerId = group.winner.fragella_id || group.winner.id;
       if (!winnerId) {
         failed.push(group.key);
+        processedGroups += 1;
         continue;
       }
       const patch = mergeIntoWinner(group.winner, group.losers);
@@ -225,26 +241,32 @@ export default async function handler(req, res) {
           status: patched.status,
           detail: patched.detail,
         });
+        processedGroups += 1;
         continue;
       }
       merged += 1;
-      for (const loser of group.losers) {
-        const loserId = loser.fragella_id || loser.id;
-        if (!loserId || loserId === winnerId) continue;
-        const removed = await deleteById(loserId, sbUrl, sbKey);
-        if (removed.ok) deleted += 1;
-        else {
-          failed.push(`${group.key}:${loserId}`);
-          if (errors.length < 6) errors.push({
-            action: 'delete',
-            key: group.key,
-            id: loserId,
-            status: removed.status,
-            detail: removed.detail,
-          });
-        }
+      const loserIds = group.losers
+        .map(loser => loser.fragella_id || loser.id)
+        .filter(loserId => loserId && loserId !== winnerId)
+        .slice(0, deleteBudget);
+
+      const removed = await deleteByIds(loserIds, sbUrl, sbKey);
+      if (removed.ok) {
+        deleted += removed.deleted;
+        deleteBudget -= loserIds.length;
+      } else {
+        failed.push(`${group.key}:delete`);
+        if (errors.length < 6) errors.push({
+          action: 'delete',
+          key: group.key,
+          status: removed.status,
+          detail: removed.detail,
+        });
       }
+      processedGroups += 1;
     }
+
+    const remainingGroups = Math.max(0, duplicateGroups.length - processedGroups);
 
     return res.status(200).json({
       ok: true,
@@ -252,6 +274,8 @@ export default async function handler(req, res) {
       capped,
       max_rows: maxRows,
       groups: duplicateGroups.length,
+      processed_groups: processedGroups,
+      remaining_groups: remainingGroups,
       merged,
       deleted,
       failed,
