@@ -606,6 +606,7 @@ async function updateRightSidebar() {
 
 async function renderHome() {
   updateHero();
+  renderScentOfDay();
   renderContinueStrip();
   renderNoseCta();
   renderRecentsShelf();
@@ -1086,6 +1087,169 @@ async function loadPopularShelf() {
   } catch (e) {}
   // Fallback to curated list if no data yet
   loadShelf('shelf-popular', ['Sauvage', 'Aventus', 'Baccarat Rouge 540', 'Naxos', 'Oud Wood', 'Bleu de Chanel']);
+}
+
+let _scentTodayKey = null;
+let _scentTodaySkip = new Set();
+
+function renderScentOfDay(forceNew = false) {
+  const section = document.getElementById('section-scent-today');
+  const card = document.getElementById('scent-today-card');
+  if (!section || !card) return;
+  section.style.display = '';
+
+  if (!collection.length) {
+    card.innerHTML = '<div class="sotd-card empty">' +
+      '<div class="sotd-copy">' +
+        '<div class="sotd-kicker">Your Hive is empty</div>' +
+        '<div class="sotd-name">Add bottles to get a daily pick.</div>' +
+        '<div class="sotd-reason">ScentHive needs your collection before it can rotate what you actually own.</div>' +
+      '</div>' +
+      '<button class="sotd-btn primary" onclick="openAdd()">Add to Hive</button>' +
+    '</div>';
+    return;
+  }
+
+  const today = localDateKey(new Date());
+  if (forceNew || localStorage.getItem('sotd_day') !== today) {
+    _scentTodaySkip = new Set();
+    localStorage.setItem('sotd_day', today);
+  }
+
+  const pick = pickScentOfDay(forceNew);
+  if (!pick) return;
+  const f = pick.fragrance;
+  _scentTodayKey = 'sotd' + Math.random().toString(36).slice(2, 8);
+  fragStore[_scentTodayKey] = f;
+  const mood = buildMoodPoster(f);
+  const img = f.image_url
+    ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + escapeHtml(f.name || '') + '" onerror="this.outerHTML=\'<div class=&quot;sotd-emoji&quot;>🏺</div>\'">'
+    : '<div class="sotd-emoji">🏺</div>';
+  card.innerHTML = '<div class="sotd-card">' +
+    '<button class="sotd-art" onclick="openScentTodayDetail()">' + mood.html + img + '</button>' +
+    '<div class="sotd-copy">' +
+      '<div class="sotd-kicker">' + escapeHtml(pick.context) + '</div>' +
+      '<button class="sotd-name" onclick="openScentTodayDetail()">' + escapeHtml(f.name || '') + '</button>' +
+      '<div class="sotd-house">' + escapeHtml(f.house || '') + '</div>' +
+      '<div class="sotd-reason">' + escapeHtml(pick.reason) + '</div>' +
+      '<div class="sotd-actions">' +
+        '<button class="sotd-btn primary" onclick="logScentToday()">Log wear</button>' +
+        '<button class="sotd-btn" onclick="rerollScentToday()">Pick another</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function pickScentOfDay(forceNew = false) {
+  const now = new Date();
+  const today = localDateKey(now);
+  const hydrated = collection.map(c => hydrateFragranceFromStatic({
+    name: c.name || '',
+    house: c.house || '',
+    image_url: c.image_url || null,
+    fragella_id: c.fragella_id || null,
+    family: c.family || '',
+    accords: c.accords || []
+  })).filter(f => f.name);
+
+  if (!hydrated.length) return null;
+  if (forceNew && _scentTodayKey && fragStore[_scentTodayKey]) {
+    _scentTodaySkip.add(scentKey(fragStore[_scentTodayKey]));
+  }
+
+  const scored = hydrated.map(f => scoreScentOfDay(f, now, today))
+    .filter(p => !_scentTodaySkip.has(scentKey(p.fragrance)))
+    .sort((a, b) => b.score - a.score);
+  return scored[0] || hydrated.map(f => scoreScentOfDay(f, now, today)).sort((a, b) => b.score - a.score)[0];
+}
+
+function scoreScentOfDay(f, now, today) {
+  const entries = diary.filter(e => sameFragName(e.fragrance_name, f.name));
+  const last = entries[0];
+  const daysSince = last?.worn_at ? Math.floor((Date.now() - new Date(last.worn_at).getTime()) / 86400000) : 999;
+  const wornToday = last?.worn_at && localDateKey(new Date(last.worn_at)) === today;
+  const recentCount = entries.filter(e => Date.now() - new Date(e.worn_at || 0).getTime() < 14 * 86400000).length;
+  const ratings = entries.map(e => Number(e.rating) || 0).filter(Boolean);
+  const avgRating = ratings.length ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
+  const text = collectMoodTokens(f) + ' ' + (f.name || '').toLowerCase();
+  const season = getSeasonContext(now);
+  const time = getTimeContext(now);
+  let score = 45;
+
+  score += Math.min(28, daysSince === 999 ? 18 : daysSince * 1.8);
+  if (avgRating) score += (avgRating - 3) * 9;
+  score += scoreTokenMatch(text, season.tokens) * 7;
+  score += scoreTokenMatch(text, time.tokens) * 5;
+  score -= recentCount * 9;
+  if (wornToday) score -= 100;
+
+  const reasonBits = [];
+  reasonBits.push(formatScentTodayRecency(daysSince));
+  if (avgRating >= 4) reasonBits.push('you rate it highly');
+  const fit = scoreTokenMatch(text, season.tokens) >= scoreTokenMatch(text, time.tokens) ? season.label : time.label;
+  reasonBits.push('it fits ' + fit.toLowerCase());
+  if (recentCount) reasonBits.push('without overusing your recent rotation');
+
+  return {
+    fragrance: f,
+    score,
+    context: season.label + ' · ' + time.label,
+    reason: reasonBits.slice(0, 3).join(', ') + '.'
+  };
+}
+
+function formatScentTodayRecency(daysSince) {
+  if (daysSince === 999) return 'You have not logged this one yet';
+  if (daysSince <= 0) return 'You already wore this today';
+  if (daysSince === 1) return 'Last worn yesterday';
+  return 'Last worn ' + daysSince + ' days ago';
+}
+
+function getSeasonContext(d) {
+  const m = d.getMonth();
+  if (m === 11 || m <= 1) return { label: 'Winter pick', tokens: ['amber','oud','tobacco','leather','vanilla','warm spicy','smoky','woody','gourmand'] };
+  if (m >= 2 && m <= 4) return { label: 'Spring pick', tokens: ['floral','green','fresh','citrus','rose','white floral','aromatic'] };
+  if (m >= 5 && m <= 7) return { label: 'Summer pick', tokens: ['citrus','fresh','marine','aquatic','green','aromatic','musky','ozonic'] };
+  return { label: 'Autumn pick', tokens: ['woody','amber','spicy','warm spicy','tobacco','leather','patchouli','earthy'] };
+}
+
+function getTimeContext(d) {
+  const h = d.getHours();
+  const weekday = d.getDay() >= 1 && d.getDay() <= 5;
+  if (weekday && h >= 7 && h <= 16) return { label: 'Day wear', tokens: ['fresh','clean','citrus','aromatic','musk','woody','green','powdery'] };
+  if (h >= 17) return { label: 'Evening wear', tokens: ['amber','vanilla','oud','tobacco','leather','sweet','warm spicy','smoky'] };
+  return { label: 'Easy wear', tokens: ['fresh','musky','aromatic','citrus','woody','green'] };
+}
+
+function scoreTokenMatch(text, tokens) {
+  return tokens.reduce((sum, t) => sum + (text.includes(t) ? 1 : 0), 0);
+}
+
+function scentKey(f) {
+  return ((f?.name || '') + '||' + (f?.house || '')).toLowerCase();
+}
+
+function localDateKey(date) {
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
+function rerollScentToday() {
+  renderScentOfDay(true);
+}
+
+function logScentToday() {
+  const f = fragStore[_scentTodayKey];
+  if (!f) return;
+  openLog(f);
+}
+
+function openScentTodayDetail() {
+  if (_scentTodayKey) openFrag(_scentTodayKey);
 }
 
 const _shelfCache = {};
