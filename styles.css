@@ -848,6 +848,10 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .poster-card:hover .poster-card-actions{opacity:1}
 .pca-btn{padding:7px 0;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;border-radius:2px;cursor:pointer;width:96px;text-align:center;transition:filter 0.15s}
 .pca-btn:hover{filter:brightness(1.15)}
+@media (hover:none){
+  .poster-card-actions{opacity:1;inset:auto 8px 8px;flex-direction:row;background:rgba(4,4,12,0.72);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;padding:5px;gap:4px}
+  .pca-btn{width:auto;min-width:42px;padding:6px 8px;font-size:8px;border-radius:999px}
+}
 .pca-log{background:var(--gold);color:var(--bg)}
 .pca-hive{background:transparent;border:1px solid var(--gold-dim);color:var(--gold-light)}
 .pca-wish{background:transparent;border:1px solid var(--purple-dim);color:var(--purple-light)}

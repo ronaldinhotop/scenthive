@@ -2372,7 +2372,8 @@ async function quickAdd(name, house, imageUrl, fragellaId) {
   if (user) {
     try {
       const { data } = await sb.from('collection').insert([{ user_id: user.id, name, house, image_url: resolvedImg, fragella_id: resolvedFid }]).select();
-      if (data) collection.unshift(data[0]);
+      if (data?.[0]) collection.unshift(data[0]);
+      else collection.unshift(addPendingLocal('collection', entry));
     } catch (e) {
       collection.unshift(addPendingLocal('collection', entry));
     }
@@ -2483,7 +2484,8 @@ async function saveCollection() {
     try {
       const { data, error } = await sb.from('collection').insert([{ user_id: user.id, ...entry }]).select();
       if (error) throw error;
-      if (data) collection.unshift(data[0]);
+      if (data?.[0]) collection.unshift(data[0]);
+      else collection.unshift(addPendingLocal('collection', entry));
     } catch (e) {
       collection.unshift(addPendingLocal('collection', entry));
     }
@@ -4504,15 +4506,22 @@ function wireEvents() {
   document.addEventListener('click', function(e) {
     const btn = e.target.closest('.pca-btn');
     if (!btn) return;
+    e.preventDefault();
     e.stopPropagation();
+    const card = btn.closest('.poster-card');
+    const stored = card ? fragStore[card.getAttribute('data-key')] : null;
+    const f = stored || {
+      name: btn.getAttribute('data-name'),
+      house: btn.getAttribute('data-house'),
+      image_url: btn.getAttribute('data-img') || null,
+      fragella_id: btn.getAttribute('data-fid') || null
+    };
     const act = btn.getAttribute('data-pca');
-    const name = btn.getAttribute('data-name');
-    const house = btn.getAttribute('data-house');
-    const img = btn.getAttribute('data-img');
-    const fid = btn.getAttribute('data-fid');
-    if (act === 'log') prefillLog(name, house, img);
-    else if (act === 'hive') quickAdd(name, house, img, fid);
-    else if (act === 'wish') addToWishlist({ name, house, image_url: img || null, fragella_id: fid || null });
+    if (act === 'log') prefillLog(f.name || '', f.house || '', f.image_url || null);
+    else if (act === 'hive') {
+      if (collection.some(c => sameFragName(c.name, f.name))) { toast('Already in your hive'); return; }
+      quickAdd(f.name || '', f.house || '', f.image_url || null, f.fragella_id || null);
+    } else if (act === 'wish') addToWishlist(f);
   });
 
   // Star picker
