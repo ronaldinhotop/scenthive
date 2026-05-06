@@ -3425,6 +3425,7 @@ function renderCacheDebug(data) {
   if (!el) return;
   const s = data.stats || {};
   const rows = Array.isArray(data.rows) ? data.rows : [];
+  const duplicateExamples = Array.isArray(data.duplicate_examples) ? data.duplicate_examples : [];
   const pct = (bad, total) => total ? Math.round((bad / total) * 100) + '%' : '0%';
   const statHtml = [
     ['Total', s.total || 0],
@@ -3456,8 +3457,15 @@ function renderCacheDebug(data) {
     '</div>';
   }).join('');
 
+  const dupesHtml = duplicateExamples.length
+    ? '<div class="cache-dupes"><div class="cache-debug-label">Duplicate examples</div>' +
+      duplicateExamples.map(d => '<div class="cache-dupe-row"><strong>' + escapeHtml(d.count) + 'x</strong><span>' + escapeHtml((d.names || []).join(' / ')) + '</span></div>').join('') +
+      '</div>'
+    : '';
+
   el.innerHTML = '<div class="cache-stats">' + statHtml + '</div>' +
     '<div class="cache-debug-note">Showing up to 120 cached rows. Missing notes are okay for v1; missing image and duplicates are the first cleanup targets.</div>' +
+    dupesHtml +
     '<div class="cache-list">' + (rowHtml || '<div class="cache-debug-empty">No cache rows yet.</div>') + '</div>';
 }
 

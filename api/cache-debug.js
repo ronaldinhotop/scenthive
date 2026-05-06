@@ -55,9 +55,18 @@ export default async function handler(req, res) {
     for (const row of list) {
       const key = normalize(`${row.name || ''} ${row.house || ''}`);
       if (!key) continue;
-      dupes[key] = (dupes[key] || 0) + 1;
+      if (!dupes[key]) dupes[key] = [];
+      dupes[key].push(row);
     }
-    const duplicateGroups = Object.entries(dupes).filter(([, count]) => count > 1).length;
+    const duplicateEntries = Object.entries(dupes).filter(([, rows]) => rows.length > 1);
+    const duplicateExamples = duplicateEntries
+      .slice(0, 8)
+      .map(([key, rows]) => ({
+        key,
+        count: rows.length,
+        names: rows.slice(0, 4).map(row => `${row.name || 'Unnamed'}${row.house ? ' · ' + row.house : ''}`),
+      }));
+    const duplicateGroups = duplicateEntries.length;
 
     const enriched = list.map(row => ({ ...row, _quality: rowQuality(row) }));
     const stats = enriched.reduce((acc, row) => {
@@ -78,6 +87,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       stats,
+      duplicate_examples: duplicateExamples,
       rows: enriched.slice(0, 120).map(row => ({
         fragella_id: row.fragella_id || row.id || '',
         name: row.name || '',
