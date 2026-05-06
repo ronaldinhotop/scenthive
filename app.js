@@ -3428,8 +3428,12 @@ function renderCacheDebug(data) {
   const rows = Array.isArray(data.rows) ? data.rows : [];
   const duplicateExamples = Array.isArray(data.duplicate_examples) ? data.duplicate_examples : [];
   const pct = (bad, total) => total ? Math.round((bad / total) * 100) + '%' : '0%';
+  const totalLabel = String(s.total || 0) + (s.capped ? '+' : '');
+  const cappedNote = s.capped
+    ? '<div class="cache-debug-error">Debug read hit the current safety cap of ' + escapeHtml(s.max_rows || 50000) + ' rows. Counts are minimums until we raise the backend reader again.</div>'
+    : '';
   const statHtml = [
-    ['Total', s.total || 0],
+    ['Total', totalLabel],
     ['ScentHive IDs', s.scenthive_ids || 0],
     ['No image', pct(s.missing_images || 0, s.total || 0)],
     ['No notes', pct(s.missing_notes || 0, s.total || 0)],
@@ -3465,6 +3469,7 @@ function renderCacheDebug(data) {
     : '';
 
   el.innerHTML = '<div class="cache-stats">' + statHtml + '</div>' +
+    cappedNote +
     '<div class="cache-debug-note">Showing up to 120 cached rows. Missing notes are okay for v1; missing image and duplicates are the first cleanup targets.</div>' +
     dupesHtml +
     '<div class="cache-list">' + (rowHtml || '<div class="cache-debug-empty">No cache rows yet.</div>') + '</div>';
@@ -3496,15 +3501,19 @@ function renderCacheMergePreview(data) {
     '<div class="cache-dupe-row"><strong>' + escapeHtml((ex.remove || []).length + 'x') + '</strong><span>Keep ' +
     escapeHtml(ex.keep || '') + '<br>Remove ' + escapeHtml((ex.remove || []).join(' / ')) + '</span></div>'
   ).join('');
+  const cappedNote = data.capped
+    ? '<div class="cache-debug-error">Preview hit the current safety cap of ' + escapeHtml(data.max_rows || 50000) + ' rows. Merge is disabled until the full cache is visible.</div>'
+    : '';
   el.innerHTML = '<div class="cache-merge-summary">' +
     '<div class="cache-debug-label">Duplicate cleanup preview</div>' +
     '<div class="cache-debug-note">Exact normalized name + house matches only. No fuzzy merges.</div>' +
+    cappedNote +
     '<div class="cache-stats">' +
       '<div class="cache-stat"><span>Groups</span><strong>' + escapeHtml(data.groups || 0) + '</strong></div>' +
       '<div class="cache-stat"><span>Rows removable</span><strong>' + escapeHtml(data.removable || 0) + '</strong></div>' +
     '</div>' +
     (exampleHtml ? '<div class="cache-dupes">' + exampleHtml + '</div>' : '<div class="cache-debug-empty">No exact duplicates to merge.</div>') +
-    '<button class="modal-submit" onclick="applyCacheMerge()">Merge exact duplicates</button>' +
+    (data.capped ? '' : '<button class="modal-submit" onclick="applyCacheMerge()">Merge exact duplicates</button>') +
     '<button class="modal-cancel" onclick="loadCacheDebug()">Back to cache view</button>' +
   '</div>';
 }

@@ -13,11 +13,15 @@ const SB_HEADERS = key => ({
   'Content-Type': 'application/json',
 });
 
+const CACHE_PAGE_SIZE = 1000;
+const CACHE_MAX_ROWS = 50000;
+
 async function fetchAllCacheRows(sbUrl, sbKey) {
-  const pageSize = 1000;
   const rows = [];
-  for (let offset = 0; offset < 10000; offset += pageSize) {
-    const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache?select=*&offset=${offset}&limit=${pageSize}`, {
+  let capped = false;
+
+  for (let offset = 0; offset < CACHE_MAX_ROWS; offset += CACHE_PAGE_SIZE) {
+    const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache?select=*&offset=${offset}&limit=${CACHE_PAGE_SIZE}`, {
       headers: SB_HEADERS(sbKey),
     });
     if (!response.ok) {
@@ -27,9 +31,11 @@ async function fetchAllCacheRows(sbUrl, sbKey) {
     const page = await response.json();
     if (!Array.isArray(page) || !page.length) break;
     rows.push(...page);
-    if (page.length < pageSize) break;
+    if (page.length < CACHE_PAGE_SIZE) break;
+    if (rows.length >= CACHE_MAX_ROWS) capped = true;
   }
-  return rows;
+
+  return { rows, capped, maxRows: CACHE_MAX_ROWS };
 }
 
 function hasArrayData(value) {
@@ -60,7 +66,7 @@ export default async function handler(req, res) {
     const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
     if (!sbUrl || !sbKey) return res.status(500).json({ error: 'Missing Supabase env' });
 
-    const list = await fetchAllCacheRows(sbUrl, sbKey);
+    const { rows: list, capped, maxRows } = await fetchAllCacheRows(sbUrl, sbKey);
     const dupes = {};
     for (const row of list) {
       const key = normalize(`${row.name || ''} ${row.house || ''}`);
@@ -86,7 +92,16 @@ export default async function handler(req, res) {
       if (!row._quality.hasAccords) acc.missing_accords += 1;
       if (row._quality.source === 'scenthive') acc.scenthive_ids += 1;
       return acc;
-    }, { total: 0, missing_images: 0, missing_notes: 0, missing_accords: 0, scenthive_ids: 0, duplicate_groups: duplicateGroups });
+    }, {
+      total: 0,
+      missing_images: 0,
+      missing_notes: 0,
+      missing_accords: 0,
+      scenthive_ids: 0,
+      duplicate_groups: duplicateGroups,
+      capped,
+      max_rows: maxRows,
+    });
 
     enriched.sort((a, b) => {
       const av = String(a.updated_at || a.created_at || a.name || '');

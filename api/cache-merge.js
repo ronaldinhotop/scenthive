@@ -13,11 +13,15 @@ const SB_HEADERS = key => ({
   'Content-Type': 'application/json',
 });
 
+const CACHE_PAGE_SIZE = 1000;
+const CACHE_MAX_ROWS = 50000;
+
 async function fetchAllCacheRows(sbUrl, sbKey) {
-  const pageSize = 1000;
   const rows = [];
-  for (let offset = 0; offset < 10000; offset += pageSize) {
-    const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache?select=*&offset=${offset}&limit=${pageSize}`, {
+  let capped = false;
+
+  for (let offset = 0; offset < CACHE_MAX_ROWS; offset += CACHE_PAGE_SIZE) {
+    const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache?select=*&offset=${offset}&limit=${CACHE_PAGE_SIZE}`, {
       headers: SB_HEADERS(sbKey),
     });
     if (!response.ok) {
@@ -27,9 +31,11 @@ async function fetchAllCacheRows(sbUrl, sbKey) {
     const page = await response.json();
     if (!Array.isArray(page) || !page.length) break;
     rows.push(...page);
-    if (page.length < pageSize) break;
+    if (page.length < CACHE_PAGE_SIZE) break;
+    if (rows.length >= CACHE_MAX_ROWS) capped = true;
   }
-  return rows;
+
+  return { rows, capped, maxRows: CACHE_MAX_ROWS };
 }
 
 function hasData(value) {
@@ -129,7 +135,7 @@ export default async function handler(req, res) {
     if (!sbUrl || !sbKey) return res.status(500).json({ error: 'Missing Supabase env' });
 
     const apply = Boolean(req.body?.apply);
-    const rows = await fetchAllCacheRows(sbUrl, sbKey);
+    const { rows, capped, maxRows } = await fetchAllCacheRows(sbUrl, sbKey);
     const groups = {};
     for (const row of Array.isArray(rows) ? rows : []) {
       const key = canonicalKey(row);
@@ -149,6 +155,8 @@ export default async function handler(req, res) {
       return res.status(200).json({
         ok: true,
         dry_run: true,
+        capped,
+        max_rows: maxRows,
         groups: duplicateGroups.length,
         removable: duplicateGroups.reduce((sum, g) => sum + g.losers.length, 0),
         examples: duplicateGroups.slice(0, 8).map(g => ({
@@ -156,6 +164,14 @@ export default async function handler(req, res) {
           keep: `${g.winner.name || 'Unnamed'}${g.winner.house ? ' · ' + g.winner.house : ''}`,
           remove: g.losers.map(row => `${row.name || 'Unnamed'}${row.house ? ' · ' + row.house : ''}`),
         })),
+      });
+    }
+
+    if (capped) {
+      return res.status(409).json({
+        error: `Cache cleanup is capped at ${maxRows} rows. Refusing a partial merge until the debug reader can see the full cache.`,
+        capped: true,
+        max_rows: maxRows,
       });
     }
 
@@ -184,7 +200,16 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({ ok: true, dry_run: false, groups: duplicateGroups.length, merged, deleted, failed });
+    return res.status(200).json({
+      ok: true,
+      dry_run: false,
+      capped,
+      max_rows: maxRows,
+      groups: duplicateGroups.length,
+      merged,
+      deleted,
+      failed,
+    });
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Unknown error' });
   }
