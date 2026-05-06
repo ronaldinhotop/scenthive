@@ -1511,10 +1511,10 @@ function makeImg(url, alt, cls, style) {
 }
 
 function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function escapeAttr(s) {
-  return String(s || '').replace(/"/g, '&quot;');
+  return String(s == null ? '' : s).replace(/"/g, '&quot;');
 }
 
 function timeAgo(dateStr) {

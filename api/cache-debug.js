@@ -13,6 +13,25 @@ const SB_HEADERS = key => ({
   'Content-Type': 'application/json',
 });
 
+async function fetchAllCacheRows(sbUrl, sbKey) {
+  const pageSize = 1000;
+  const rows = [];
+  for (let offset = 0; offset < 10000; offset += pageSize) {
+    const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache?select=*&offset=${offset}&limit=${pageSize}`, {
+      headers: SB_HEADERS(sbKey),
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Supabase ${response.status}: ${text.slice(0, 240)}`);
+    }
+    const page = await response.json();
+    if (!Array.isArray(page) || !page.length) break;
+    rows.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return rows;
+}
+
 function hasArrayData(value) {
   return Array.isArray(value) && value.filter(Boolean).length > 0;
 }
@@ -41,16 +60,7 @@ export default async function handler(req, res) {
     const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
     if (!sbUrl || !sbKey) return res.status(500).json({ error: 'Missing Supabase env' });
 
-    const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache?select=*&limit=1000`, {
-      headers: SB_HEADERS(sbKey),
-    });
-    if (!response.ok) {
-      const text = await response.text();
-      return res.status(502).json({ error: `Supabase ${response.status}: ${text.slice(0, 240)}` });
-    }
-
-    const rows = await response.json();
-    const list = Array.isArray(rows) ? rows : [];
+    const list = await fetchAllCacheRows(sbUrl, sbKey);
     const dupes = {};
     for (const row of list) {
       const key = normalize(`${row.name || ''} ${row.house || ''}`);
