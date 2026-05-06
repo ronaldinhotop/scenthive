@@ -6,6 +6,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const SEARCH_URL = '/api/search';
 const FRAGRANCE_CACHE_URL = '/api/fragrance-cache';
 const CACHE_DEBUG_URL = '/api/cache-debug';
+const CACHE_MERGE_URL = '/api/cache-merge';
 
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
@@ -3467,6 +3468,73 @@ function renderCacheDebug(data) {
     '<div class="cache-debug-note">Showing up to 120 cached rows. Missing notes are okay for v1; missing image and duplicates are the first cleanup targets.</div>' +
     dupesHtml +
     '<div class="cache-list">' + (rowHtml || '<div class="cache-debug-empty">No cache rows yet.</div>') + '</div>';
+}
+
+async function previewCacheMerge() {
+  const el = document.getElementById('cache-debug-body');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+  try {
+    const res = await fetch(CACHE_MERGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apply: false })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Could not preview merge');
+    renderCacheMergePreview(data);
+  } catch (e) {
+    el.innerHTML = '<div class="cache-debug-error">' + escapeHtml(e.message || 'Could not preview merge') + '</div>';
+  }
+}
+
+function renderCacheMergePreview(data) {
+  const el = document.getElementById('cache-debug-body');
+  if (!el) return;
+  const examples = Array.isArray(data.examples) ? data.examples : [];
+  const exampleHtml = examples.map(ex =>
+    '<div class="cache-dupe-row"><strong>' + escapeHtml((ex.remove || []).length + 'x') + '</strong><span>Keep ' +
+    escapeHtml(ex.keep || '') + '<br>Remove ' + escapeHtml((ex.remove || []).join(' / ')) + '</span></div>'
+  ).join('');
+  el.innerHTML = '<div class="cache-merge-summary">' +
+    '<div class="cache-debug-label">Duplicate cleanup preview</div>' +
+    '<div class="cache-debug-note">Exact normalized name + house matches only. No fuzzy merges.</div>' +
+    '<div class="cache-stats">' +
+      '<div class="cache-stat"><span>Groups</span><strong>' + escapeHtml(data.groups || 0) + '</strong></div>' +
+      '<div class="cache-stat"><span>Rows removable</span><strong>' + escapeHtml(data.removable || 0) + '</strong></div>' +
+    '</div>' +
+    (exampleHtml ? '<div class="cache-dupes">' + exampleHtml + '</div>' : '<div class="cache-debug-empty">No exact duplicates to merge.</div>') +
+    '<button class="modal-submit" onclick="applyCacheMerge()">Merge exact duplicates</button>' +
+    '<button class="modal-cancel" onclick="loadCacheDebug()">Back to cache view</button>' +
+  '</div>';
+}
+
+async function applyCacheMerge() {
+  if (!window.confirm('Merge exact duplicate fragrance cache rows now? This keeps the best row and deletes weaker exact duplicates.')) return;
+  const el = document.getElementById('cache-debug-body');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+  try {
+    const res = await fetch(CACHE_MERGE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apply: true })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Could not merge duplicates');
+    el.innerHTML = '<div class="cache-merge-summary">' +
+      '<div class="cache-debug-label">Cleanup complete</div>' +
+      '<div class="cache-stats">' +
+        '<div class="cache-stat"><span>Groups</span><strong>' + escapeHtml(data.groups || 0) + '</strong></div>' +
+        '<div class="cache-stat"><span>Merged</span><strong>' + escapeHtml(data.merged || 0) + '</strong></div>' +
+        '<div class="cache-stat"><span>Deleted</span><strong>' + escapeHtml(data.deleted || 0) + '</strong></div>' +
+        '<div class="cache-stat"><span>Failed</span><strong>' + escapeHtml((data.failed || []).length) + '</strong></div>' +
+      '</div>' +
+      '<button class="modal-submit" onclick="loadCacheDebug()">Reload cache debug</button>' +
+    '</div>';
+  } catch (e) {
+    el.innerHTML = '<div class="cache-debug-error">' + escapeHtml(e.message || 'Could not merge duplicates') + '</div>';
+  }
 }
 
 // ═══════ LOG MODAL — search-first flow ═══════
