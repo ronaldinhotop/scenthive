@@ -121,9 +121,24 @@ function mergeIntoWinner(winner, losers) {
   return cleanPatch(merged);
 }
 
+function tempMergeId(row, index) {
+  return `merge_${stableId(row.name || '', row.house || '')}_${Date.now()}_${index}`;
+}
+
 async function patchById(id, row, sbUrl, sbKey) {
   const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache?fragella_id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
+    headers: { ...SB_HEADERS(sbKey), Prefer: 'return=minimal' },
+    body: JSON.stringify(row),
+  });
+  if (response.ok) return { ok: true };
+  const text = await response.text();
+  return { ok: false, status: response.status, detail: text.slice(0, 240) };
+}
+
+async function insertRow(row, sbUrl, sbKey) {
+  const response = await fetch(`${sbUrl}/rest/v1/fragrances_cache`, {
+    method: 'POST',
     headers: { ...SB_HEADERS(sbKey), Prefer: 'return=minimal' },
     body: JSON.stringify(row),
   });
@@ -224,36 +239,36 @@ export default async function handler(req, res) {
 
     for (const group of duplicateGroups) {
       if (processedGroups >= APPLY_GROUP_LIMIT || deleteBudget <= 0) break;
-      const winnerId = group.winner.fragella_id || group.winner.id;
-      if (!winnerId) {
+      const patch = mergeIntoWinner(group.winner, group.losers);
+      const finalId = patch.fragella_id || stableId(patch.name || '', patch.house || '');
+      const oldIds = [group.winner, ...group.losers]
+        .map(row => row.fragella_id || row.id)
+        .filter(Boolean);
+      if (oldIds.length > deleteBudget) break;
+      if (!oldIds.length) {
         failed.push(group.key);
         processedGroups += 1;
         continue;
       }
-      const patch = mergeIntoWinner(group.winner, group.losers);
-      const patched = await patchById(winnerId, patch, sbUrl, sbKey);
-      if (!patched.ok) {
-        failed.push(group.key);
+
+      const tempId = tempMergeId(patch, processedGroups);
+      const inserted = await insertRow({ ...patch, fragella_id: tempId }, sbUrl, sbKey);
+      if (!inserted.ok) {
+        failed.push(`${group.key}:insert`);
         if (errors.length < 6) errors.push({
-          action: 'patch',
+          action: 'insert',
           key: group.key,
-          id: winnerId,
-          status: patched.status,
-          detail: patched.detail,
+          status: inserted.status,
+          detail: inserted.detail,
         });
         processedGroups += 1;
         continue;
       }
-      merged += 1;
-      const loserIds = group.losers
-        .map(loser => loser.fragella_id || loser.id)
-        .filter(loserId => loserId && loserId !== winnerId)
-        .slice(0, deleteBudget);
 
-      const removed = await deleteByIds(loserIds, sbUrl, sbKey);
+      const removed = await deleteByIds(oldIds.slice(0, deleteBudget), sbUrl, sbKey);
       if (removed.ok) {
         deleted += removed.deleted;
-        deleteBudget -= loserIds.length;
+        deleteBudget -= oldIds.length;
       } else {
         failed.push(`${group.key}:delete`);
         if (errors.length < 6) errors.push({
@@ -262,6 +277,22 @@ export default async function handler(req, res) {
           status: removed.status,
           detail: removed.detail,
         });
+        processedGroups += 1;
+        continue;
+      }
+
+      const finalized = await patchById(tempId, { ...patch, fragella_id: finalId }, sbUrl, sbKey);
+      if (!finalized.ok) {
+        failed.push(`${group.key}:finalize`);
+        if (errors.length < 6) errors.push({
+          action: 'finalize',
+          key: group.key,
+          id: tempId,
+          status: finalized.status,
+          detail: finalized.detail,
+        });
+      } else {
+        merged += 1;
       }
       processedGroups += 1;
     }
