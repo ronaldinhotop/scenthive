@@ -18,9 +18,7 @@ function stableId(name, house) {
 }
 
 function stableCacheId(row) {
-  const raw = String(row?.fragella_id || row?.id || '').trim();
-  if (!raw || /^0\.\d+$/.test(raw)) return stableId(row?.name || '', row?.house || '');
-  return raw;
+  return stableId(row?.name || '', row?.house || '');
 }
 
 const SB_HEADERS = key => ({
@@ -113,9 +111,6 @@ function mergeIntoWinner(winner, losers) {
     }
     for (const key of ['notes_top', 'notes_heart', 'notes_base', 'accords']) {
       if (!hasData(merged[key]) && hasData(row[key])) merged[key] = row[key];
-    }
-    if (isScentHiveId(merged.fragella_id || merged.id) && !isScentHiveId(row.fragella_id || row.id)) {
-      merged.fragella_id = row.fragella_id || row.id;
     }
   }
   return cleanPatch(merged);

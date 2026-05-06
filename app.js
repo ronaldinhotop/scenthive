@@ -3345,7 +3345,7 @@ async function cacheFragrances(frags) {
       const name = f.name || f.fragrance_name || '';
       const house = f.house || '';
       return {
-        fragella_id: String(f.fragella_id || f.id || stableFragranceId(name, house)),
+        fragella_id: stableFragranceId(name, house),
         name,
         house,
         family: f.family || '',
@@ -3375,7 +3375,7 @@ function canonicalFragranceFromUse(f) {
   const house = String(f?.house || '').trim();
   if (!name) return null;
   return {
-    fragella_id: String(f.fragella_id || f.id || stableFragranceId(name, house)),
+    fragella_id: stableFragranceId(name, house),
     name,
     house,
     family: f.family || '',

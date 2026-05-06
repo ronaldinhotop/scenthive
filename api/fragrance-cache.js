@@ -18,11 +18,7 @@ function stableId(name, house) {
 }
 
 function stableCacheId(f, name, house) {
-  const raw = String(f?.fragella_id || f?.id || '').trim();
-  // Fragella has returned random-looking decimal IDs in some responses. Treat
-  // those as unstable, otherwise the same perfume is cached again and again.
-  if (!raw || /^0\.\d+$/.test(raw)) return stableId(name, house);
-  return raw;
+  return stableId(name || f?.name || f?.fragrance_name || '', house || f?.house || '');
 }
 
 function asArray(value) {
@@ -95,12 +91,12 @@ function mergeRow(existing, incoming) {
   for (const key of ['notes_top', 'notes_heart', 'notes_base', 'accords']) {
     if (!hasData(merged[key]) && hasData(incoming[key])) merged[key] = incoming[key];
   }
-  if (isScentHiveId(merged.fragella_id) && !isScentHiveId(incoming.fragella_id)) {
-    merged.fragella_id = incoming.fragella_id;
-  }
   if (qualityScore(incoming) > qualityScore(merged) + 8) {
-    return { ...merged, ...Object.fromEntries(Object.entries(incoming).filter(([, v]) => hasData(v))) };
+    const richer = { ...merged, ...Object.fromEntries(Object.entries(incoming).filter(([, v]) => hasData(v))) };
+    richer.fragella_id = stableId(richer.name || merged.name || incoming.name, richer.house || merged.house || incoming.house);
+    return richer;
   }
+  merged.fragella_id = stableId(merged.name || incoming.name, merged.house || incoming.house);
   return merged;
 }
 

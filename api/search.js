@@ -28,9 +28,7 @@ function stableId(name, house) {
 }
 
 function stableCacheId(id, name, house) {
-  const raw = String(id || '').trim();
-  if (!raw || /^0\.\d+$/.test(raw)) return stableId(name, house);
-  return raw;
+  return stableId(name, house);
 }
 
 const QUERY_ALIASES = {

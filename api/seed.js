@@ -82,11 +82,23 @@ function normalize(value) {
     .trim();
 }
 
+function stableId(name, house) {
+  const key = normalize(`${house} ${name}`);
+  let hash = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `sh_${(hash >>> 0).toString(36)}`;
+}
+
 function mapFragellaRow(f) {
+  const name = f.Name || f.name || '';
+  const house = f.Brand || f.brand || f.house || '';
   return {
-    fragella_id: String(f.id || f.ID || ''),
-    name:        f.Name  || f.name  || '',
-    house:       f.Brand || f.brand || f.house || '',
+    fragella_id: stableId(name, house),
+    name,
+    house,
     family:      Array.isArray(f['Main Accords']) ? f['Main Accords'][0] : (f['Main Accords'] || f.family || ''),
     notes_top:   f['Top Notes']    || f.top_notes    || [],
     notes_heart: f['Middle Notes'] || f.middle_notes || [],
