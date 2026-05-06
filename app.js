@@ -661,6 +661,7 @@ async function updateRightSidebar() {
 
 async function renderHome() {
   updateHero();
+  renderTodayWear();
   renderScentOfDay();
   renderContinueStrip();
   renderNoseCta();
@@ -967,6 +968,60 @@ function renderContinueStrip() {
   }).join('');
 
   section.style.display = '';
+}
+
+function getTodayDiaryEntries() {
+  const today = localDateKey(new Date());
+  return diary.filter(e => e?.worn_at && localDateKey(new Date(e.worn_at)) === today);
+}
+
+function renderTodayWear() {
+  const section = document.getElementById('section-today-wear');
+  const card = document.getElementById('today-wear-card');
+  if (!section || !card) return;
+  section.style.display = '';
+  const entries = getTodayDiaryEntries();
+  const streak = computeStreak();
+
+  if (!entries.length) {
+    const last = diary[0];
+    const lastText = last?.worn_at
+      ? 'Last logged ' + timeAgo(last.worn_at)
+      : 'No wears logged yet';
+    card.innerHTML = '<div class="today-wear-card empty">' +
+      '<div class="today-wear-main">' +
+        '<div class="today-wear-kicker">Not logged today</div>' +
+        '<div class="today-wear-title">Start today\'s scent memory.</div>' +
+        '<div class="today-wear-sub">' + escapeHtml(lastText) + '. One quick log is enough to keep your diary alive.</div>' +
+      '</div>' +
+      '<div class="today-wear-actions">' +
+        '<button class="today-wear-btn primary" onclick="openLog()">Log today</button>' +
+        (collection.length ? '<button class="today-wear-btn" onclick="rerollScentToday()">Pick from Hive</button>' : '<button class="today-wear-btn" onclick="openAdd()">Add bottle</button>') +
+      '</div>' +
+    '</div>';
+    return;
+  }
+
+  const e = entries[0];
+  const extra = entries.length > 1 ? ' +' + (entries.length - 1) + ' more' : '';
+  const rating = Number(e.rating) || 0;
+  const stars = rating ? '★'.repeat(rating) + '<span>' + '★'.repeat(5 - rating) + '</span>' : '';
+  const img = e.image_url
+    ? '<img src="' + escapeAttr(e.image_url) + '" alt="' + escapeAttr(e.fragrance_name || '') + '" onerror="this.outerHTML=\'<div class=&quot;today-wear-emoji&quot;>🏺</div>\'">'
+    : '<div class="today-wear-emoji">🏺</div>';
+  card.innerHTML = '<div class="today-wear-card logged">' +
+    '<button class="today-wear-art" onclick="showTab(\'diary\')">' + img + '</button>' +
+    '<div class="today-wear-main">' +
+      '<div class="today-wear-kicker">Logged today' + escapeHtml(extra) + '</div>' +
+      '<button class="today-wear-title" onclick="showTab(\'diary\')">' + escapeHtml(e.fragrance_name || '') + '</button>' +
+      '<div class="today-wear-house">' + escapeHtml(e.house || '') + '</div>' +
+      '<div class="today-wear-sub">' + (stars ? '<span class="today-wear-stars">' + stars + '</span>' : 'Add a rating later to make this memory more useful.') + '</div>' +
+    '</div>' +
+    '<div class="today-wear-side">' +
+      '<div class="today-wear-stat"><strong>' + escapeHtml(streak.current || 1) + '</strong><span>day streak</span></div>' +
+      '<button class="today-wear-btn" onclick="quickLog(' + JSON.stringify(e.fragrance_name || '') + ',' + JSON.stringify(e.house || '') + ',' + JSON.stringify(e.image_url || null) + ',' + JSON.stringify(e.fragella_id || null) + ')">Wear again</button>' +
+    '</div>' +
+  '</div>';
 }
 
 function getTasteProfile() {
@@ -3717,6 +3772,8 @@ async function saveLog() {
   closeModal('modal-log');
   toast(logIsPublic ? '✓ Logged & shared with community' : '✓ Logged to diary');
   renderDiary();
+  renderTodayWear();
+  renderScentOfDay();
   updateRightSidebar();
   loadCommunityFeed();
 }
@@ -3752,6 +3809,7 @@ async function quickLog(name, house, imageUrl, fragellaId) {
   recordFragranceUse({ name, house, image_url: imageUrl || null, fragella_id: fragellaId || null }).catch(() => {});
   toast('Logged: ' + name);
   renderDiary();
+  renderTodayWear();
   renderDiaryExtras();
   updateHero();
   updateRightSidebar();
@@ -3874,6 +3932,8 @@ async function deleteDiaryEntry(id) {
   else if (user) sb.from('journal_entries').delete().eq('id', id).catch(() => {});
   else saveLocal();
   renderDiary();
+  renderTodayWear();
+  renderScentOfDay();
   updateRightSidebar();
   toast('Entry removed');
 }

@@ -132,6 +132,39 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .continue-item-btn{background:none;border:1px solid var(--border);color:var(--gold);font-size:14px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background 0.15s}
 .continue-item-btn:hover{background:var(--gold-pale)}
 
+/* ── Today wear module ── */
+#section-today-wear{padding-top:28px}
+.today-wear-card{margin:0 20px 10px;background:linear-gradient(145deg,rgba(240,192,64,0.08),var(--bg3) 42%,var(--bg2));border:1px solid rgba(240,192,64,0.18);border-radius:12px;padding:14px;display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;position:relative;overflow:hidden}
+.today-wear-card.empty{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px}
+.today-wear-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 0% 0%,rgba(240,192,64,0.12),transparent 54%);pointer-events:none}
+.today-wear-art{width:72px;height:92px;background:#fff;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;box-shadow:0 10px 24px rgba(0,0,0,0.28);cursor:pointer}
+.today-wear-art img{max-width:84%;max-height:84%;object-fit:contain}
+.today-wear-emoji{font-size:30px;opacity:0.5}
+.today-wear-main{min-width:0;position:relative;z-index:1}
+.today-wear-kicker{font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:6px}
+.today-wear-title{font-family:'Playfair Display',serif;font-size:22px;font-style:italic;line-height:1.08;color:var(--white);text-align:left;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.today-wear-house{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:0.08em;text-transform:uppercase;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.today-wear-sub{font-size:12px;color:var(--white2);line-height:1.45;margin-top:8px}
+.today-wear-stars{font-size:12px;color:var(--honey);letter-spacing:1px}
+.today-wear-stars span{color:var(--grey2)}
+.today-wear-actions,.today-wear-side{display:flex;gap:8px;align-items:center;position:relative;z-index:1;flex-wrap:wrap}
+.today-wear-side{flex-direction:column;align-items:flex-end}
+.today-wear-stat{min-width:74px;text-align:center;border:1px solid var(--border2);background:rgba(8,8,16,0.32);border-radius:8px;padding:8px 10px}
+.today-wear-stat strong{display:block;font-family:'Playfair Display',serif;font-size:24px;color:var(--gold);line-height:1}
+.today-wear-stat span{display:block;font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px}
+.today-wear-btn{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);border-radius:20px;color:var(--white2);padding:8px 12px;cursor:pointer;white-space:nowrap}
+.today-wear-btn.primary{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600}
+.today-wear-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+.today-wear-btn.primary:hover{color:var(--bg);opacity:0.9}
+@media (max-width:560px){
+  .today-wear-card{grid-template-columns:62px 1fr;gap:12px}
+  .today-wear-card.empty{display:block}
+  .today-wear-art{width:62px;height:80px}
+  .today-wear-side{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
+  .today-wear-actions{margin-top:14px}
+  .today-wear-title{font-size:20px}
+}
+
 /* ── Taste Test CTA card ── */
 .taste-cta{margin:0 20px;border-radius:10px;overflow:hidden;position:relative;background:linear-gradient(135deg,#1a0d36 0%,#0e1030 50%,#0a0818 100%);border:1px solid var(--purple-dim);cursor:pointer;transition:border-color 0.2s,transform 0.15s;padding:28px 24px}
 .taste-cta:hover{border-color:var(--purple-light);transform:translateY(-2px)}
