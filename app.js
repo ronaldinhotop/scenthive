@@ -3529,6 +3529,11 @@ async function applyCacheMerge() {
     });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Could not merge duplicates');
+    const errorHtml = Array.isArray(data.errors) && data.errors.length
+      ? '<div class="cache-debug-error">' + data.errors.map(err =>
+          escapeHtml((err.action || 'error') + ' ' + (err.status || '') + ': ' + (err.detail || err.key || 'Unknown error'))
+        ).join('<br>') + '</div>'
+      : '';
     el.innerHTML = '<div class="cache-merge-summary">' +
       '<div class="cache-debug-label">Cleanup complete</div>' +
       '<div class="cache-stats">' +
@@ -3537,6 +3542,7 @@ async function applyCacheMerge() {
         '<div class="cache-stat"><span>Deleted</span><strong>' + escapeHtml(data.deleted || 0) + '</strong></div>' +
         '<div class="cache-stat"><span>Failed</span><strong>' + escapeHtml((data.failed || []).length) + '</strong></div>' +
       '</div>' +
+      errorHtml +
       '<button class="modal-submit" onclick="loadCacheDebug()">Reload cache debug</button>' +
     '</div>';
   } catch (e) {

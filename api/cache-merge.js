@@ -126,7 +126,9 @@ async function patchById(id, row, sbUrl, sbKey) {
     headers: { ...SB_HEADERS(sbKey), Prefer: 'return=minimal' },
     body: JSON.stringify(row),
   });
-  return response.ok;
+  if (response.ok) return { ok: true };
+  const text = await response.text();
+  return { ok: false, status: response.status, detail: text.slice(0, 240) };
 }
 
 async function deleteById(id, sbUrl, sbKey) {
@@ -134,7 +136,9 @@ async function deleteById(id, sbUrl, sbKey) {
     method: 'DELETE',
     headers: { ...SB_HEADERS(sbKey), Prefer: 'return=minimal' },
   });
-  return response.ok;
+  if (response.ok) return { ok: true };
+  const text = await response.text();
+  return { ok: false, status: response.status, detail: text.slice(0, 240) };
 }
 
 export default async function handler(req, res) {
@@ -147,7 +151,8 @@ export default async function handler(req, res) {
 
   try {
     const sbUrl = process.env.SUPABASE_URL;
-    const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const sbKey = serviceKey || process.env.SUPABASE_ANON_KEY;
     if (!sbUrl || !sbKey) return res.status(500).json({ error: 'Missing Supabase env' });
 
     const apply = Boolean(req.body?.apply);
@@ -191,9 +196,18 @@ export default async function handler(req, res) {
       });
     }
 
+    if (!serviceKey) {
+      return res.status(403).json({
+        error: 'Missing SUPABASE_SERVICE_ROLE_KEY in Vercel. Duplicate cleanup needs service role permissions to update and delete cache rows.',
+        groups: duplicateGroups.length,
+        removable: duplicateGroups.reduce((sum, g) => sum + g.losers.length, 0),
+      });
+    }
+
     let merged = 0;
     let deleted = 0;
     const failed = [];
+    const errors = [];
 
     for (const group of duplicateGroups) {
       const winnerId = group.winner.fragella_id || group.winner.id;
@@ -203,16 +217,33 @@ export default async function handler(req, res) {
       }
       const patch = mergeIntoWinner(group.winner, group.losers);
       const patched = await patchById(winnerId, patch, sbUrl, sbKey);
-      if (!patched) {
+      if (!patched.ok) {
         failed.push(group.key);
+        if (errors.length < 6) errors.push({
+          action: 'patch',
+          key: group.key,
+          id: winnerId,
+          status: patched.status,
+          detail: patched.detail,
+        });
         continue;
       }
       merged += 1;
       for (const loser of group.losers) {
         const loserId = loser.fragella_id || loser.id;
         if (!loserId || loserId === winnerId) continue;
-        if (await deleteById(loserId, sbUrl, sbKey)) deleted += 1;
-        else failed.push(`${group.key}:${loserId}`);
+        const removed = await deleteById(loserId, sbUrl, sbKey);
+        if (removed.ok) deleted += 1;
+        else {
+          failed.push(`${group.key}:${loserId}`);
+          if (errors.length < 6) errors.push({
+            action: 'delete',
+            key: group.key,
+            id: loserId,
+            status: removed.status,
+            detail: removed.detail,
+          });
+        }
       }
     }
 
@@ -225,6 +256,7 @@ export default async function handler(req, res) {
       merged,
       deleted,
       failed,
+      errors,
     });
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Unknown error' });
