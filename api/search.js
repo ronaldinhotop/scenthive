@@ -44,6 +44,25 @@ const QUERY_ALIASES = {
   'baccarat rouge 540': 'Maison Francis Kurkdjian Baccarat Rouge 540'
 };
 
+const KNOWN_FRAGRANCES = [
+  {
+    fragella_id: stableId('Speed Legends', 'Ex Nihilo'),
+    name: 'Speed Legends',
+    house: 'Ex Nihilo',
+    family: '',
+    notes_top: [],
+    notes_heart: [],
+    notes_base: [],
+    accords: [],
+    longevity: '',
+    sillage: '',
+    gender: '',
+    image_url: '',
+    launch_year: null,
+    price_range: '',
+  },
+];
+
 // ─── Scoring ─────────────────────────────────────────────────────────────────
 
 function scoreFragrance(f, query) {
@@ -300,12 +319,14 @@ export default async function handler(req, res) {
 
     const fragellaKey = process.env.FRAGELLA_API_KEY;
     const sbUrl       = process.env.SUPABASE_URL;
-    const sbKey       = process.env.SUPABASE_ANON_KEY;
+    const sbKey       = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
     const normalizedQuery = normalize(query);
     const alias = QUERY_ALIASES[normalizedQuery];
 
     // ── 1. Supabase cache lookup ──────────────────────────────────────────────
+    const knownRaw = rankFragrances(KNOWN_FRAGRANCES, alias || query, true);
+    const knownRanked = knownRaw.bestScore >= 35 ? knownRaw : { bestScore: 0, fragrances: [] };
     let cacheRanked = { bestScore: 0, fragrances: [] };
 
     if (sbUrl && sbKey) {
@@ -320,10 +341,16 @@ export default async function handler(req, res) {
           const key = normalize(`${f.name} ${f.house}`);
           if (!seen.has(key)) { seen.add(key); merged.push(f); }
         }
-        cacheRanked = rankFragrances(merged, alias || query, true);
+        cacheRanked = rankFragrances(mergeRanked({ fragrances: merged }, knownRanked), alias || query, true);
       } else {
-        cacheRanked = rankFragrances(sbRows, query, true);
+        cacheRanked = rankFragrances(mergeRanked({ fragrances: sbRows }, knownRanked), query, true);
       }
+    } else {
+      cacheRanked = knownRanked;
+    }
+
+    if (sbUrl && sbKey && knownRanked.fragrances.length) {
+      upsertSupabaseCache(knownRanked.fragrances, sbUrl, sbKey);
     }
 
     const cacheGoodEnough = (

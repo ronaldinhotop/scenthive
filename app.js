@@ -3690,11 +3690,50 @@ function selectFrag(f) {
   }
 }
 
+function titleCaseWords(value) {
+  return String(value || '').toLowerCase().split(/\s+/).filter(Boolean)
+    .map(word => word.length === 1 ? word.toUpperCase() : word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function parseManualFragrance(name, house) {
+  const cleanName = String(name || '').trim();
+  const cleanHouse = String(house || '').trim();
+  const known = {
+    'ex nihilo speed legends': { name: 'Speed Legends', house: 'Ex Nihilo' },
+  };
+  const exact = known[normalizeText(cleanName + (cleanHouse ? ' ' + cleanHouse : ''))] || known[normalizeText(cleanName)];
+  if (exact && !cleanHouse) return exact;
+  if (cleanHouse) return { name: cleanName, house: cleanHouse };
+
+  const houses = Object.keys(BRAND_SITES || {}).sort((a, b) => b.length - a.length);
+  const normalizedName = normalizeText(cleanName);
+  const match = houses.find(h => normalizedName.startsWith(normalizeText(h) + ' '));
+  if (!match) return { name: cleanName, house: cleanHouse };
+
+  const wordCount = match.split(/\s+/).filter(Boolean).length;
+  const rest = cleanName.split(/\s+/).slice(wordCount).join(' ').trim();
+  return {
+    name: titleCaseWords(rest || cleanName),
+    house: titleCaseWords(match),
+  };
+}
+
 function selectManualFrag() {
   const name = document.getElementById('log-name-manual').value.trim();
   const house = document.getElementById('log-house-manual').value.trim();
   if (!name) { toast('Please enter a fragrance name'); return; }
-  selectFrag({ name, house, image_url: null });
+  const parsed = parseManualFragrance(name, house);
+  selectFrag({ name: parsed.name, house: parsed.house, image_url: null, fragella_id: stableFragranceId(parsed.name, parsed.house) });
 }
 
 function onLogSearch(q) {
