@@ -532,7 +532,10 @@
         <div class="profile-avatar-ring">
           <div class="profile-avatar" id="prof-avatar">👤</div>
         </div>
-        <button class="profile-edit-btn" onclick="openEditProfile()">Edit profile</button>
+        <div class="profile-action-row">
+          <button class="profile-edit-btn" onclick="openEditProfile()">Edit profile</button>
+          <button class="profile-edit-btn" onclick="openModal('modal-settings')">Settings</button>
+        </div>
       </div>
       <div class="profile-name" id="prof-name">Guest</div>
       <div class="profile-handle" id="prof-handle">@guest</div>
