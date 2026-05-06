@@ -527,8 +527,8 @@ async function loadCollection() {
   }
   try {
     const { data } = await sb.from('collection').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-    if (data) collection = data;
-  } catch (e) { collection = []; }
+    collection = mergePendingLocal(data || [], 'collection');
+  } catch (e) { collection = mergePendingLocal([], 'collection'); }
 }
 
 async function loadDiary() {
@@ -538,8 +538,8 @@ async function loadDiary() {
   }
   try {
     const { data } = await sb.from('journal_entries').select('*').eq('user_id', user.id).order('worn_at', { ascending: false }).limit(500);
-    if (data) diary = data;
-  } catch (e) { diary = []; }
+    diary = mergePendingLocal(data || [], 'diary');
+  } catch (e) { diary = mergePendingLocal([], 'diary'); }
 }
 
 function saveLocal() {
@@ -547,6 +547,58 @@ function saveLocal() {
     localStorage.setItem('sh_diary', JSON.stringify(diary));
     localStorage.setItem('sh_collection', JSON.stringify(collection));
   } catch (e) {}
+}
+
+function pendingLocalKey(type) {
+  return type === 'collection' ? 'sh_pending_collection' : 'sh_pending_diary';
+}
+
+function loadPendingLocal(type) {
+  try {
+    return JSON.parse(localStorage.getItem(pendingLocalKey(type)) || '[]')
+      .filter(item => item && item._pending_local);
+  } catch (e) { return []; }
+}
+
+function savePendingLocal(type, items) {
+  try {
+    localStorage.setItem(pendingLocalKey(type), JSON.stringify((items || []).filter(item => item && item._pending_local)));
+  } catch (e) {}
+}
+
+function addPendingLocal(type, entry) {
+  const prefix = type === 'collection' ? 'pending_col_' : 'pending_log_';
+  const pending = {
+    ...entry,
+    id: entry.id || (prefix + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
+    _pending_local: true
+  };
+  const items = loadPendingLocal(type);
+  items.unshift(pending);
+  savePendingLocal(type, items);
+  return pending;
+}
+
+function removePendingLocal(type, id) {
+  if (!id) return;
+  savePendingLocal(type, loadPendingLocal(type).filter(item => String(item.id) !== String(id)));
+}
+
+function mergePendingLocal(remoteItems, type) {
+  const remote = Array.isArray(remoteItems) ? remoteItems : [];
+  const pending = loadPendingLocal(type);
+  if (!pending.length) return remote;
+  const remoteKeys = new Set(remote.map(item => {
+    if (type === 'collection') return scentKey({ name: item.name, house: item.house });
+    return scentKey({ name: item.fragrance_name, house: item.house }) + '|' + (item.worn_at || '');
+  }));
+  const unresolved = pending.filter(item => {
+    const key = type === 'collection'
+      ? scentKey({ name: item.name, house: item.house })
+      : scentKey({ name: item.fragrance_name, house: item.house }) + '|' + (item.worn_at || '');
+    return !remoteKeys.has(key);
+  });
+  return [...unresolved, ...remote];
 }
 
 // ═══════ RECENTLY VIEWED ═══════
@@ -2321,12 +2373,17 @@ async function quickAdd(name, house, imageUrl, fragellaId) {
     try {
       const { data } = await sb.from('collection').insert([{ user_id: user.id, name, house, image_url: resolvedImg, fragella_id: resolvedFid }]).select();
       if (data) collection.unshift(data[0]);
-    } catch (e) { collection.unshift(entry); }
+    } catch (e) {
+      collection.unshift(addPendingLocal('collection', entry));
+    }
   } else {
     collection.unshift(entry);
     saveLocal();
   }
   toast('✓ Added to your hive 🐝');
+  renderCollection();
+  renderScentOfDay();
+  updateRightSidebar();
 }
 
 // ═══════ LOG MODAL ═══════
@@ -2428,7 +2485,7 @@ async function saveCollection() {
       if (error) throw error;
       if (data) collection.unshift(data[0]);
     } catch (e) {
-      collection.unshift({ ...entry, id: 'local_' + Date.now() });
+      collection.unshift(addPendingLocal('collection', entry));
     }
   } else {
     collection.unshift({ ...entry, id: 'local_' + Date.now() });
@@ -3350,7 +3407,7 @@ async function saveLog() {
       if (error) throw error;
       if (data) diary.unshift(data[0]);
     } catch (e) {
-      diary.unshift({ ...entry, id: 'local_' + Date.now() });
+      diary.unshift(addPendingLocal('diary', entry));
     }
   } else {
     diary.unshift({ ...entry, id: 'local_' + Date.now() });
@@ -3384,7 +3441,7 @@ async function quickLog(name, house, imageUrl, fragellaId) {
       if (error) throw error;
       diary.unshift(data?.[0] || { ...entry, id: 'local_' + Date.now() });
     } catch (e) {
-      diary.unshift({ ...entry, id: 'local_' + Date.now() });
+      diary.unshift(addPendingLocal('diary', entry));
     }
   } else {
     diary.unshift({ ...entry, id: 'local_' + Date.now() });
@@ -3401,6 +3458,12 @@ async function quickLog(name, house, imageUrl, fragellaId) {
 
 // ═══════ UPGRADE ═══════
 function openUpgrade() { openModal('modal-upgrade'); }
+
+function isProUser() {
+  const meta = user?.user_metadata || {};
+  const plan = String(meta.plan || meta.subscription || meta.tier || '').toLowerCase();
+  return Boolean(meta.is_pro || meta.pro || plan === 'pro' || plan === 'premium');
+}
 
 // ═══════ MANUAL FAVOURITES ═══════
 let pickFavSlot = 0;
@@ -3505,7 +3568,8 @@ function renderFavsGrid(favs) {
 async function deleteDiaryEntry(id) {
   if (!id) return;
   diary = diary.filter(e => String(e.id) !== String(id));
-  if (user) sb.from('journal_entries').delete().eq('id', id).catch(() => {});
+  if (String(id).startsWith('pending_log_')) removePendingLocal('diary', id);
+  else if (user) sb.from('journal_entries').delete().eq('id', id).catch(() => {});
   else saveLocal();
   renderDiary();
   updateRightSidebar();
@@ -3520,7 +3584,9 @@ async function deleteCollectionItem(id, name, house = '') {
     : collection.filter(b => !(b.name === name && (house ? b.house === house : true)));
   renderCollection();
   updateRightSidebar();
-  if (user && id) {
+  if (String(id).startsWith('pending_col_')) {
+    removePendingLocal('collection', id);
+  } else if (user && id) {
     const { error } = await sb.from('collection').delete().eq('id', id);
     if (error) {
       collection = previous;
@@ -4984,10 +5050,12 @@ function updateHero() {
 // ═══════ BOTTLE SCAN ═══════
 let _scanBase64 = null;
 let _scanMediaType = null;
+let _scanCandidates = [];
 
 function openScan() {
   _scanBase64 = null;
   _scanMediaType = null;
+  _scanCandidates = [];
   document.getElementById('scan-preview').style.display = 'none';
   document.getElementById('scan-result').innerHTML = '';
   document.getElementById('scan-btn').style.display = 'none';
@@ -5011,6 +5079,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('scan-drop').style.display = 'none';
         document.getElementById('scan-btn').style.display = 'block';
         document.getElementById('scan-result').innerHTML = '';
+        _scanCandidates = [];
       };
       reader.readAsDataURL(file);
     });
@@ -5033,26 +5102,14 @@ async function runScan() {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
 
-    if (!data.name) {
+    const candidates = normalizeScanCandidates(data);
+    if (!candidates.length) {
       resultEl.innerHTML = `<div style="padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
         <div style="font-size:13px;color:var(--grey);font-style:italic;margin-bottom:10px">Couldn't identify this bottle. ${escapeHtml(data.description||'Try a clearer photo with the label fully visible.')}</div>
         <button class="modal-cancel" style="width:100%" onclick="resetScan()">Try another photo</button>
       </div>`;
     } else {
-      const conf = data.confidence === 'high' ? '✓ Identified' : data.confidence === 'medium' ? '~ Probably' : '? Best guess';
-      const confColor = data.confidence === 'high' ? 'var(--gold)' : data.confidence === 'medium' ? 'var(--white2)' : 'var(--grey)';
-      const alreadyOwned = collection.some(c => c.name?.toLowerCase() === data.name?.toLowerCase());
-      resultEl.innerHTML = `<div style="padding:16px;background:var(--gold-pale);border:1px solid rgba(240,192,64,0.25);border-radius:4px;margin-bottom:10px">
-        <div style="font-family:'DM Mono',monospace;font-size:8px;color:${confColor};letter-spacing:0.1em;margin-bottom:8px">${conf}</div>
-        <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;margin-bottom:2px">${escapeHtml(data.name)}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);margin-bottom:10px">${escapeHtml(data.house||'')}${data.family?' · '+escapeHtml(data.family):''}</div>
-        ${alreadyOwned ? '<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--gold);margin-bottom:10px">✓ Already in your hive</div>' : ''}
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button class="modal-submit" style="flex:2;font-size:11px;padding:10px 0" onclick="scanAddToHive(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')},${JSON.stringify(data.image_url||null)})">${alreadyOwned ? '+ Add again' : '🐝 Add to hive'}</button>
-          <button class="frag-btn frag-btn-secondary" style="flex:1;font-size:11px;padding:10px 0" onclick="prefillLog(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')},null);closeModal('modal-scan')">Log it</button>
-        </div>
-        <button class="modal-cancel" style="width:100%;margin-top:0" onclick="resetScan()">📷 Scan another bottle</button>
-      </div>`;
+      renderScanCandidates(candidates, data.description || '');
     }
   } catch (e) {
     resultEl.innerHTML = `<div style="padding:12px;font-size:12px;color:var(--red);font-style:italic">${escapeHtml(e.message||'Something went wrong')}</div>`;
@@ -5061,8 +5118,71 @@ async function runScan() {
   }
 }
 
+function normalizeScanCandidates(data) {
+  if (Array.isArray(data?.fragrances)) {
+    return data.fragrances.filter(f => f && f.name).map(f => ({
+      name: f.name || '',
+      house: f.house || '',
+      confidence: f.confidence || 'low',
+      family: f.family || '',
+      image_url: f.image_url || null,
+      description: f.description || ''
+    }));
+  }
+  if (data?.name) {
+    return [{
+      name: data.name || '',
+      house: data.house || '',
+      confidence: data.confidence || 'low',
+      family: data.family || '',
+      image_url: data.image_url || null,
+      description: data.description || ''
+    }];
+  }
+  return [];
+}
+
+function renderScanCandidates(candidates, scanDescription) {
+  const resultEl = document.getElementById('scan-result');
+  if (!resultEl) return;
+  _scanCandidates = candidates;
+  const pro = isProUser();
+  const visible = pro ? candidates : candidates.slice(0, 1);
+  const multiLocked = candidates.length > 1 && !pro;
+  const countCopy = candidates.length > 1
+    ? `${candidates.length} bottles found`
+    : '1 bottle found';
+  const cards = visible.map(data => {
+    const conf = data.confidence === 'high' ? '✓ Identified' : data.confidence === 'medium' ? '~ Probably' : '? Best guess';
+    const confColor = data.confidence === 'high' ? 'var(--gold)' : data.confidence === 'medium' ? 'var(--white2)' : 'var(--grey)';
+    const alreadyOwned = collection.some(c => c.name?.toLowerCase() === data.name?.toLowerCase());
+    return `<div style="padding:14px 0;border-top:1px solid var(--border2)">
+      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${confColor};letter-spacing:0.1em;margin-bottom:8px">${conf}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;margin-bottom:2px">${escapeHtml(data.name)}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);margin-bottom:10px">${escapeHtml(data.house||'')}${data.family?' · '+escapeHtml(data.family):''}</div>
+      ${alreadyOwned ? '<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--gold);margin-bottom:10px">✓ Already in your hive</div>' : ''}
+      <div style="display:flex;gap:8px">
+        <button class="modal-submit" style="flex:2;font-size:11px;padding:10px 0" onclick="scanAddToHive(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')},${JSON.stringify(data.image_url||null)})">${alreadyOwned ? '+ Add again' : '🐝 Add to hive'}</button>
+        <button class="frag-btn frag-btn-secondary" style="flex:1;font-size:11px;padding:10px 0" onclick="prefillLog(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')},null);closeModal('modal-scan')">Log it</button>
+      </div>
+    </div>`;
+  }).join('');
+  resultEl.innerHTML = `<div style="padding:16px;background:var(--gold-pale);border:1px solid rgba(240,192,64,0.25);border-radius:4px;margin-bottom:10px">
+    <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.1em;margin-bottom:8px;text-transform:uppercase">${countCopy}</div>
+    ${scanDescription ? `<div style="font-size:12px;color:var(--grey);font-style:italic;line-height:1.5;margin-bottom:8px">${escapeHtml(scanDescription)}</div>` : ''}
+    ${cards}
+    ${multiLocked ? `<div style="margin-top:12px;padding:12px;background:rgba(8,8,16,0.55);border:1px solid var(--gold-dim);border-radius:4px">
+      <div style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;margin-bottom:4px">Multiple bottle scan is Pro</div>
+      <div style="font-size:12px;color:var(--white2);line-height:1.45;margin-bottom:10px">Free scan shows the top match. Pro can identify a full shelf and add every bottle in one tap.</div>
+      <button class="modal-submit" style="font-size:10px;padding:10px 0" onclick="openUpgrade()">Unlock multi-scan</button>
+    </div>` : ''}
+    ${pro && candidates.length > 1 ? `<button class="modal-submit" style="width:100%;margin-top:12px;font-size:11px;padding:11px 0" onclick="scanAddManyToHive()">🐝 Add all ${candidates.length} to hive</button>` : ''}
+    <button class="modal-cancel" style="width:100%;margin-top:10px" onclick="resetScan()">📷 Scan another bottle</button>
+  </div>`;
+}
+
 function resetScan() {
-  _scanBase64 = null; _scanMediaType = null;
+  _scanBase64 = null; _scanMediaType = null; _scanCandidates = [];
   document.getElementById('scan-preview').style.display = 'none';
   document.getElementById('scan-drop').style.display = 'block';
   document.getElementById('scan-btn').style.display = 'none';
@@ -5074,6 +5194,16 @@ async function scanAddToHive(name, house, imageUrl) {
   await quickAdd(name, house, imageUrl, null);
   // Keep modal open so user can scan another
   document.getElementById('scan-result').innerHTML += `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);padding:8px 0;letter-spacing:0.06em">✓ Added to your hive! Scan another bottle or close.</div>`;
+  setTimeout(resetScan, 1800);
+}
+
+async function scanAddManyToHive() {
+  const items = _scanCandidates;
+  if (!Array.isArray(items) || !items.length) { toast('No bottles to add'); return; }
+  for (const item of items) {
+    if (item && item.name) await quickAdd(item.name, item.house || '', item.image_url || null, null);
+  }
+  document.getElementById('scan-result').innerHTML += `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);padding:8px 0;letter-spacing:0.06em">✓ Added ${items.length} bottles to your hive.</div>`;
   setTimeout(resetScan, 1800);
 }
 

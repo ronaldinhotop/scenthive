@@ -53,19 +53,25 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model,
-        max_tokens: 600,
+        max_tokens: 1200,
         system: `You are a fragrance expert with encyclopaedic knowledge of perfume bottles and packaging.
-Identify the fragrance in the image. Be precise about the exact name and house.
+Identify every fragrance bottle you can see in the image. Be precise about the exact name and house.
 Respond ONLY with valid JSON:
 {
-  "name": "Exact Fragrance Name",
-  "house": "Exact House Name",
-  "confidence": "high|medium|low",
-  "notes": ["key note 1", "key note 2", "key note 3"],
-  "family": "fragrance family",
-  "description": "one sentence about this fragrance"
+  "fragrances": [
+    {
+      "name": "Exact Fragrance Name",
+      "house": "Exact House Name",
+      "confidence": "high|medium|low",
+      "notes": ["key note 1", "key note 2", "key note 3"],
+      "family": "fragrance family",
+      "description": "one sentence about this fragrance"
+    }
+  ],
+  "description": "one sentence about the scan quality"
 }
-If you cannot identify it, set name to null and explain in description.`,
+If you can identify only one fragrance, return one item in fragrances.
+If you cannot identify any fragrance, return an empty fragrances array and explain in description.`,
         messages: [{
           role: 'user',
           content: [
@@ -79,7 +85,7 @@ If you cannot identify it, set name to null and explain in description.`,
             },
             {
               type: 'text',
-              text: 'What fragrance is this? Give me the exact name and house.'
+              text: 'Identify all fragrance bottles in this image. Return exact names and houses where possible.'
             }
           ]
         }]
@@ -97,7 +103,25 @@ If you cannot identify it, set name to null and explain in description.`,
     const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
     try {
-      return res.status(200).json(JSON.parse(cleaned));
+      const parsed = JSON.parse(cleaned);
+      if (Array.isArray(parsed.fragrances)) {
+        const fragrances = parsed.fragrances
+          .filter(f => f && f.name)
+          .map(f => ({
+            name: f.name || null,
+            house: f.house || '',
+            confidence: f.confidence || 'low',
+            notes: Array.isArray(f.notes) ? f.notes.slice(0, 5) : [],
+            family: f.family || '',
+            description: f.description || ''
+          }));
+        return res.status(200).json({
+          fragrances,
+          count: fragrances.length,
+          description: parsed.description || ''
+        });
+      }
+      return res.status(200).json(parsed);
     } catch {
       return res.status(500).json({ error: 'Could not parse response', raw: cleaned.slice(0, 200) });
     }
