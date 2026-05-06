@@ -698,13 +698,23 @@ async function renderHome() {
   }
 
   const newReleasePool = [
-    'Dior Homme Parfum 2025', 'Valentino Uomo Born in Roma Extradose',
-    'YSL Myslf Le Parfum', 'Bleu de Chanel L Exclu',
-    'Sauvage Eau Forte Dior', 'Tom Ford Black Lacquer',
-    'Aventus Absolu Creed', 'Le Male Elixir Absolu Jean Paul Gaultier',
-    'Rabanne Million Gold', 'Boss Bottled Absolu',
-    'Burberry Goddess Intense', 'Gucci Flora Gorgeous Orchid',
-    'Libre Flowers Flames YSL', 'Devotion Intense Dolce Gabbana'
+    // Curated 2026 launches from Parfumo's release-year index and Vogue's
+    // early 2026 fragrance launch roundup. Keep this shelf honest: only add
+    // names with a real 2026 source, not old bestsellers.
+    'Parfums de Marly Athénais',
+    'YSL Libre Berry Crush',
+    'Le Labo Violette 30',
+    'Dior Addict Rosy Glow',
+    'Dior Addict Peachy Glow',
+    'Dior Addict Purple Glow',
+    'Henry Rose London 1983',
+    'Hermes Musc Padilla',
+    'Noyz Only Human Mylk',
+    'Rabanne 1 Million Night Elixir',
+    'Paco Rabanne Invictus Elixir',
+    'Lacoste L.12.12 Bleu',
+    'Kess 030 Night',
+    'Kess 030 Day'
   ];
 
   const dailyPool = [
@@ -778,7 +788,7 @@ async function renderHome() {
   delete _shelfCache['shelf-oriental'];
   delete _shelfCache['shelf-fresh'];
 
-  loadShelf('shelf-new', shuffle(newReleasePool).slice(0, 8));
+  loadNewReleaseShelf(shuffle(newReleasePool).slice(0, 8));
   loadShelf('shelf-daily', dailyPick(dailyPool));
   loadShelf('shelf-dark', shuffle(darkPool).slice(0, 8));
   loadShelf('shelf-oriental', shuffle(orientalPool).slice(0, 8));
@@ -1305,6 +1315,54 @@ function openScentTodayDetail() {
 }
 
 const _shelfCache = {};
+
+const NEW_RELEASE_FALLBACKS = {
+  'parfums de marly athénais': { name: 'Athénais', house: 'Parfums de Marly', launch_year: 2026, family: 'floral', accords: ['neroli', 'floral', 'citrus', 'fresh'] },
+  'ysl libre berry crush': { name: 'Libre Berry Crush', house: 'Yves Saint Laurent', launch_year: 2026, family: 'fruity floral', accords: ['raspberry', 'floral', 'sweet', 'amber'] },
+  'le labo violette 30': { name: 'Violette 30', house: 'Le Labo', launch_year: 2026, family: 'floral', accords: ['violet', 'incense', 'woody', 'powdery'] },
+  'dior addict rosy glow': { name: 'Addict Rosy Glow', house: 'Dior', launch_year: 2026, family: 'floral fruity', accords: ['rose', 'lychee', 'caramel', 'sweet'] },
+  'dior addict peachy glow': { name: 'Addict Peachy Glow', house: 'Dior', launch_year: 2026, family: 'fruity floral', accords: ['peach', 'floral', 'sweet', 'musk'] },
+  'dior addict purple glow': { name: 'Addict Purple Glow', house: 'Dior', launch_year: 2026, family: 'fruity floral', accords: ['berry', 'floral', 'sweet', 'powdery'] },
+  'henry rose london 1983': { name: 'London 1983', house: 'Henry Rose', launch_year: 2026, family: 'woody fruity', accords: ['fig', 'vetiver', 'woody', 'green'] },
+  'hermes musc padilla': { name: 'Musc Padilla', house: 'Hermes', launch_year: 2026, family: 'musk', accords: ['musk', 'iris', 'powdery', 'clean'] },
+  'noyz only human mylk': { name: 'Only Human Mylk De Parfum', house: 'Noyz', launch_year: 2026, family: 'gourmand', accords: ['vanilla', 'lactonic', 'warm', 'skin'] },
+  'rabanne 1 million night elixir': { name: '1 Million Night Elixir', house: 'Rabanne', launch_year: 2026, family: 'amber', accords: ['amber', 'sweet', 'spicy', 'woody'] },
+  'paco rabanne invictus elixir': { name: 'Invictus Elixir', house: 'Rabanne', launch_year: 2026, family: 'aromatic', accords: ['fresh spicy', 'amber', 'woody', 'aromatic'] },
+  'lacoste l.12.12 bleu': { name: 'L.12.12 Bleu', house: 'Lacoste', launch_year: 2026, family: 'fresh', accords: ['fresh', 'aromatic', 'citrus', 'aquatic'] },
+  'kess 030 night': { name: '030 Night', house: 'Kess', launch_year: 2026, family: 'amber', accords: ['amber', 'warm spicy', 'woody', 'sweet'] },
+  'kess 030 day': { name: '030 Day', house: 'Kess', launch_year: 2026, family: 'fresh', accords: ['fresh', 'citrus', 'green', 'aromatic'] }
+};
+
+async function loadNewReleaseShelf(names) {
+  const el = document.getElementById('shelf-new');
+  if (!el) return;
+  if (_shelfCache['shelf-new']) {
+    el.innerHTML = _shelfCache['shelf-new'];
+    el.querySelectorAll('.poster-card').forEach(card => {
+      card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
+    });
+    return;
+  }
+  const cards = [];
+  for (let i = 0; i < names.length; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 80));
+    const q = names[i];
+    let f = null;
+    try {
+      const results = await searchFragella(q);
+      f = results?.[0] || null;
+    } catch(e) {}
+    if (!f) f = NEW_RELEASE_FALLBACKS[q.toLowerCase()] || null;
+    if (f) cards.push(buildPosterCard(f));
+  }
+  const html = cards.length ? cards.join('') : '<div class="loading-row" style="color:var(--grey);font-size:12px">Release feed unavailable</div>';
+  _shelfCache['shelf-new'] = html;
+  el.innerHTML = html;
+  el.querySelectorAll('.poster-card').forEach(card => {
+    card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
+  });
+}
+
 async function loadShelf(elId, names) {
   const el = document.getElementById(elId);
   if (!el) return;
@@ -5161,33 +5219,50 @@ function renderScanCandidates(candidates, scanDescription) {
   const countCopy = candidates.length > 1
     ? `${candidates.length} bottles found`
     : '1 bottle found';
-  const cards = visible.map(data => {
+  const cards = visible.map((data, index) => {
     const conf = data.confidence === 'high' ? '✓ Identified' : data.confidence === 'medium' ? '~ Probably' : '? Best guess';
     const confColor = data.confidence === 'high' ? 'var(--gold)' : data.confidence === 'medium' ? 'var(--white2)' : 'var(--grey)';
     const alreadyOwned = collection.some(c => c.name?.toLowerCase() === data.name?.toLowerCase());
-    return `<div style="padding:14px 0;border-top:1px solid var(--border2)">
-      <div style="font-family:'DM Mono',monospace;font-size:8px;color:${confColor};letter-spacing:0.1em;margin-bottom:8px">${conf}</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;margin-bottom:2px">${escapeHtml(data.name)}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);margin-bottom:10px">${escapeHtml(data.house||'')}${data.family?' · '+escapeHtml(data.family):''}</div>
+    return `<div class="scan-review-row" data-scan-index="${index}" style="padding:14px 0;border-top:1px solid var(--border2)">
+      <label style="display:flex;align-items:center;gap:9px;margin-bottom:9px;font-family:'DM Mono',monospace;font-size:8px;color:${confColor};letter-spacing:0.1em;text-transform:uppercase">
+        <input type="checkbox" class="scan-include" ${alreadyOwned ? '' : 'checked'} style="accent-color:var(--gold)">
+        ${conf}${alreadyOwned ? ' · already owned' : ''}
+      </label>
+      <input class="scan-edit-name" value="${escapeAttr(data.name)}" placeholder="Fragrance name" style="width:100%;margin-bottom:8px;padding:10px 11px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--white);font-family:'Playfair Display',serif;font-size:18px;font-style:italic">
+      <input class="scan-edit-house" value="${escapeAttr(data.house||'')}" placeholder="House / brand" style="width:100%;margin-bottom:10px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase">
+      ${data.family ? `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-bottom:10px">${escapeHtml(data.family)}</div>` : ''}
       ${alreadyOwned ? '<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--gold);margin-bottom:10px">✓ Already in your hive</div>' : ''}
       <div style="display:flex;gap:8px">
-        <button class="modal-submit" style="flex:2;font-size:11px;padding:10px 0" onclick="scanAddToHive(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')},${JSON.stringify(data.image_url||null)})">${alreadyOwned ? '+ Add again' : '🐝 Add to hive'}</button>
-        <button class="frag-btn frag-btn-secondary" style="flex:1;font-size:11px;padding:10px 0" onclick="prefillLog(${JSON.stringify(data.name)},${JSON.stringify(data.house||'')},null);closeModal('modal-scan')">Log it</button>
+        <button class="modal-submit" style="flex:2;font-size:11px;padding:10px 0" onclick="scanAddEditedToHive(${index})">${alreadyOwned ? '+ Add again' : 'Confirm & add'}</button>
+        <button class="frag-btn frag-btn-secondary" style="flex:1;font-size:11px;padding:10px 0" onclick="scanLogEdited(${index})">Log it</button>
       </div>
     </div>`;
   }).join('');
   resultEl.innerHTML = `<div style="padding:16px;background:var(--gold-pale);border:1px solid rgba(240,192,64,0.25);border-radius:4px;margin-bottom:10px">
     <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.1em;margin-bottom:8px;text-transform:uppercase">${countCopy}</div>
+    <div style="font-size:12px;color:var(--white2);line-height:1.5;margin-bottom:8px">Review the scan before saving. Correct names, uncheck wrong guesses, then add to Hive.</div>
     ${scanDescription ? `<div style="font-size:12px;color:var(--grey);font-style:italic;line-height:1.5;margin-bottom:8px">${escapeHtml(scanDescription)}</div>` : ''}
     ${cards}
     ${multiLocked ? `<div style="margin-top:12px;padding:12px;background:rgba(8,8,16,0.55);border:1px solid var(--gold-dim);border-radius:4px">
       <div style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;margin-bottom:4px">Multiple bottle scan is Pro</div>
-      <div style="font-size:12px;color:var(--white2);line-height:1.45;margin-bottom:10px">Free scan shows the top match. Pro can identify a full shelf and add every bottle in one tap.</div>
+      <div style="font-size:12px;color:var(--white2);line-height:1.45;margin-bottom:10px">Free scan lets you confirm one bottle. Pro can review a full shelf, correct matches, and add selected bottles in one tap.</div>
       <button class="modal-submit" style="font-size:10px;padding:10px 0" onclick="openUpgrade()">Unlock multi-scan</button>
     </div>` : ''}
-    ${pro && candidates.length > 1 ? `<button class="modal-submit" style="width:100%;margin-top:12px;font-size:11px;padding:11px 0" onclick="scanAddManyToHive()">🐝 Add all ${candidates.length} to hive</button>` : ''}
+    ${pro && candidates.length > 1 ? `<button class="modal-submit" style="width:100%;margin-top:12px;font-size:11px;padding:11px 0" onclick="scanAddSelectedToHive()">🐝 Add selected to hive</button>` : ''}
     <button class="modal-cancel" style="width:100%;margin-top:10px" onclick="resetScan()">📷 Scan another bottle</button>
   </div>`;
+}
+
+function getEditedScanCandidate(index) {
+  const row = document.querySelector(`.scan-review-row[data-scan-index="${index}"]`);
+  const base = _scanCandidates[index] || {};
+  if (!row) return base;
+  return {
+    ...base,
+    name: row.querySelector('.scan-edit-name')?.value.trim() || '',
+    house: row.querySelector('.scan-edit-house')?.value.trim() || '',
+    include: Boolean(row.querySelector('.scan-include')?.checked)
+  };
 }
 
 function resetScan() {
@@ -5206,8 +5281,26 @@ async function scanAddToHive(name, house, imageUrl) {
   setTimeout(resetScan, 1800);
 }
 
-async function scanAddManyToHive() {
-  const items = _scanCandidates;
+async function scanAddEditedToHive(index) {
+  const item = getEditedScanCandidate(index);
+  if (!item.name) { toast('Add a fragrance name first'); return; }
+  await quickAdd(item.name, item.house || '', item.image_url || null, null);
+  document.getElementById('scan-result').innerHTML += `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);padding:8px 0;letter-spacing:0.06em">✓ Added to your hive.</div>`;
+  setTimeout(resetScan, 1800);
+}
+
+function scanLogEdited(index) {
+  const item = getEditedScanCandidate(index);
+  if (!item.name) { toast('Add a fragrance name first'); return; }
+  prefillLog(item.name, item.house || '', item.image_url || null);
+  closeModal('modal-scan');
+}
+
+async function scanAddSelectedToHive() {
+  const rows = [...document.querySelectorAll('.scan-review-row')];
+  const items = rows
+    .map(row => getEditedScanCandidate(Number(row.getAttribute('data-scan-index'))))
+    .filter(item => item.include && item.name);
   if (!Array.isArray(items) || !items.length) { toast('No bottles to add'); return; }
   for (const item of items) {
     if (item && item.name) await quickAdd(item.name, item.house || '', item.image_url || null, null);
