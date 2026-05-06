@@ -97,7 +97,6 @@ function cleanPatch(row) {
     image_url: row.image_url || '',
     launch_year: row.launch_year || null,
     price_range: row.price_range || '',
-    oil_type: row.oil_type || '',
   };
 }
 
@@ -106,7 +105,7 @@ function mergeIntoWinner(winner, losers) {
   for (const row of losers) {
     for (const key of [
       'family', 'longevity', 'sillage', 'gender', 'image_url',
-      'launch_year', 'price_range', 'oil_type'
+      'launch_year', 'price_range'
     ]) {
       if (!hasData(merged[key]) && hasData(row[key])) merged[key] = row[key];
     }

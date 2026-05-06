@@ -98,7 +98,6 @@ function mapFragellaRow(f) {
     image_url:   f['Image URL'] || f.image_url || f.image || '',
     launch_year: f.Year || f.year || null,
     price_range: f.Price || f.price || '',
-    oil_type:    f.OilType || f.oil_type || '',
   };
 }
 

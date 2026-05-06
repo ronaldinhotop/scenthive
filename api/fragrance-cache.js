@@ -48,7 +48,6 @@ function cleanFragrance(f) {
     image_url: f.image_url || f['Image URL'] || '',
     launch_year: f.launch_year || f.Year || null,
     price_range: f.price_range || '',
-    oil_type: f.oil_type || '',
   };
 }
 
@@ -89,7 +88,7 @@ function mergeRow(existing, incoming) {
   const merged = { ...existing };
   for (const key of [
     'name', 'house', 'family', 'longevity', 'sillage', 'gender',
-    'image_url', 'launch_year', 'price_range', 'oil_type'
+    'image_url', 'launch_year', 'price_range'
   ]) {
     if (!hasData(merged[key]) && hasData(incoming[key])) merged[key] = incoming[key];
   }

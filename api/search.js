@@ -242,7 +242,6 @@ function upsertSupabaseCache(rows, sbUrl, sbKey) {
       image_url:   r.image_url,
       launch_year: r.launch_year,
       price_range: r.price_range,
-      oil_type:    r.oil_type,
     };
   }).filter(r => {
     const key = normalize(`${r.name} ${r.house}`);
