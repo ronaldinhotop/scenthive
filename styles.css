@@ -408,6 +408,25 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .settings-text-name{font-size:13px}
 .settings-text-name.danger{color:var(--red)}
 .settings-text-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-top:2px}
+.cache-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+.cache-stat{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 11px}
+.cache-stat span{display:block;font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px}
+.cache-stat strong{font-family:'Playfair Display',serif;font-size:22px;font-style:italic;color:var(--gold);font-weight:400}
+.cache-debug-note,.cache-debug-error,.cache-debug-empty{font-size:12px;color:var(--grey);line-height:1.5;font-style:italic;margin-bottom:12px}
+.cache-debug-error{color:var(--red)}
+.cache-list{display:flex;flex-direction:column;border-top:1px solid var(--border2)}
+.cache-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border2)}
+.cache-img{width:42px;height:54px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.cache-img img{max-width:88%;max-height:88%;object-fit:contain}
+.cache-img-empty{font-size:18px;color:var(--gold-dim);opacity:0.65}
+.cache-main{min-width:0;flex:1}
+.cache-name{font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:var(--white);line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cache-house{font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cache-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.cache-badge{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);border-radius:999px;color:var(--grey);padding:3px 6px}
+.cache-badge.ok{color:var(--gold);border-color:var(--gold-dim)}
+.cache-badge.warn{color:var(--red);border-color:rgba(192,74,74,0.35)}
+.cache-badge.user{color:var(--purple-light);border-color:var(--purple-dim)}
 
 /* ═══ FRAGRANCE DETAIL ═══ */
 .frag-screen{flex:1;overflow-y:auto}

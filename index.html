@@ -857,6 +857,13 @@
         </div>
         <span class="settings-arrow">›</span>
       </div>
+      <div class="settings-row" data-action="cache-debug">
+        <div class="settings-left">
+          <div class="settings-icon dark">◇</div>
+          <div><div class="settings-text-name">Cache debug</div><div class="settings-text-sub">Internal fragrance database quality</div></div>
+        </div>
+        <span class="settings-arrow">›</span>
+      </div>
       <div class="settings-row" id="signout-row" data-action="signout" style="display:none">
         <div class="settings-left">
           <div class="settings-icon red">🚪</div>
@@ -865,6 +872,21 @@
       </div>
     </div>
     <button class="modal-cancel" data-close="modal-settings" style="margin-top:14px">Close</button>
+  </div>
+</div>
+
+<!-- ═══ CACHE DEBUG MODAL ═══ -->
+<div class="modal-overlay" id="modal-cache-debug">
+  <div class="modal" style="max-height:92vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-kicker">Internal</div>
+    <div class="modal-title">Fragrance cache</div>
+    <div class="modal-sub">A quick quality check for ScentHive's own fragrance database.</div>
+    <div id="cache-debug-body" style="margin-top:16px">
+      <div class="loading-row"><div class="spinner"></div></div>
+    </div>
+    <button class="modal-submit" onclick="loadCacheDebug()">Refresh</button>
+    <button class="modal-cancel" data-close="modal-cache-debug">Close</button>
   </div>
 </div>
 

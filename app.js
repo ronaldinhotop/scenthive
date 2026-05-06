@@ -5,6 +5,7 @@ const SB_URL = 'https://razsffndadhxlqvvmjrr.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhenNmZm5kYWRoeGxxdnZtanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NTI2ODIsImV4cCI6MjA5MjAyODY4Mn0.2B73ncLA5iPPZTvCZ4k-fv85p2dgwi4-JwFJjS0ZU7s';
 const SEARCH_URL = '/api/search';
 const FRAGRANCE_CACHE_URL = '/api/fragrance-cache';
+const CACHE_DEBUG_URL = '/api/cache-debug';
 
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
@@ -3399,6 +3400,67 @@ async function recordFragranceUse(f) {
   cacheFragrances([row]).catch(() => {});
 }
 
+async function openCacheDebug() {
+  closeModal('modal-settings');
+  openModal('modal-cache-debug');
+  await loadCacheDebug();
+}
+
+async function loadCacheDebug() {
+  const el = document.getElementById('cache-debug-body');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+  try {
+    const res = await fetch(CACHE_DEBUG_URL);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Could not load cache');
+    renderCacheDebug(data);
+  } catch (e) {
+    el.innerHTML = '<div class="cache-debug-error">' + escapeHtml(e.message || 'Could not load cache') + '</div>';
+  }
+}
+
+function renderCacheDebug(data) {
+  const el = document.getElementById('cache-debug-body');
+  if (!el) return;
+  const s = data.stats || {};
+  const rows = Array.isArray(data.rows) ? data.rows : [];
+  const pct = (bad, total) => total ? Math.round((bad / total) * 100) + '%' : '0%';
+  const statHtml = [
+    ['Total', s.total || 0],
+    ['ScentHive IDs', s.scenthive_ids || 0],
+    ['No image', pct(s.missing_images || 0, s.total || 0)],
+    ['No notes', pct(s.missing_notes || 0, s.total || 0)],
+    ['No accords', pct(s.missing_accords || 0, s.total || 0)],
+    ['Dup groups', s.duplicate_groups || 0]
+  ].map(([k, v]) => '<div class="cache-stat"><span>' + escapeHtml(k) + '</span><strong>' + escapeHtml(v) + '</strong></div>').join('');
+
+  const rowHtml = rows.map(row => {
+    const q = row.quality || {};
+    const badges = [
+      q.source === 'scenthive' ? '<span class="cache-badge user">ScentHive</span>' : '<span class="cache-badge">Cache</span>',
+      q.hasImage ? '<span class="cache-badge ok">Image</span>' : '<span class="cache-badge warn">No image</span>',
+      q.hasNotes ? '<span class="cache-badge ok">Notes</span>' : '<span class="cache-badge warn">No notes</span>',
+      q.hasAccords ? '<span class="cache-badge ok">Accords</span>' : '<span class="cache-badge warn">No accords</span>'
+    ].join('');
+    const img = row.image_url
+      ? '<img src="' + escapeAttr(row.image_url) + '" alt="' + escapeAttr(row.name || '') + '" onerror="this.style.display=\'none\'">'
+      : '<div class="cache-img-empty">◇</div>';
+    return '<div class="cache-row">' +
+      '<div class="cache-img">' + img + '</div>' +
+      '<div class="cache-main">' +
+        '<div class="cache-name">' + escapeHtml(row.name || 'Unnamed') + '</div>' +
+        '<div class="cache-house">' + escapeHtml(row.house || 'Unknown house') + (row.launch_year ? ' · ' + escapeHtml(row.launch_year) : '') + '</div>' +
+        '<div class="cache-badges">' + badges + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  el.innerHTML = '<div class="cache-stats">' + statHtml + '</div>' +
+    '<div class="cache-debug-note">Showing up to 120 cached rows. Missing notes are okay for v1; missing image and duplicates are the first cleanup targets.</div>' +
+    '<div class="cache-list">' + (rowHtml || '<div class="cache-debug-empty">No cache rows yet.</div>') + '</div>';
+}
+
 // ═══════ LOG MODAL — search-first flow ═══════
 let selectedFrag = null;
 let logSearchTimer = null;
@@ -4710,6 +4772,7 @@ function wireEvents() {
       else if (a === 'signout') doSignOut();
       else if (a === 'privacy') { toast('We only store data you provide. Never sold. hello@scenthive.app for deletion.'); }
       else if (a === 'about') { toast('ScentHive Beta 🐝 · Your fragrance diary · scenthive.app'); }
+      else if (a === 'cache-debug') openCacheDebug();
     });
   });
 
