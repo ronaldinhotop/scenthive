@@ -4,6 +4,7 @@
 const SB_URL = 'https://razsffndadhxlqvvmjrr.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhenNmZm5kYWRoeGxxdnZtanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NTI2ODIsImV4cCI6MjA5MjAyODY4Mn0.2B73ncLA5iPPZTvCZ4k-fv85p2dgwi4-JwFJjS0ZU7s';
 const SEARCH_URL = '/api/search';
+const FRAGRANCE_CACHE_URL = '/api/fragrance-cache';
 
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
@@ -1291,6 +1292,19 @@ function scentKey(f) {
   return ((f?.name || '') + '||' + (f?.house || '')).toLowerCase();
 }
 
+function stableFragranceId(name, house) {
+  const key = ((house || '') + ' ' + (name || '')).toLowerCase().normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+  let hash = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return 'sh_' + ((hash >>> 0).toString(36));
+}
+
 function localDateKey(date) {
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return '';
@@ -2439,6 +2453,7 @@ async function quickAdd(name, house, imageUrl, fragellaId) {
     collection.unshift(entry);
     saveLocal();
   }
+  recordFragranceUse({ ...entry, name, house }).catch(() => {});
   toast('✓ Added to your hive 🐝');
   renderCollection();
   renderScentOfDay();
@@ -2551,6 +2566,7 @@ async function saveCollection() {
     collection.unshift({ ...entry, id: 'local_' + Date.now() });
     saveLocal();
   }
+  recordFragranceUse(entry).catch(() => {});
   closeModal('modal-add');
   toast('✓ Added to your hive 🐝');
   renderCollection();
@@ -3323,25 +3339,64 @@ function getImageLookupQuery(item, nameKey) {
 
 async function cacheFragrances(frags) {
   try {
-    const rows = frags.map(f => ({
-      fragella_id: String(f.fragella_id || f.id || Math.random()),
-      name: f.name || '',
-      house: f.house || '',
-      family: f.family || '',
-      notes_top: f.notes_top || f['Top Notes'] || [],
-      notes_heart: f.notes_heart || f['Middle Notes'] || [],
-      notes_base: f.notes_base || f['Base Notes'] || [],
-      accords: f.accords || f['Main Accords'] || [],
-      longevity: f.longevity || '',
-      sillage: f.sillage || '',
-      gender: f.gender || '',
-      image_url: f.image_url || f['Image URL'] || '',
-      launch_year: f.launch_year || f.Year || null,
-      price_range: f.price_range || '',
-    }));
+    const rows = frags.map(f => {
+      const name = f.name || f.fragrance_name || '';
+      const house = f.house || '';
+      return {
+        fragella_id: String(f.fragella_id || f.id || stableFragranceId(name, house)),
+        name,
+        house,
+        family: f.family || '',
+        notes_top: f.notes_top || f['Top Notes'] || [],
+        notes_heart: f.notes_heart || f['Middle Notes'] || [],
+        notes_base: f.notes_base || f['Base Notes'] || [],
+        accords: f.accords || f['Main Accords'] || [],
+        longevity: f.longevity || '',
+        sillage: f.sillage || '',
+        gender: f.gender || '',
+        image_url: f.image_url || f['Image URL'] || '',
+        launch_year: f.launch_year || f.Year || null,
+        price_range: f.price_range || '',
+      };
+    }).filter(f => f.name);
+    if (!rows.length) return;
+    fetch(FRAGRANCE_CACHE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fragrances: rows })
+    }).catch(() => {});
     await sb.from('fragrances_cache')
       .upsert(rows, { onConflict: 'fragella_id', ignoreDuplicates: true });
   } catch (e) {}
+}
+
+function canonicalFragranceFromUse(f) {
+  const name = String(f?.name || f?.fragrance_name || '').trim();
+  const house = String(f?.house || '').trim();
+  if (!name) return null;
+  return {
+    fragella_id: String(f.fragella_id || f.id || stableFragranceId(name, house)),
+    name,
+    house,
+    family: f.family || '',
+    notes_top: f.notes_top || f['Top Notes'] || [],
+    notes_heart: f.notes_heart || f['Middle Notes'] || [],
+    notes_base: f.notes_base || f['Base Notes'] || [],
+    accords: f.accords || f['Main Accords'] || [],
+    longevity: f.longevity || '',
+    sillage: f.sillage || '',
+    gender: f.gender || '',
+    image_url: f.image_url || f['Image URL'] || '',
+    launch_year: f.launch_year || f.Year || null,
+    price_range: f.price_range || '',
+    oil_type: f.oil_type || ''
+  };
+}
+
+async function recordFragranceUse(f) {
+  const row = canonicalFragranceFromUse(f);
+  if (!row) return;
+  cacheFragrances([row]).catch(() => {});
 }
 
 // ═══════ LOG MODAL — search-first flow ═══════
@@ -3465,7 +3520,8 @@ async function saveLog() {
       const { data, error } = await sb.from('journal_entries')
         .insert([{ user_id: user.id, ...entry }]).select();
       if (error) throw error;
-      if (data) diary.unshift(data[0]);
+      if (data?.[0]) diary.unshift(data[0]);
+      else diary.unshift(addPendingLocal('diary', entry));
     } catch (e) {
       diary.unshift(addPendingLocal('diary', entry));
     }
@@ -3473,6 +3529,13 @@ async function saveLog() {
     diary.unshift({ ...entry, id: 'local_' + Date.now() });
     saveLocal();
   }
+  recordFragranceUse({
+    ...selectedFrag,
+    name: selectedFrag.name || entry.fragrance_name,
+    house: selectedFrag.house || entry.house,
+    image_url: selectedFrag.image_url || entry.image_url,
+    fragella_id: selectedFrag.fragella_id || entry.fragella_id
+  }).catch(() => {});
   closeModal('modal-log');
   toast(logIsPublic ? '✓ Logged & shared with community' : '✓ Logged to diary');
   renderDiary();
@@ -3508,6 +3571,7 @@ async function quickLog(name, house, imageUrl, fragellaId) {
     saveLocal();
   }
 
+  recordFragranceUse({ name, house, image_url: imageUrl || null, fragella_id: fragellaId || null }).catch(() => {});
   toast('Logged: ' + name);
   renderDiary();
   renderDiaryExtras();
@@ -5284,6 +5348,7 @@ async function scanAddToHive(name, house, imageUrl) {
 async function scanAddEditedToHive(index) {
   const item = getEditedScanCandidate(index);
   if (!item.name) { toast('Add a fragrance name first'); return; }
+  recordFragranceUse(item).catch(() => {});
   await quickAdd(item.name, item.house || '', item.image_url || null, null);
   document.getElementById('scan-result').innerHTML += `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);padding:8px 0;letter-spacing:0.06em">✓ Added to your hive.</div>`;
   setTimeout(resetScan, 1800);
@@ -5303,7 +5368,10 @@ async function scanAddSelectedToHive() {
     .filter(item => item.include && item.name);
   if (!Array.isArray(items) || !items.length) { toast('No bottles to add'); return; }
   for (const item of items) {
-    if (item && item.name) await quickAdd(item.name, item.house || '', item.image_url || null, null);
+    if (item && item.name) {
+      recordFragranceUse(item).catch(() => {});
+      await quickAdd(item.name, item.house || '', item.image_url || null, null);
+    }
   }
   document.getElementById('scan-result').innerHTML += `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);padding:8px 0;letter-spacing:0.06em">✓ Added ${items.length} bottles to your hive.</div>`;
   setTimeout(resetScan, 1800);

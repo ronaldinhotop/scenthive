@@ -18,6 +18,7 @@
     { "src": "/api/ai", "dest": "/api/ai.js" },
     { "src": "/api/search", "dest": "/api/search.js" },
     { "src": "/api/scan", "dest": "/api/scan.js" },
+    { "src": "/api/fragrance-cache", "dest": "/api/fragrance-cache.js" },
     { "src": "/api/seed", "dest": "/api/seed.js" },
     { "src": "/api/dump", "dest": "/api/dump.js" },
     { "src": "/static_frags.js", "dest": "/static_frags.js" },
