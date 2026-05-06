@@ -3911,12 +3911,73 @@ async function quickLog(name, house, imageUrl, fragellaId) {
 
   recordFragranceUse({ name, house, image_url: imageUrl || null, fragella_id: fragellaId || null }).catch(() => {});
   toast('Logged: ' + name);
+
+  // Show rating/review nudge — diary renders happen after save or skip
+  openQuickReview(diary[0].id, name, house);
+}
+
+// ═══════ QUICK-REVIEW NUDGE ═══════
+let _qrEntryId = null;
+let _qrRating  = 0;
+
+function openQuickReview(entryId, name, house) {
+  _qrEntryId = entryId;
+  _qrRating  = 0;
+
+  const nameEl   = document.getElementById('qr-name');
+  const houseEl  = document.getElementById('qr-house');
+  const reviewEl = document.getElementById('qr-review');
+  if (nameEl)   nameEl.textContent  = name;
+  if (houseEl)  houseEl.textContent = house || '';
+  if (reviewEl) reviewEl.value      = '';
+
+  // Reset stars
+  document.querySelectorAll('#qr-star-picker .star-pick').forEach(s => s.classList.remove('active'));
+
+  openModal('modal-quick-review');
+}
+
+async function saveQuickReview() {
+  const review = (document.getElementById('qr-review')?.value || '').trim();
+  const rating = _qrRating;
+
+  // Update in-memory diary
+  const idx = diary.findIndex(e => e.id === _qrEntryId);
+  if (idx !== -1) {
+    diary[idx] = { ...diary[idx], rating, notes: review };
+
+    // Persist to Supabase if we have a real row ID
+    if (user && _qrEntryId && !String(_qrEntryId).startsWith('local_')) {
+      try {
+        await sb.from('journal_entries')
+          .update({ rating, notes: review })
+          .eq('id', _qrEntryId)
+          .eq('user_id', user.id);
+      } catch (_) {}
+    }
+
+    // Persist for guest / local mode
+    if (!user) saveLocal();
+  }
+
+  _afterQuickLog();
+}
+
+function skipQuickReview() {
+  _afterQuickLog();
+}
+
+function _afterQuickLog() {
+  closeModal('modal-quick-review');
+  _qrEntryId = null;
+  _qrRating  = 0;
   renderDiary();
   renderTodayWear();
   renderDiaryExtras();
   updateHero();
   updateRightSidebar();
   loadCommunityFeed();
+  if (curScreen === 'profile') renderProfile();
 }
 
 // ═══════ UPGRADE ═══════
@@ -4987,11 +5048,19 @@ function wireEvents() {
     } else if (act === 'wish') addToWishlist(f);
   });
 
-  // Star picker
+  // Star picker (full log modal)
   document.querySelectorAll('#star-picker .star-pick').forEach(s => {
     s.addEventListener('click', () => {
       logRating = parseInt(s.getAttribute('data-r'));
       document.querySelectorAll('#star-picker .star-pick').forEach((x, i) => x.classList.toggle('active', i < logRating));
+    });
+  });
+
+  // Star picker (quick-review nudge)
+  document.querySelectorAll('#qr-star-picker .star-pick').forEach(s => {
+    s.addEventListener('click', () => {
+      _qrRating = parseInt(s.getAttribute('data-r'));
+      document.querySelectorAll('#qr-star-picker .star-pick').forEach((x, i) => x.classList.toggle('active', i < _qrRating));
     });
   });
 

@@ -778,6 +778,28 @@
   </div>
 </div>
 
+<!-- ═══ QUICK-REVIEW NUDGE MODAL ═══ -->
+<div class="modal-overlay" id="modal-quick-review">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-kicker">Just logged</div>
+    <div class="modal-title" id="qr-name" style="font-style:italic"></div>
+    <div id="qr-house" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px"></div>
+    <label class="modal-label">How would you rate it?</label>
+    <div class="star-picker" id="qr-star-picker">
+      <span class="star-pick" data-r="1">★</span>
+      <span class="star-pick" data-r="2">★</span>
+      <span class="star-pick" data-r="3">★</span>
+      <span class="star-pick" data-r="4">★</span>
+      <span class="star-pick" data-r="5">★</span>
+    </div>
+    <label class="modal-label" style="margin-top:16px">How did it wear today? <span style="color:var(--grey);font-size:9px">optional</span></label>
+    <textarea class="modal-input" id="qr-review" placeholder="How did it wear today?" style="height:72px;resize:none;line-height:1.5"></textarea>
+    <button class="modal-submit" onclick="saveQuickReview()">Save details</button>
+    <button class="modal-cancel" onclick="skipQuickReview()">Skip</button>
+  </div>
+</div>
+
 <!-- ═══ ADD COLLECTION MODAL ═══ -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
