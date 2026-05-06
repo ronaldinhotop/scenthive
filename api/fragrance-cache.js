@@ -17,6 +17,14 @@ function stableId(name, house) {
   return `sh_${(hash >>> 0).toString(36)}`;
 }
 
+function stableCacheId(f, name, house) {
+  const raw = String(f?.fragella_id || f?.id || '').trim();
+  // Fragella has returned random-looking decimal IDs in some responses. Treat
+  // those as unstable, otherwise the same perfume is cached again and again.
+  if (!raw || /^0\.\d+$/.test(raw)) return stableId(name, house);
+  return raw;
+}
+
 function asArray(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [];
 }
@@ -26,7 +34,7 @@ function cleanFragrance(f) {
   const house = String(f?.house || '').trim();
   if (!name) return null;
   return {
-    fragella_id: String(f.fragella_id || f.id || stableId(name, house)),
+    fragella_id: stableCacheId(f, name, house),
     name,
     house,
     family: f.family || '',
@@ -102,7 +110,7 @@ async function findDuplicate(row, sbUrl, sbKey) {
   const word = words[0] || normalize(row.house).split(' ')[0];
   if (!word) return null;
   const filter = `name.ilike.*${word}*,house.ilike.*${word}*`;
-  const url = `${sbUrl}/rest/v1/fragrances_cache?or=(${encodeURIComponent(filter)})&limit=40`;
+  const url = `${sbUrl}/rest/v1/fragrances_cache?or=(${encodeURIComponent(filter)})&limit=200`;
   try {
     const response = await fetch(url, { headers: SB_HEADERS(sbKey) });
     if (!response.ok) return null;

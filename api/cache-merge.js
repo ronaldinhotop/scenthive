@@ -7,6 +7,22 @@ function normalize(value) {
     .trim();
 }
 
+function stableId(name, house) {
+  const key = normalize(`${house} ${name}`);
+  let hash = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `sh_${(hash >>> 0).toString(36)}`;
+}
+
+function stableCacheId(row) {
+  const raw = String(row?.fragella_id || row?.id || '').trim();
+  if (!raw || /^0\.\d+$/.test(raw)) return stableId(row?.name || '', row?.house || '');
+  return raw;
+}
+
 const SB_HEADERS = key => ({
   apikey: key,
   Authorization: `Bearer ${key}`,
@@ -67,7 +83,7 @@ function canonicalKey(row) {
 
 function cleanPatch(row) {
   return {
-    fragella_id: row.fragella_id || row.id || '',
+    fragella_id: stableCacheId(row),
     name: row.name || '',
     house: row.house || '',
     family: row.family || '',

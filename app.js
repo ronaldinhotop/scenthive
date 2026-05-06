@@ -3367,8 +3367,6 @@ async function cacheFragrances(frags) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fragrances: rows })
     }).catch(() => {});
-    await sb.from('fragrances_cache')
-      .upsert(rows, { onConflict: 'fragella_id', ignoreDuplicates: true });
   } catch (e) {}
 }
 

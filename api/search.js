@@ -17,6 +17,22 @@ function normalize(value) {
     .trim();
 }
 
+function stableId(name, house) {
+  const key = normalize(`${house} ${name}`);
+  let hash = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `sh_${(hash >>> 0).toString(36)}`;
+}
+
+function stableCacheId(id, name, house) {
+  const raw = String(id || '').trim();
+  if (!raw || /^0\.\d+$/.test(raw)) return stableId(name, house);
+  return raw;
+}
+
 const QUERY_ALIASES = {
   naxos: 'Xerjoff 1861 Naxos',
   aventus: 'Creed Aventus',
@@ -67,10 +83,12 @@ function scoreFragrance(f, query) {
 
 // Converts a raw Fragella API row → our canonical shape.
 function mapFragellaRow(f) {
+  const name = f.Name || f.name || '';
+  const house = f.Brand || f.brand || f.house || '';
   return {
-    fragella_id: String(f.id || f.ID || ''),
-    name:        f.Name  || f.name  || '',
-    house:       f.Brand || f.brand || f.house || '',
+    fragella_id: stableCacheId(f.id || f.ID, name, house),
+    name,
+    house,
     family:      Array.isArray(f['Main Accords']) ? f['Main Accords'][0] : (f['Main Accords'] || f.family || ''),
     notes_top:   f['Top Notes']    || f.top_notes    || [],
     notes_heart: f['Middle Notes'] || f.middle_notes || [],
@@ -90,10 +108,12 @@ function mapFragellaRow(f) {
 // Supabase rows already match the canonical shape — just alias the field that
 // Supabase stores as `id` vs our `fragella_id`.
 function mapSupabaseRow(f) {
+  const name = f.name || '';
+  const house = f.house || '';
   return {
-    fragella_id: String(f.fragella_id || f.id || ''),
-    name:        f.name        || '',
-    house:       f.house       || '',
+    fragella_id: stableCacheId(f.fragella_id || f.id, name, house),
+    name,
+    house,
     family:      f.family      || '',
     notes_top:   f.notes_top   || [],
     notes_heart: f.notes_heart || [],
@@ -201,25 +221,35 @@ async function searchSupabase(query, sbUrl, sbKey) {
 // does NOT await this; we return the promise so Node doesn't GC it too early.
 function upsertSupabaseCache(rows, sbUrl, sbKey) {
   if (!rows.length) return Promise.resolve();
+  const seen = new Set();
 
   // Strip `General Notes` and any non-column extras before upserting.
-  const clean = rows.map(({ 'General Notes': _gn, ...r }) => ({
-    fragella_id: r.fragella_id,
-    name:        r.name,
-    house:       r.house,
-    family:      r.family,
-    notes_top:   r.notes_top,
-    notes_heart: r.notes_heart,
-    notes_base:  r.notes_base,
-    accords:     r.accords,
-    longevity:   r.longevity,
-    sillage:     r.sillage,
-    gender:      r.gender,
-    image_url:   r.image_url,
-    launch_year: r.launch_year,
-    price_range: r.price_range,
-    oil_type:    r.oil_type,
-  })).filter(r => r.fragella_id && r.name);
+  const clean = rows.map(({ 'General Notes': _gn, ...r }) => {
+    const name = r.name || '';
+    const house = r.house || '';
+    return {
+      fragella_id: stableCacheId(r.fragella_id, name, house),
+      name:        r.name,
+      house:       r.house,
+      family:      r.family,
+      notes_top:   r.notes_top,
+      notes_heart: r.notes_heart,
+      notes_base:  r.notes_base,
+      accords:     r.accords,
+      longevity:   r.longevity,
+      sillage:     r.sillage,
+      gender:      r.gender,
+      image_url:   r.image_url,
+      launch_year: r.launch_year,
+      price_range: r.price_range,
+      oil_type:    r.oil_type,
+    };
+  }).filter(r => {
+    const key = normalize(`${r.name} ${r.house}`);
+    if (!r.fragella_id || !r.name || !key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   return fetch(`${sbUrl}/rest/v1/fragrances_cache`, {
     method: 'POST',
