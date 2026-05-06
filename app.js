@@ -2952,6 +2952,69 @@ function profileEntryKey(e) {
   return ((e.fragrance_name || '') + '||' + (e.house || '')).toLowerCase();
 }
 
+function buildProfileSnapshot(entries = diary, bottles = collection) {
+  const safeEntries = Array.isArray(entries) ? entries : [];
+  const safeBottles = Array.isArray(bottles) ? bottles : [];
+  const houses = [...new Set([
+    ...safeEntries.map(e => e.house).filter(Boolean),
+    ...safeBottles.map(b => b.house).filter(Boolean)
+  ])];
+  const rated = safeEntries.filter(e => Number(e.rating) > 0);
+  const avg = rated.length ? (rated.reduce((s, e) => s + Number(e.rating || 0), 0) / rated.length).toFixed(1) : '—';
+  const byFrag = new Map();
+  safeEntries.forEach(e => {
+    const key = profileEntryKey(e);
+    if (!key.trim()) return;
+    if (!byFrag.has(key)) byFrag.set(key, { name: e.fragrance_name || '', house: e.house || '', image_url: e.image_url || '', count: 0, ratingSum: 0, ratingCount: 0 });
+    const item = byFrag.get(key);
+    item.count += 1;
+    if (e.rating) { item.ratingSum += Number(e.rating); item.ratingCount += 1; }
+  });
+  const grouped = [...byFrag.values()];
+  const mostWorn = grouped.slice().sort((a, b) => b.count - a.count)[0] || null;
+  const topRated = grouped
+    .filter(g => g.ratingCount)
+    .map(g => ({ ...g, avg: g.ratingSum / g.ratingCount }))
+    .sort((a, b) => b.avg - a.avg || b.count - a.count)[0] || null;
+  const topHouse = houses.map(h => ({
+    house: h,
+    count: safeEntries.filter(e => e.house === h).length + safeBottles.filter(b => b.house === h).length
+  })).sort((a, b) => b.count - a.count)[0] || null;
+  const taste = Object.entries(computeTasteProfile()).sort((a, b) => b[1] - a[1]).find(([, v]) => v > 0)?.[0] || 'Building taste';
+  return {
+    logged: safeEntries.length,
+    collection: safeBottles.length,
+    houses: houses.length,
+    avg,
+    mostWorn,
+    topRated,
+    topHouse,
+    taste,
+  };
+}
+
+function renderProfileShareSnapshot() {
+  const grid = document.getElementById('profile-share-grid');
+  const foot = document.getElementById('profile-share-foot');
+  if (!grid || !foot) return;
+  const s = buildProfileSnapshot();
+  const cells = [
+    ['Logged', s.logged],
+    ['Hive', s.collection],
+    ['Avg', s.avg],
+    ['Taste', s.taste],
+  ];
+  grid.innerHTML = cells.map(([label, value]) =>
+    '<div class="pss-cell"><strong>' + escapeHtml(value) + '</strong><span>' + escapeHtml(label) + '</span></div>'
+  ).join('');
+  const facts = [
+    s.mostWorn ? 'Most worn: ' + s.mostWorn.name : '',
+    s.topRated ? 'Top rated: ' + s.topRated.name + ' ★' + s.topRated.avg.toFixed(1) : '',
+    s.topHouse ? 'Top house: ' + s.topHouse.house : '',
+  ].filter(Boolean);
+  foot.textContent = facts.length ? facts.join(' · ') : 'Log fragrances to make this profile worth sharing.';
+}
+
 function openProfileFragFromEntry(entry) {
   if (!entry) return;
   const cached = Object.keys(fragStore).find(k => {
@@ -3075,6 +3138,7 @@ function renderProfile() {
   // Favourites — manual picks stored in user metadata
   renderFavsGrid(user?.user_metadata?.favourites || null);
   renderProfilePosterShelves();
+  renderProfileShareSnapshot();
 
   // Recent reviews — last 3 with notes
   const recentReviews = diary.filter(e => e.notes).slice(0, 3);
@@ -5339,19 +5403,28 @@ function openShareProfile() {
   if (!user) { toast('Sign in to share your profile'); return; }
   const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Scenthead';
   const url = `https://scenthive.app/?u=${encodeURIComponent(user.id)}`;
-  const statsStr = `${diary.length} logged · ${collection.length} in hive`;
+  const s = buildProfileSnapshot();
+  const statsStr = `${s.logged} logged · ${s.collection} in hive · ${s.taste}`;
+  const shareText = [
+    `${name}'s ScentHive profile`,
+    s.mostWorn ? `Most worn: ${s.mostWorn.name}` : '',
+    s.topRated ? `Top rated: ${s.topRated.name} ★${s.topRated.avg.toFixed(1)}` : '',
+    url
+  ].filter(Boolean).join('\n');
   document.getElementById('share-card-name').textContent = name;
   document.getElementById('share-card-stats').textContent = statsStr;
   document.getElementById('share-url').textContent = url;
+  document.getElementById('share-url').setAttribute('data-share-text', shareText);
   openModal('modal-share');
 }
 
 function copyShareUrl() {
   const url = document.getElementById('share-url').textContent;
+  const text = document.getElementById('share-url').getAttribute('data-share-text') || url;
   if (navigator.share) {
-    navigator.share({ title: 'My ScentHive profile', url }).catch(()=>{});
+    navigator.share({ title: 'My ScentHive profile', text, url }).catch(()=>{});
   } else {
-    navigator.clipboard?.writeText(url).then(() => toast('Link copied!')).catch(() => {
+    navigator.clipboard?.writeText(text).then(() => toast('Profile copied!')).catch(() => {
       const el = document.getElementById('share-url');
       const r = document.createRange(); r.selectNode(el);
       window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
@@ -5391,6 +5464,18 @@ async function checkPublicUrl() {
       `<div style="flex:1;text-align:center;padding:12px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px"><div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic">${houses.length}</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.07em;margin-top:2px">HOUSES</div></div>`,
       avgRating ? `<div style="flex:1;text-align:center;padding:12px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px"><div style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;color:var(--gold)">${avgRating}★</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.07em;margin-top:2px">AVG RATING</div></div>` : ''
     ].join('');
+    const publicSnapshot = buildProfileSnapshot(entries || [], []);
+    const highlightItems = [
+      publicSnapshot.mostWorn ? ['Most worn', publicSnapshot.mostWorn.name, publicSnapshot.mostWorn.count + ' wear' + (publicSnapshot.mostWorn.count === 1 ? '' : 's')] : null,
+      publicSnapshot.topRated ? ['Top rated', publicSnapshot.topRated.name, '★ ' + publicSnapshot.topRated.avg.toFixed(1)] : null,
+      publicSnapshot.topHouse ? ['Top house', publicSnapshot.topHouse.house, publicSnapshot.topHouse.count + ' log' + (publicSnapshot.topHouse.count === 1 ? '' : 's')] : null,
+    ].filter(Boolean);
+    const highlightsEl = document.getElementById('pub-highlights');
+    if (highlightsEl) {
+      highlightsEl.innerHTML = highlightItems.length
+        ? highlightItems.map(([k, v, m]) => '<div class="pub-highlight"><span>' + escapeHtml(k) + '</span><strong>' + escapeHtml(v) + '</strong><em>' + escapeHtml(m) + '</em></div>').join('')
+        : '';
+    }
     if (!count) {
       document.getElementById('pub-reviews').innerHTML = '<div style="color:var(--grey);font-size:13px;font-style:italic;padding:20px 0">No public reviews yet.</div>';
       return true;

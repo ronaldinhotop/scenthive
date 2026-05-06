@@ -560,6 +560,18 @@
       <div class="profile-stat"><span class="profile-stat-num" id="prof-avg">—</span><span class="profile-stat-label">Avg</span></div>
     </div>
 
+    <div class="profile-share-snapshot" id="profile-share-snapshot">
+      <div class="pss-top">
+        <div>
+          <div class="pss-kicker">Public identity</div>
+          <div class="pss-title">Your ScentHive card</div>
+        </div>
+        <button class="pss-share-btn" onclick="openShareProfile()">Share</button>
+      </div>
+      <div class="pss-grid" id="profile-share-grid"></div>
+      <div class="pss-foot" id="profile-share-foot"></div>
+    </div>
+
     <!-- Upgrade strip (logged-in only) -->
     <div class="upgrade-strip" id="upgrade-strip" onclick="openUpgrade()" style="display:none">
       <div class="upgrade-strip-text">Unlock wardrobe gaps, sample-set builder, and deeper taste intelligence — <strong>ScentHive Pro</strong></div>
@@ -664,6 +676,7 @@
         </div>
       </div>
       <div id="pub-stats" style="display:flex;gap:2px;margin-bottom:20px"></div>
+      <div id="pub-highlights" class="pub-highlights"></div>
     </div>
     <div style="padding:0 20px">
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px">Recent Reviews</div>

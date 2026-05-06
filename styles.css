@@ -367,6 +367,17 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .profile-stat:hover,.profile-stat:active{background:var(--bg3)}
 .profile-stat-num{font-family:'Playfair Display',serif;font-size:26px;line-height:1;display:block;letter-spacing:-0.02em}
 .profile-stat-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:5px;display:block}
+.profile-share-snapshot{margin:16px 20px 0;background:linear-gradient(145deg,rgba(240,192,64,0.08),var(--bg3));border:1px solid rgba(240,192,64,0.18);border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.profile-share-snapshot::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 100% 0%,rgba(240,192,64,0.1),transparent 58%);pointer-events:none}
+.pss-top{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;margin-bottom:14px}
+.pss-kicker{font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:4px}
+.pss-title{font-family:'Playfair Display',serif;font-size:20px;font-style:italic;color:var(--white);line-height:1.1}
+.pss-share-btn{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;background:var(--gold);color:var(--bg);border-radius:20px;padding:8px 14px;cursor:pointer;font-weight:600}
+.pss-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border2);border:1px solid var(--border2);border-radius:6px;overflow:hidden;position:relative}
+.pss-cell{background:rgba(8,8,16,0.66);padding:11px 8px;text-align:center;min-width:0}
+.pss-cell strong{display:block;font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pss-cell span{display:block;font-family:'DM Mono',monospace;font-size:7.5px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;margin-top:5px}
+.pss-foot{position:relative;font-size:12px;color:var(--white2);line-height:1.45;margin-top:12px;font-style:italic}
 .profile-section{padding:24px 0;border-bottom:1px solid var(--border2)}
 .profile-sec-header{padding:0 20px 16px;display:flex;align-items:baseline;justify-content:space-between}
 .profile-sec-title{font-family:'Playfair Display',serif;font-size:20px;font-style:italic}
@@ -1060,6 +1071,11 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 /* ═══ SHARE PROFILE ═══ */
 .share-modal-url{font-family:'DM Mono',monospace;font-size:11px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--white2);word-break:break-all;line-height:1.5;margin-bottom:12px;cursor:text;user-select:all}
 .share-card{background:linear-gradient(135deg,var(--gold-pale),var(--purple-pale));border-radius:4px;padding:20px;margin-bottom:14px;text-align:center}
+.pub-highlights{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:20px}
+.pub-highlight{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:12px 14px}
+.pub-highlight span{display:block;font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px}
+.pub-highlight strong{display:block;font-family:'Playfair Display',serif;font-size:17px;font-style:italic;color:var(--white);line-height:1.15}
+.pub-highlight em{display:block;font-style:normal;font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.06em;text-transform:uppercase;margin-top:5px}
 
 /* ═══ AI MODAL ═══ */
 .ai-rec-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px}
