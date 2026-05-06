@@ -1398,9 +1398,16 @@ const NOTE_WIKI_PAGES = {
   'wood':'Wood','mosswood':'Moss','amber wood':'Agarwood','rose wood':'Rosewood',
   'rosewood':'Rosewood','teak wood':'Teak','teak':'Teak',
   'ebony':'Ebony_wood','ebony wood':'Ebony_wood',
+  'fruity':'Fruit','fruit':'Fruit','sweet':'Sugar','gourmand':'Dessert',
+  'woody':'Wood','mossy':'Moss','earthy':'Soil','green':'Leaf',
+  'aromatic':'Herb','fresh':'Water','fresh spicy':'Black_pepper',
+  'warm spicy':'Cinnamon','spicy':'Black_pepper','citrus':'Citrus',
+  'floral':'Flower','white floral':'Jasmine','yellow floral':'Ylang-ylang',
+  'powdery':'Powder','smoky':'Smoke','tropical':'Tropics',
 };
 
 const _noteImgCache = {};
+const NOTE_IMG_CACHE_PREFIX = 'ni2_';
 
 async function loadNoteImages(noteNames) {
   const toFetch = [];
@@ -1409,11 +1416,11 @@ async function loadNoteImages(noteNames) {
   for (const raw of noteNames) {
     const name = (typeof raw === 'string' ? raw : (raw.name || '')).toLowerCase().trim();
     if (!name) continue;
-    const cached = sessionStorage.getItem('ni_' + name);
+    const cached = sessionStorage.getItem(NOTE_IMG_CACHE_PREFIX + name);
     if (cached) { results[name] = cached === 'none' ? null : cached; continue; }
     const page = NOTE_WIKI_PAGES[name];
     if (page) toFetch.push({ name, page });
-    else { results[name] = null; sessionStorage.setItem('ni_' + name, 'none'); }
+    else { results[name] = null; sessionStorage.setItem(NOTE_IMG_CACHE_PREFIX + name, 'none'); }
   }
 
   if (!toFetch.length) return results;
@@ -1424,10 +1431,10 @@ async function loadNoteImages(noteNames) {
       const d = await r.json();
       const url = d?.thumbnail?.source || null;
       results[name] = url;
-      sessionStorage.setItem('ni_' + name, url || 'none');
+      sessionStorage.setItem(NOTE_IMG_CACHE_PREFIX + name, url || 'none');
     } catch {
       results[name] = null;
-      sessionStorage.setItem('ni_' + name, 'none');
+      sessionStorage.setItem(NOTE_IMG_CACHE_PREFIX + name, 'none');
     }
   }));
 
@@ -2015,11 +2022,12 @@ function openFrag(key) {
   if (f.name) loadFragReviews(f.name);
   loadSimilarFragrances(f);
   // Async: load community votes + note images in parallel
-  const allNotes = [...(f.notes_top||f['Top Notes']||[]), ...(f.notes_heart||f['Middle Notes']||[]), ...(f.notes_base||f['Base Notes']||[]), ...(f['General Notes']||[])];
   if (f.fragella_id) loadAndRenderVotes(f);
-  if (allNotes.length) {
-    loadNoteImages(allNotes).then(imgs => {
-      document.querySelectorAll('#frag-content .note-tile[data-note]').forEach(tile => {
+  const renderedNoteTiles = [...document.querySelectorAll('#frag-content .note-tile[data-note]')];
+  const renderedNotes = renderedNoteTiles.map(tile => tile.getAttribute('data-note')).filter(Boolean);
+  if (renderedNotes.length) {
+    loadNoteImages(renderedNotes).then(imgs => {
+      renderedNoteTiles.forEach(tile => {
         const name = tile.getAttribute('data-note');
         const url = imgs[name];
         if (url && !tile.querySelector('img')) {
