@@ -3778,6 +3778,12 @@ function parseManualFragrance(name, house) {
   const cleanName = String(name || '').trim();
   const cleanHouse = String(house || '').trim();
   const known = {
+    'speed legends ex nihilo': {
+      name: 'Speed Legends',
+      house: 'Ex Nihilo',
+      image_url: 'https://cdn.shopify.com/s/files/1/0873/6250/3001/files/w-ex-nihilo-speed-legends-eau-de-parfum-100ml.png?v=1730822099',
+      fragella_id: stableFragranceId('Speed Legends', 'Ex Nihilo'),
+    },
     'ex nihilo speed legends': {
       name: 'Speed Legends',
       house: 'Ex Nihilo',
@@ -3786,7 +3792,7 @@ function parseManualFragrance(name, house) {
     },
   };
   const exact = known[normalizeText(cleanName + (cleanHouse ? ' ' + cleanHouse : ''))] || known[normalizeText(cleanName)];
-  if (exact && !cleanHouse) return exact;
+  if (exact) return exact;
   if (cleanHouse) return { name: cleanName, house: cleanHouse };
 
   const houses = Object.keys(BRAND_SITES || {}).sort((a, b) => b.length - a.length);
@@ -3802,17 +3808,47 @@ function parseManualFragrance(name, house) {
   };
 }
 
-function selectManualFrag() {
+function isSameFragrance(a, b) {
+  if (!a || !b) return false;
+  const aName = normalizeText(a.name || a.fragrance_name || '');
+  const bName = normalizeText(b.name || b.fragrance_name || '');
+  const aHouse = normalizeText(a.house || '');
+  const bHouse = normalizeText(b.house || '');
+  return Boolean(aName && bName && aName === bName && (!aHouse || !bHouse || aHouse === bHouse));
+}
+
+async function enrichManualFragrance(f) {
+  if (!f?.name) return f;
+  if (f.image_url && f.fragella_id) return f;
+  try {
+    const query = f.name + (f.house ? ' ' + f.house : '');
+    const results = await searchFragella(query);
+    const match = results.find(r => isSameFragrance(r, f)) || results[0];
+    if (!match) return f;
+    return {
+      ...match,
+      name: f.name || match.name,
+      house: f.house || match.house || '',
+      image_url: match.image_url || f.image_url || null,
+      fragella_id: match.fragella_id || f.fragella_id || stableFragranceId(f.name, f.house),
+    };
+  } catch(e) {
+    return f;
+  }
+}
+
+async function selectManualFrag() {
   const name = document.getElementById('log-name-manual').value.trim();
   const house = document.getElementById('log-house-manual').value.trim();
   if (!name) { toast('Please enter a fragrance name'); return; }
   const parsed = parseManualFragrance(name, house);
-  selectFrag({
+  const enriched = await enrichManualFragrance({
     name: parsed.name,
     house: parsed.house,
     image_url: parsed.image_url || null,
     fragella_id: parsed.fragella_id || stableFragranceId(parsed.name, parsed.house),
   });
+  selectFrag(enriched);
 }
 
 function onLogSearch(q) {
