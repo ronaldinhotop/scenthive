@@ -5783,6 +5783,7 @@ function renderScanCandidates(candidates, scanDescription) {
       </label>
       <input class="scan-edit-name" value="${escapeAttr(data.name)}" placeholder="Fragrance name" style="width:100%;margin-bottom:8px;padding:10px 11px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--white);font-family:'Playfair Display',serif;font-size:18px;font-style:italic">
       <input class="scan-edit-house" value="${escapeAttr(data.house||'')}" placeholder="House / brand" style="width:100%;margin-bottom:10px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase">
+      <input class="scan-edit-image" value="${escapeAttr(data.image_url||'')}" placeholder="Image URL (optional)" style="width:100%;margin-bottom:10px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--white2);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.02em">
       ${data.family ? `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);margin-bottom:10px">${escapeHtml(data.family)}</div>` : ''}
       ${alreadyOwned ? '<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--gold);margin-bottom:10px">✓ Already in your hive</div>' : ''}
       <div style="display:flex;gap:8px">
@@ -5814,8 +5815,20 @@ function getEditedScanCandidate(index) {
     ...base,
     name: row.querySelector('.scan-edit-name')?.value.trim() || '',
     house: row.querySelector('.scan-edit-house')?.value.trim() || '',
+    image_url: row.querySelector('.scan-edit-image')?.value.trim() || base.image_url || null,
     include: Boolean(row.querySelector('.scan-include')?.checked)
   };
+}
+
+function recordScanCorrection(item) {
+  if (!item?.name) return;
+  recordFragranceUse({
+    ...item,
+    name: item.name,
+    house: item.house || '',
+    image_url: item.image_url || null,
+    fragella_id: item.fragella_id || stableFragranceId(item.name, item.house || '')
+  }).catch(() => {});
 }
 
 function resetScan() {
@@ -5837,7 +5850,7 @@ async function scanAddToHive(name, house, imageUrl) {
 async function scanAddEditedToHive(index) {
   const item = getEditedScanCandidate(index);
   if (!item.name) { toast('Add a fragrance name first'); return; }
-  recordFragranceUse(item).catch(() => {});
+  recordScanCorrection(item);
   await quickAdd(item.name, item.house || '', item.image_url || null, null);
   document.getElementById('scan-result').innerHTML += `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);padding:8px 0;letter-spacing:0.06em">✓ Added to your hive.</div>`;
   setTimeout(resetScan, 1800);
@@ -5846,6 +5859,7 @@ async function scanAddEditedToHive(index) {
 function scanLogEdited(index) {
   const item = getEditedScanCandidate(index);
   if (!item.name) { toast('Add a fragrance name first'); return; }
+  recordScanCorrection(item);
   prefillLog(item.name, item.house || '', item.image_url || null);
   closeModal('modal-scan');
 }
@@ -5858,7 +5872,7 @@ async function scanAddSelectedToHive() {
   if (!Array.isArray(items) || !items.length) { toast('No bottles to add'); return; }
   for (const item of items) {
     if (item && item.name) {
-      recordFragranceUse(item).catch(() => {});
+      recordScanCorrection(item);
       await quickAdd(item.name, item.house || '', item.image_url || null, null);
     }
   }
