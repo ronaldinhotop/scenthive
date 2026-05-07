@@ -3942,12 +3942,12 @@ async function saveQuickReview() {
   const rating = _qrRating;
 
   // Update in-memory diary
-  const idx = diary.findIndex(e => e.id === _qrEntryId);
+  const idx = diary.findIndex(e => String(e.id || '') === String(_qrEntryId || ''));
   if (idx !== -1) {
     diary[idx] = { ...diary[idx], rating, notes: review };
 
     // Persist to Supabase if we have a real row ID
-    if (user && _qrEntryId && !String(_qrEntryId).startsWith('local_')) {
+    if (user && _qrEntryId && !String(_qrEntryId).startsWith('local_') && !String(_qrEntryId).startsWith('pending_log_')) {
       try {
         await sb.from('journal_entries')
           .update({ rating, notes: review })
@@ -3958,6 +3958,12 @@ async function saveQuickReview() {
 
     // Persist for guest / local mode
     if (!user) saveLocal();
+    if (String(_qrEntryId || '').startsWith('pending_log_')) {
+      const pending = loadPendingLocal('diary').map(item =>
+        String(item.id || '') === String(_qrEntryId || '') ? { ...item, rating, notes: review } : item
+      );
+      savePendingLocal('diary', pending);
+    }
   }
 
   _afterQuickLog();
