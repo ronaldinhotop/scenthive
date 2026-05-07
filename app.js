@@ -2096,13 +2096,18 @@ function buildFragActionsHtml(f, inHive, wornCount) {
 }
 
 function buildFragranceRelationshipHtml(f) {
-  const entries = diary.filter(e => sameFragName(e.fragrance_name, f.name));
+  const entries = diary
+    .filter(e => sameFragName(e.fragrance_name, f.name))
+    .slice()
+    .sort((a, b) => new Date(b.worn_at || 0) - new Date(a.worn_at || 0));
   const inHive = collection.some(c => sameFragName(c.name, f.name));
   const inWishlist = wishlist.some(w => sameFragName(w.name, f.name));
   const latest = entries[0] || null;
   const reviews = entries.filter(e => e.notes);
-  const avgRating = entries.length
-    ? (entries.reduce((s, e) => s + (Number(e.rating) || 0), 0) / entries.length)
+  const first = entries[entries.length - 1] || null;
+  const rated = entries.filter(e => Number(e.rating) > 0);
+  const avgRating = rated.length
+    ? (rated.reduce((s, e) => s + (Number(e.rating) || 0), 0) / rated.length)
     : 0;
   const rounded = Math.max(0, Math.min(5, Math.round(avgRating)));
   const stars = avgRating
@@ -2111,10 +2116,26 @@ function buildFragranceRelationshipHtml(f) {
   const lastDate = latest?.worn_at
     ? new Date(latest.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
     : '';
-  const latestReview = reviews[0];
+  const firstDate = first?.worn_at
+    ? new Date(first.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '';
   const stateText = entries.length
     ? `${entries.length} wear${entries.length === 1 ? '' : 's'} logged${lastDate ? ' · last ' + lastDate : ''}`
     : 'No wears logged yet';
+  const reviewHtml = reviews.length
+    ? '<div class="rel-note-list">' + reviews.slice(0, 4).map(e => {
+        const entryDate = e.worn_at
+          ? new Date(e.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+          : '';
+        const entryStars = e.rating
+          ? ' · ' + '★'.repeat(Math.max(0, Math.min(5, Number(e.rating) || 0)))
+          : '';
+        return '<button class="rel-review-card" data-entry-id="' + escapeAttr(String(e.id || '')) + '">' +
+          '<div class="rel-review-kicker">' + escapeHtml(entryDate + entryStars) + '</div>' +
+          '<div class="rel-review-text">"' + escapeHtml(e.notes || '') + '"</div>' +
+        '</button>';
+      }).join('') + '</div>'
+    : '<div class="rel-empty-review">Log a wear with a note to create your first review for this fragrance.</div>';
 
   return '<div class="detail-sec fragrance-relationship">' +
     '<div class="rel-head">' +
@@ -2128,20 +2149,56 @@ function buildFragranceRelationshipHtml(f) {
       '<div><span>Status</span><strong>' + (inHive ? 'In hive' : inWishlist ? 'Want to try' : 'Untracked') + '</strong></div>' +
       '<div><span>Wears</span><strong>' + entries.length + '</strong></div>' +
       '<div><span>Rating</span><strong>' + stars + '</strong></div>' +
+      '<div><span>First worn</span><strong>' + escapeHtml(firstDate || '—') + '</strong></div>' +
+      '<div><span>Last worn</span><strong>' + escapeHtml(lastDate || '—') + '</strong></div>' +
+      '<div><span>Reviews</span><strong>' + reviews.length + '/' + rated.length + '</strong></div>' +
     '</div>' +
     '<div class="rel-state">' + escapeHtml(stateText) + '</div>' +
-    (latestReview
-      ? '<button class="rel-review-card" data-entry-id="' + escapeAttr(String(latestReview.id || '')) + '">' +
-          '<div class="rel-review-kicker">Latest review</div>' +
-          '<div class="rel-review-text">"' + escapeHtml(latestReview.notes || '') + '"</div>' +
-        '</button>'
-      : '<div class="rel-empty-review">Log a wear with a note to create your first review for this fragrance.</div>') +
+    buildFragranceTasteMatchHtml(f) +
+    reviewHtml +
     '<div class="rel-actions">' +
       '<button class="rel-action" data-rel-act="log">Write review</button>' +
       (inHive ? '<button class="rel-action muted" data-rel-act="hive">In hive</button>' : '<button class="rel-action" data-rel-act="hive">Add to hive</button>') +
       (inWishlist ? '<button class="rel-action muted" data-rel-act="wish">On wishlist</button>' : '<button class="rel-action" data-rel-act="wish">Want to try</button>') +
+      '<button class="rel-action" data-rel-act="share">Share scent</button>' +
     '</div>' +
   '</div>';
+}
+
+function buildFragranceTasteMatchHtml(f) {
+  const advisor = scoreBlindBuyAdvisor(f);
+  if (!advisor.profile) {
+    return '<div class="rel-taste-match is-empty">' +
+      '<span>Taste match</span>' +
+      '<strong>Take the taste test to personalize this scent.</strong>' +
+    '</div>';
+  }
+  return '<div class="rel-taste-match">' +
+    '<span>Taste match</span>' +
+    '<strong>' + escapeHtml(advisor.match + '% · ' + advisor.profile.name) + '</strong>' +
+    '<small>' + escapeHtml(advisor.reason) + '</small>' +
+  '</div>';
+}
+
+function buildFragranceShareText(f) {
+  const entries = diary
+    .filter(e => sameFragName(e.fragrance_name, f.name))
+    .slice()
+    .sort((a, b) => new Date(b.worn_at || 0) - new Date(a.worn_at || 0));
+  const latest = entries[0] || null;
+  const rating = latest?.rating ? ' · ' + latest.rating + '/5' : '';
+  const note = latest?.notes ? '\n"' + latest.notes + '"' : '';
+  const verb = latest ? 'I wore' : 'I am tracking';
+  return `${verb} ${f.name || 'this fragrance'}${f.house ? ' by ' + f.house : ''}${rating} on ScentHive.${note}`;
+}
+
+function shareFragrance(f) {
+  const text = buildFragranceShareText(f);
+  if (navigator.share) {
+    navigator.share({ title: f.name || 'ScentHive fragrance', text }).catch(() => {});
+    return;
+  }
+  navigator.clipboard?.writeText(text).then(() => toast('Fragrance share text copied')).catch(() => toast(text));
 }
 
 function buildWhenHtml(f) {
@@ -2352,6 +2409,8 @@ function openFrag(key) {
       } else if (act === 'wish') {
         if (wishlist.some(w => sameFragName(w.name, f.name))) { toast('Already on your wishlist'); return; }
         addToWishlist(f);
+      } else if (act === 'share') {
+        shareFragrance(f);
       }
     });
   });
