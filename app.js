@@ -507,6 +507,7 @@ function enterAsGuest() {
 
 async function initApp() {
   await Promise.all([loadCollection(), loadDiary()]);
+  if (user) syncPendingLocalData().catch(() => {});
   loadWishlist();
   showTab('home');
   updateHero();
@@ -602,6 +603,49 @@ function mergePendingLocal(remoteItems, type) {
     return !remoteKeys.has(key);
   });
   return [...unresolved, ...remote];
+}
+
+function stripPendingFields(item) {
+  const { id: _id, _pending_local: _pending, ...clean } = item || {};
+  return clean;
+}
+
+async function syncPendingLocalData() {
+  if (!user || !sb) return;
+  let syncedDiary = 0;
+  let syncedCollection = 0;
+
+  for (const item of loadPendingLocal('diary')) {
+    try {
+      const row = { user_id: user.id, ...stripPendingFields(item) };
+      const { error } = await sb.from('journal_entries').insert([row]);
+      if (!error) {
+        removePendingLocal('diary', item.id);
+        syncedDiary += 1;
+      }
+    } catch(e) {}
+  }
+
+  for (const item of loadPendingLocal('collection')) {
+    try {
+      const row = { user_id: user.id, ...stripPendingFields(item) };
+      const { error } = await sb.from('collection').insert([row]);
+      if (!error) {
+        removePendingLocal('collection', item.id);
+        syncedCollection += 1;
+      }
+    } catch(e) {}
+  }
+
+  if (syncedDiary || syncedCollection) {
+    await Promise.all([loadCollection(), loadDiary()]);
+    renderDiary();
+    renderCollection();
+    renderTodayWear();
+    updateHero();
+    updateRightSidebar();
+    toast('Synced saved local changes to your account');
+  }
 }
 
 // ═══════ RECENTLY VIEWED ═══════
@@ -2557,11 +2601,19 @@ async function quickAdd(name, house, imageUrl, fragellaId) {
     } catch(e) {}
   }
   const entry = { name, house, image_url: resolvedImg, fragella_id: resolvedFid, created_at: new Date().toISOString() };
+  let savedToCloud = !user;
   if (user) {
     try {
-      const { data } = await sb.from('collection').insert([{ user_id: user.id, name, house, image_url: resolvedImg, fragella_id: resolvedFid }]).select();
-      if (data?.[0]) collection.unshift(data[0]);
-      else collection.unshift(addPendingLocal('collection', entry));
+      const { data, error } = await sb.from('collection')
+        .insert([{ user_id: user.id, name, house, image_url: resolvedImg, fragella_id: resolvedFid }])
+        .select();
+      if (error) throw error;
+      if (data?.[0]) {
+        collection.unshift(data[0]);
+        savedToCloud = true;
+      } else {
+        collection.unshift(addPendingLocal('collection', entry));
+      }
     } catch (e) {
       collection.unshift(addPendingLocal('collection', entry));
     }
@@ -2570,7 +2622,7 @@ async function quickAdd(name, house, imageUrl, fragellaId) {
     saveLocal();
   }
   recordFragranceUse({ ...entry, name, house }).catch(() => {});
-  toast('✓ Added to your hive 🐝');
+  toast(savedToCloud ? '✓ Added to your hive 🐝' : 'Saved locally — account sync will retry');
   renderCollection();
   renderScentOfDay();
   updateRightSidebar();
@@ -3961,13 +4013,18 @@ async function saveLog() {
     worn_at: new Date().toISOString(),
     is_public: logIsPublic
   };
+  let savedToCloud = !user;
   if (user) {
     try {
       const { data, error } = await sb.from('journal_entries')
         .insert([{ user_id: user.id, ...entry }]).select();
       if (error) throw error;
-      if (data?.[0]) diary.unshift(data[0]);
-      else diary.unshift(addPendingLocal('diary', entry));
+      if (data?.[0]) {
+        diary.unshift(data[0]);
+        savedToCloud = true;
+      } else {
+        diary.unshift(addPendingLocal('diary', entry));
+      }
     } catch (e) {
       diary.unshift(addPendingLocal('diary', entry));
     }
@@ -3983,7 +4040,9 @@ async function saveLog() {
     fragella_id: selectedFrag.fragella_id || entry.fragella_id
   }).catch(() => {});
   closeModal('modal-log');
-  toast(logIsPublic ? '✓ Logged & shared with community' : '✓ Logged to diary');
+  toast(savedToCloud
+    ? (logIsPublic ? '✓ Logged & shared with community' : '✓ Logged to diary')
+    : 'Saved locally — account sync will retry');
   renderDiary();
   renderTodayWear();
   renderScentOfDay();
@@ -4004,13 +4063,19 @@ async function quickLog(name, house, imageUrl, fragellaId) {
     worn_at: new Date().toISOString(),
     is_public: false
   };
+  let savedToCloud = !user;
 
   if (user) {
     try {
       const { data, error } = await sb.from('journal_entries')
         .insert([{ user_id: user.id, ...entry }]).select();
       if (error) throw error;
-      diary.unshift(data?.[0] || { ...entry, id: 'local_' + Date.now() });
+      if (data?.[0]) {
+        diary.unshift(data[0]);
+        savedToCloud = true;
+      } else {
+        diary.unshift(addPendingLocal('diary', entry));
+      }
     } catch (e) {
       diary.unshift(addPendingLocal('diary', entry));
     }
@@ -4020,7 +4085,7 @@ async function quickLog(name, house, imageUrl, fragellaId) {
   }
 
   recordFragranceUse({ name, house, image_url: imageUrl || null, fragella_id: fragellaId || null }).catch(() => {});
-  toast('Logged: ' + name);
+  toast(savedToCloud ? ('Logged: ' + name) : 'Saved locally — account sync will retry');
 
   // Show rating/review nudge — diary renders happen after save or skip
   openQuickReview(diary[0].id, name, house);
