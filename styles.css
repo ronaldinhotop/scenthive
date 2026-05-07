@@ -614,7 +614,9 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .entry-sheet-stars{font-size:15px;color:var(--gold)}
 .entry-sheet-occasion{font-size:11px;background:var(--purple-pale);color:var(--purple-light);border-radius:10px;padding:2px 10px}
 .entry-sheet-notes{font-size:14px;color:var(--white2);line-height:1.6;white-space:pre-wrap;margin-bottom:20px}
-.entry-sheet-delete{background:none;border:1px solid var(--red);color:var(--red);border-radius:20px;padding:8px 20px;font-size:13px;cursor:pointer}
+.entry-sheet-edit{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white2);border-radius:20px;padding:10px 20px;font-size:13px;cursor:pointer;letter-spacing:0.03em;transition:border-color 0.15s,color 0.15s}
+.entry-sheet-edit:hover{border-color:var(--gold-dim);color:var(--gold)}
+.entry-sheet-delete{width:100%;background:none;border:1px solid var(--red);color:var(--red);border-radius:20px;padding:8px 20px;font-size:13px;cursor:pointer}
 .entry-sheet-delete:hover{background:rgba(248,113,113,0.1)}
 
 /* UTILS */

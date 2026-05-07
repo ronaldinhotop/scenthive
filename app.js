@@ -2820,36 +2820,110 @@ function renderDiary() {
   });
 }
 
+// ─── Entry sheet state ───────────────────────────────────────────────────────
+let _esEntry  = null; // current entry object
+let _esRating = 0;    // rating being edited
+
 function openEntrySheet(entry) {
-  const body = document.getElementById('entry-sheet-body');
+  _esEntry  = entry;
+  _esRating = 0;
+  _renderEntrySheet('view');
   const sheet = document.getElementById('entry-sheet');
-  if (!body || !sheet || !entry) return;
-  const rating = Math.max(0, Math.min(5, parseInt(entry.rating || 0, 10) || 0));
-  const img = entry.image_url
-    ? `<img class="entry-sheet-img" src="${escapeAttr(entry.image_url)}" alt="${escapeHtml(entry.fragrance_name || '')}" onerror="this.outerHTML='<div class=&quot;entry-sheet-emoji&quot;>🏺</div>'">`
+  if (sheet) sheet.style.display = 'flex';
+}
+
+function _renderEntrySheet(mode) {
+  const body = document.getElementById('entry-sheet-body');
+  if (!body || !_esEntry) return;
+  const e = _esEntry;
+  const rating = Math.max(0, Math.min(5, parseInt(e.rating || 0, 10) || 0));
+  const img = e.image_url
+    ? `<img class="entry-sheet-img" src="${escapeAttr(e.image_url)}" alt="${escapeHtml(e.fragrance_name || '')}" onerror="this.outerHTML='<div class=&quot;entry-sheet-emoji&quot;>🏺</div>'">`
     : '<div class="entry-sheet-emoji">🏺</div>';
-  const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-  const date = entry.worn_at
-    ? new Date(entry.worn_at).toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+  const date = e.worn_at
+    ? new Date(e.worn_at).toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
     : '';
-  body.innerHTML = `
-    ${img}
-    <div class="entry-sheet-name">${escapeHtml(entry.fragrance_name || '')}</div>
-    <div class="entry-sheet-house">${escapeHtml(entry.house || '')}</div>
-    <div class="entry-sheet-meta">
-      ${date ? `<span class="entry-sheet-date">${date}</span>` : ''}
-      ${rating ? `<span class="entry-sheet-stars">${stars}</span>` : ''}
-      ${entry.occasion ? `<span class="entry-sheet-occasion">${escapeHtml(entry.occasion)}</span>` : ''}
-    </div>
-    ${entry.notes ? `<div class="entry-sheet-notes">${escapeHtml(entry.notes)}</div>` : ''}
-    <button class="entry-sheet-delete" onclick="deleteEntryFromSheet(${JSON.stringify(String(entry.id || ''))})">Delete entry</button>
-  `;
-  sheet.style.display = 'flex';
+
+  if (mode === 'edit') {
+    _esRating = rating;
+    const starsHtml = [1,2,3,4,5].map(n =>
+      `<span class="star-pick es-star${n <= _esRating ? ' active' : ''}" data-r="${n}" onclick="esSetRating(${n})">★</span>`
+    ).join('');
+    body.innerHTML = `
+      ${img}
+      <div class="entry-sheet-name">${escapeHtml(e.fragrance_name || '')}</div>
+      <div class="entry-sheet-house">${escapeHtml(e.house || '')}</div>
+      ${date ? `<div class="entry-sheet-date" style="margin-bottom:16px">${date}</div>` : ''}
+      <label class="modal-label">Your rating</label>
+      <div class="star-picker" style="margin-bottom:20px">${starsHtml}</div>
+      <label class="modal-label">Wear note <span style="color:var(--grey);font-size:9px">optional</span></label>
+      <textarea class="modal-input" id="es-notes" placeholder="How did it wear?" style="height:80px;resize:none;line-height:1.5">${escapeHtml(e.notes || '')}</textarea>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button class="modal-submit" style="flex:2" onclick="saveEntryEdit()">Save</button>
+        <button class="modal-cancel" style="flex:1;margin:0" onclick="_renderEntrySheet('view')">Cancel</button>
+      </div>
+      <button class="entry-sheet-delete" style="margin-top:14px" onclick="deleteEntryFromSheet(${JSON.stringify(String(e.id || ''))})">Delete entry</button>
+    `;
+  } else {
+    const stars = rating ? '★'.repeat(rating) + '<span style="color:var(--grey2)">★'.repeat(5 - rating) + '</span>' : '';
+    const hasContent = rating || e.notes;
+    body.innerHTML = `
+      ${img}
+      <div class="entry-sheet-name">${escapeHtml(e.fragrance_name || '')}</div>
+      <div class="entry-sheet-house">${escapeHtml(e.house || '')}</div>
+      <div class="entry-sheet-meta">
+        ${date ? `<span class="entry-sheet-date">${date}</span>` : ''}
+        ${rating ? `<span class="entry-sheet-stars">${stars}</span>` : ''}
+        ${e.occasion ? `<span class="entry-sheet-occasion">${escapeHtml(e.occasion)}</span>` : ''}
+      </div>
+      ${e.notes ? `<div class="entry-sheet-notes">${escapeHtml(e.notes)}</div>` : ''}
+      ${!hasContent ? '<div style="font-size:12px;color:var(--grey);font-style:italic;margin-bottom:16px">No rating or note yet.</div>' : ''}
+      <button class="entry-sheet-edit" onclick="_renderEntrySheet('edit')">${hasContent ? 'Edit' : '+ Add rating & note'}</button>
+      <button class="entry-sheet-delete" style="margin-top:10px" onclick="deleteEntryFromSheet(${JSON.stringify(String(e.id || ''))})">Delete entry</button>
+    `;
+  }
+}
+
+function esSetRating(n) {
+  _esRating = n;
+  document.querySelectorAll('.es-star').forEach((s, i) => s.classList.toggle('active', i < n));
+}
+
+async function saveEntryEdit() {
+  const notes  = document.getElementById('es-notes')?.value.trim() || '';
+  const rating = _esRating;
+
+  // Update in-memory
+  const idx = diary.findIndex(e => e.id === _esEntry.id);
+  if (idx !== -1) {
+    diary[idx] = { ...diary[idx], rating, notes };
+    _esEntry = diary[idx];
+  }
+
+  // Persist
+  if (user && _esEntry.id && !String(_esEntry.id).startsWith('local_')) {
+    try {
+      await sb.from('journal_entries')
+        .update({ rating, notes })
+        .eq('id', _esEntry.id)
+        .eq('user_id', user.id);
+    } catch (_) {}
+  } else if (!user) {
+    saveLocal();
+  }
+
+  toast('✓ Entry updated');
+  _renderEntrySheet('view');
+  renderDiary();
+  if (curScreen === 'profile') renderProfile();
+  updateRightSidebar();
 }
 
 function closeEntrySheet() {
   const sheet = document.getElementById('entry-sheet');
   if (sheet) sheet.style.display = 'none';
+  _esEntry  = null;
+  _esRating = 0;
 }
 
 function deleteEntryFromSheet(id) {
