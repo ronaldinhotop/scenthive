@@ -21,6 +21,10 @@ let curScreen = 'auth';
 let searchTimer = null;
 let fragStore = {};
 
+// ═══════ COMMUNITY FEED STATE ═══════
+let _feedEntries = [];
+let _likeInFlight = new Set();
+
 // ═══════ BRAND WEBSITES ═══════
 // Official brand stores — always carry the fragrance. Add affiliate param here when ready.
 const BRAND_SITES = {
@@ -4435,7 +4439,8 @@ async function loadCommunityFeed() {
   if (!el) return;
   try {
     const { data } = await sb.from('journal_entries')
-      .select('fragrance_name, house, image_url, rating, notes, worn_at')
+      .select('id, user_id, fragrance_name, house, image_url, rating, notes, worn_at')
+      .eq('is_public', true)
       .not('notes', 'is', null)
       .neq('notes', '')
       .order('worn_at', { ascending: false })
@@ -4444,6 +4449,24 @@ async function loadCommunityFeed() {
       el.innerHTML = '<div style="padding:20px 24px;font-size:13px;color:var(--grey);font-style:italic">No entries yet — be the first to log a fragrance.</div>';
       return;
     }
+    _feedEntries = data;
+
+    // Fetch likes for these entries (gracefully skip if table not yet created)
+    const likeCountMap = {};
+    const likedByMe = new Set();
+    try {
+      const ids = data.map(e => e.id);
+      const { data: likesData } = await sb.from('entry_likes')
+        .select('entry_id, user_id')
+        .in('entry_id', ids);
+      if (likesData) {
+        likesData.forEach(l => {
+          likeCountMap[l.entry_id] = (likeCountMap[l.entry_id] || 0) + 1;
+          if (user && l.user_id === user.id) likedByMe.add(l.entry_id);
+        });
+      }
+    } catch (_) { /* entry_likes table not yet created; show 0 likes */ }
+
     el.innerHTML = data.map(e => {
       const d = new Date(e.worn_at);
       const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -4451,6 +4474,17 @@ async function loadCommunityFeed() {
       const imgHtml = e.image_url
         ? makeImg(e.image_url, e.fragrance_name)
         : '<span style="font-size:20px;opacity:0.4">🏺</span>';
+      const count = likeCountMap[e.id] || 0;
+      const liked = likedByMe.has(e.id);
+      const likedClass = liked ? ' liked' : '';
+      const fillAttr = liked ? 'currentColor' : 'none';
+      const safeId = escapeAttr(e.id);
+      const likeBtn = '<button class="review-like-btn' + likedClass + '" data-id="' + safeId + '" onclick="toggleLike(\'' + safeId + '\')">' +
+        '<svg width="13" height="13" viewBox="0 0 20 20" fill="' + fillAttr + '" stroke="currentColor" stroke-width="1.8">' +
+          '<path d="M10 17s-7-4.35-7-9a4 4 0 018 0 4 4 0 018 0c0 4.65-7 9-7 9z"/>' +
+        '</svg>' +
+        '<span class="review-like-count">' + count + '</span>' +
+      '</button>';
       return '<div class="review-card">' +
         '<div class="review-bottle">' + imgHtml + '</div>' +
         '<div class="review-content">' +
@@ -4460,11 +4494,60 @@ async function loadCommunityFeed() {
           '</div>' +
           '<div class="review-house">' + escapeHtml(e.house || '') + ' · ' + dateStr + '</div>' +
           (e.notes ? '<div class="review-text">"' + escapeHtml(e.notes) + '"</div>' : '') +
+          likeBtn +
         '</div>' +
       '</div>';
     }).join('');
   } catch (e) {
     el.innerHTML = '<div style="padding:20px;font-size:12px;color:var(--grey)">Could not load community entries.</div>';
+  }
+}
+
+async function toggleLike(entryId) {
+  if (!user) { toast('Sign in to like reviews'); return; }
+  if (_likeInFlight.has(entryId)) return;
+  _likeInFlight.add(entryId);
+
+  const btn = document.querySelector('.review-like-btn[data-id="' + entryId + '"]');
+  if (!btn) { _likeInFlight.delete(entryId); return; }
+  const countEl = btn.querySelector('.review-like-count');
+  const svg = btn.querySelector('svg');
+  const wasLiked = btn.classList.contains('liked');
+  const prevCount = parseInt(countEl.textContent, 10) || 0;
+
+  // Optimistic update
+  if (wasLiked) {
+    btn.classList.remove('liked');
+    svg.setAttribute('fill', 'none');
+    countEl.textContent = Math.max(0, prevCount - 1);
+  } else {
+    btn.classList.add('liked');
+    svg.setAttribute('fill', 'currentColor');
+    countEl.textContent = prevCount + 1;
+  }
+
+  try {
+    if (wasLiked) {
+      const { error } = await sb.from('entry_likes').delete().eq('entry_id', entryId).eq('user_id', user.id);
+      if (error) throw error;
+    } else {
+      const { error } = await sb.from('entry_likes').insert({ entry_id: entryId, user_id: user.id });
+      if (error) throw error;
+    }
+  } catch (_) {
+    // Revert optimistic update
+    if (wasLiked) {
+      btn.classList.add('liked');
+      svg.setAttribute('fill', 'currentColor');
+      countEl.textContent = prevCount;
+    } else {
+      btn.classList.remove('liked');
+      svg.setAttribute('fill', 'none');
+      countEl.textContent = prevCount;
+    }
+    toast('Something went wrong');
+  } finally {
+    _likeInFlight.delete(entryId);
   }
 }
 
