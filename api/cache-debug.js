@@ -45,11 +45,17 @@ function hasArrayData(value) {
 function rowQuality(row) {
   const hasNotes = hasArrayData(row.notes_top) || hasArrayData(row.notes_heart) || hasArrayData(row.notes_base);
   const hasAccords = hasArrayData(row.accords);
+  const source = String(row.fragella_id || '').startsWith('sh_') ? 'scenthive' : 'fragella/cache';
   return {
     hasImage: Boolean(row.image_url),
     hasNotes,
     hasAccords,
-    source: String(row.fragella_id || '').startsWith('sh_') ? 'scenthive' : 'fragella/cache',
+    source,
+    repairScore:
+      (source === 'scenthive' ? 8 : 0) +
+      (!row.image_url ? 6 : 0) +
+      (!hasNotes ? 3 : 0) +
+      (!hasAccords ? 2 : 0),
   };
 }
 
@@ -85,6 +91,23 @@ export default async function handler(req, res) {
     const duplicateGroups = duplicateEntries.length;
 
     const enriched = list.map(row => ({ ...row, _quality: rowQuality(row) }));
+    const repairQueue = enriched
+      .filter(row => row._quality.repairScore > 0)
+      .sort((a, b) => b._quality.repairScore - a._quality.repairScore)
+      .slice(0, 20)
+      .map(row => ({
+        fragella_id: row.fragella_id || row.id || '',
+        name: row.name || '',
+        house: row.house || '',
+        image_url: row.image_url || '',
+        launch_year: row.launch_year || null,
+        quality: row._quality,
+        missing: [
+          !row._quality.hasImage ? 'image' : '',
+          !row._quality.hasNotes ? 'notes' : '',
+          !row._quality.hasAccords ? 'accords' : '',
+        ].filter(Boolean),
+      }));
     const stats = enriched.reduce((acc, row) => {
       acc.total += 1;
       if (!row._quality.hasImage) acc.missing_images += 1;
@@ -113,6 +136,7 @@ export default async function handler(req, res) {
       ok: true,
       stats,
       duplicate_examples: duplicateExamples,
+      repair_queue: repairQueue,
       rows: enriched.slice(0, 120).map(row => ({
         fragella_id: row.fragella_id || row.id || '',
         name: row.name || '',

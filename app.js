@@ -3660,6 +3660,7 @@ function renderCacheDebug(data) {
   const s = data.stats || {};
   const rows = Array.isArray(data.rows) ? data.rows : [];
   const duplicateExamples = Array.isArray(data.duplicate_examples) ? data.duplicate_examples : [];
+  const repairQueue = Array.isArray(data.repair_queue) ? data.repair_queue : [];
   const pct = (bad, total) => total ? Math.round((bad / total) * 100) + '%' : '0%';
   const totalLabel = String(s.total || 0) + (s.capped ? '+' : '');
   const cappedNote = s.capped
@@ -3700,10 +3701,25 @@ function renderCacheDebug(data) {
       duplicateExamples.map(d => '<div class="cache-dupe-row"><strong>' + escapeHtml(d.count) + 'x</strong><span>' + escapeHtml((d.names || []).join(' / ')) + '</span></div>').join('') +
       '</div>'
     : '';
+  const repairHtml = repairQueue.length
+    ? '<div class="cache-dupes"><div class="cache-debug-label">Repair queue</div>' +
+      '<div class="cache-debug-note" style="margin-bottom:8px">Highest-value ScentHive rows to enrich next.</div>' +
+      repairQueue.slice(0, 8).map(row => {
+        const missing = (row.missing || []).join(', ') || 'metadata';
+        const source = row.quality?.source === 'scenthive' ? 'ScentHive' : 'Cache';
+        return '<div class="cache-dupe-row">' +
+          '<strong>' + escapeHtml(source) + '</strong>' +
+          '<span>' + escapeHtml(row.name || 'Unnamed') + (row.house ? ' · ' + escapeHtml(row.house) : '') +
+            '<br><em>Missing ' + escapeHtml(missing) + '</em></span>' +
+        '</div>';
+      }).join('') +
+      '</div>'
+    : '';
 
   el.innerHTML = '<div class="cache-stats">' + statHtml + '</div>' +
     cappedNote +
     '<div class="cache-debug-note">Showing up to 120 cached rows. Missing notes are okay for v1; missing image and duplicates are the first cleanup targets.</div>' +
+    repairHtml +
     dupesHtml +
     '<div class="cache-list">' + (rowHtml || '<div class="cache-debug-empty">No cache rows yet.</div>') + '</div>';
 }
