@@ -49,16 +49,16 @@ const KNOWN_FRAGRANCES = [
     fragella_id: stableId('Speed Legends', 'Ex Nihilo'),
     name: 'Speed Legends',
     house: 'Ex Nihilo',
-    family: '',
-    notes_top: [],
-    notes_heart: [],
-    notes_base: [],
-    accords: [],
+    family: 'woody aromatic',
+    notes_top: ['Bergamot', 'Mandarin', 'Pink Pepper'],
+    notes_heart: ['Clary Sage', 'Blackcurrant'],
+    notes_base: ['Vetiver', 'Tonka Bean', 'Ambery Wood'],
+    accords: ['aromatic', 'citrus', 'fresh spicy', 'fruity', 'woody'],
     longevity: '',
     sillage: '',
-    gender: '',
-    image_url: '',
-    launch_year: null,
+    gender: 'unisex',
+    image_url: 'https://cdn.shopify.com/s/files/1/0873/6250/3001/files/w-ex-nihilo-speed-legends-eau-de-parfum-100ml.png?v=1730822099',
+    launch_year: 2023,
     price_range: '',
   },
 ];
@@ -341,9 +341,9 @@ export default async function handler(req, res) {
           const key = normalize(`${f.name} ${f.house}`);
           if (!seen.has(key)) { seen.add(key); merged.push(f); }
         }
-        cacheRanked = rankFragrances(mergeRanked({ fragrances: merged }, knownRanked), alias || query, true);
+        cacheRanked = rankFragrances(mergeRanked(knownRanked, { fragrances: merged }), alias || query, true);
       } else {
-        cacheRanked = rankFragrances(mergeRanked({ fragrances: sbRows }, knownRanked), query, true);
+        cacheRanked = rankFragrances(mergeRanked(knownRanked, { fragrances: sbRows }), query, true);
       }
     } else {
       cacheRanked = knownRanked;

@@ -2703,6 +2703,10 @@ function renderDiary() {
       if (!isNaN(idx) && diary[idx]) openEntrySheet(diary[idx]);
     });
   });
+
+  enrichImages(diary, 'fragrance_name', 'journal_entries').then(changed => {
+    if (changed) renderDiary();
+  });
 }
 
 function openEntrySheet(entry) {
@@ -3438,6 +3442,7 @@ async function enrichImages(items, nameKey, tableKey) {
     }
     changed = true;
   });
+  if (changed && !user) saveLocal();
   return changed;
 }
 
@@ -3773,7 +3778,12 @@ function parseManualFragrance(name, house) {
   const cleanName = String(name || '').trim();
   const cleanHouse = String(house || '').trim();
   const known = {
-    'ex nihilo speed legends': { name: 'Speed Legends', house: 'Ex Nihilo' },
+    'ex nihilo speed legends': {
+      name: 'Speed Legends',
+      house: 'Ex Nihilo',
+      image_url: 'https://cdn.shopify.com/s/files/1/0873/6250/3001/files/w-ex-nihilo-speed-legends-eau-de-parfum-100ml.png?v=1730822099',
+      fragella_id: stableFragranceId('Speed Legends', 'Ex Nihilo'),
+    },
   };
   const exact = known[normalizeText(cleanName + (cleanHouse ? ' ' + cleanHouse : ''))] || known[normalizeText(cleanName)];
   if (exact && !cleanHouse) return exact;
@@ -3797,7 +3807,12 @@ function selectManualFrag() {
   const house = document.getElementById('log-house-manual').value.trim();
   if (!name) { toast('Please enter a fragrance name'); return; }
   const parsed = parseManualFragrance(name, house);
-  selectFrag({ name: parsed.name, house: parsed.house, image_url: null, fragella_id: stableFragranceId(parsed.name, parsed.house) });
+  selectFrag({
+    name: parsed.name,
+    house: parsed.house,
+    image_url: parsed.image_url || null,
+    fragella_id: parsed.fragella_id || stableFragranceId(parsed.name, parsed.house),
+  });
 }
 
 function onLogSearch(q) {
