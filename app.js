@@ -20,6 +20,7 @@ let prevScreen = 'home';
 let curScreen = 'auth';
 let searchTimer = null;
 let fragStore = {};
+let _improveFrag = null;
 
 // ═══════ COMMUNITY FEED STATE ═══════
 let _feedEntries = [];
@@ -2139,6 +2140,9 @@ function buildFragActionsHtml(f, inHive, wornCount) {
       '<button class="frag-btn frag-btn-secondary" data-act="wish" data-name="' + escapeAttr(f.name||'') + '" data-house="' + escapeAttr(f.house||'') + '" data-img="' + escapeAttr(f.image_url||'') + '" data-fid="' + escapeAttr(f.fragella_id||'') + '">' +
         '✨ Wishlist' +
       '</button>' +
+      '<button class="frag-btn frag-btn-secondary" data-act="improve">' +
+        'Improve data' +
+      '</button>' +
     '</div>' +
   '</div>';
 }
@@ -2247,6 +2251,115 @@ function shareFragrance(f) {
     return;
   }
   navigator.clipboard?.writeText(text).then(() => toast('Fragrance share text copied')).catch(() => toast(text));
+}
+
+function listToInput(value) {
+  if (!Array.isArray(value)) return '';
+  return value.map(item => typeof item === 'string' ? item : (item?.name || '')).filter(Boolean).join(', ');
+}
+
+function inputToList(value) {
+  return String(value || '')
+    .split(/,|\n/)
+    .map(v => v.trim())
+    .filter(Boolean);
+}
+
+function setImproveField(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value || '';
+}
+
+function openImproveFragrance(f, key) {
+  if (!f?.name) { toast('Open a fragrance first'); return; }
+  _improveFrag = { key, f };
+  setImproveField('improve-name', f.name || '');
+  setImproveField('improve-house', f.house || '');
+  setImproveField('improve-image', f.image_url || '');
+  setImproveField('improve-family', f.family || '');
+  setImproveField('improve-year', f.launch_year || '');
+  setImproveField('improve-accords', listToInput(f.accords || f['Main Accords'] || []));
+  setImproveField('improve-top', listToInput(f.notes_top || f['Top Notes'] || []));
+  setImproveField('improve-heart', listToInput(f.notes_heart || f['Middle Notes'] || []));
+  setImproveField('improve-base', listToInput(f.notes_base || f['Base Notes'] || []));
+  openModal('modal-improve-fragrance');
+}
+
+function applyImprovedImageToUserData(row) {
+  if (!row?.image_url) return;
+  let changed = false;
+  collection.forEach(item => {
+    if (sameFragName(item.name, row.name) && (!row.house || !item.house || sameFragName(item.house, row.house))) {
+      item.image_url = row.image_url;
+      changed = true;
+      if (user && item.id && !String(item.id).startsWith('pending_col_') && !String(item.id).startsWith('local_')) {
+        sb.from('collection').update({ image_url: row.image_url }).eq('id', item.id).then(() => {});
+      }
+    }
+  });
+  diary.forEach(item => {
+    if (sameFragName(item.fragrance_name, row.name) && (!row.house || !item.house || sameFragName(item.house, row.house))) {
+      item.image_url = row.image_url;
+      changed = true;
+      if (user && item.id && !String(item.id).startsWith('pending_log_') && !String(item.id).startsWith('local_')) {
+        sb.from('journal_entries').update({ image_url: row.image_url }).eq('id', item.id).then(() => {});
+      }
+    }
+  });
+  if (changed && !user) saveLocal();
+}
+
+async function saveImproveFragrance() {
+  if (!_improveFrag?.f) { toast('Open a fragrance first'); return; }
+  const current = _improveFrag.f;
+  const name = document.getElementById('improve-name')?.value.trim() || current.name || '';
+  const house = document.getElementById('improve-house')?.value.trim() || current.house || '';
+  if (!name) { toast('Name is required'); return; }
+
+  const topRaw = document.getElementById('improve-top')?.value || '';
+  const heartRaw = document.getElementById('improve-heart')?.value || '';
+  const baseRaw = document.getElementById('improve-base')?.value || '';
+  const accordRaw = document.getElementById('improve-accords')?.value || '';
+  const yearRaw = document.getElementById('improve-year')?.value.trim() || '';
+  const row = {
+    fragella_id: current.fragella_id || stableFragranceId(name, house),
+    name,
+    house,
+    family: document.getElementById('improve-family')?.value.trim() || current.family || '',
+    notes_top: topRaw.trim() ? inputToList(topRaw) : (current.notes_top || current['Top Notes'] || []),
+    notes_heart: heartRaw.trim() ? inputToList(heartRaw) : (current.notes_heart || current['Middle Notes'] || []),
+    notes_base: baseRaw.trim() ? inputToList(baseRaw) : (current.notes_base || current['Base Notes'] || []),
+    accords: accordRaw.trim() ? inputToList(accordRaw) : (current.accords || current['Main Accords'] || []),
+    longevity: current.longevity || '',
+    sillage: current.sillage || '',
+    gender: current.gender || '',
+    image_url: document.getElementById('improve-image')?.value.trim() || current.image_url || '',
+    launch_year: yearRaw ? Number(yearRaw) : (current.launch_year || null),
+    price_range: current.price_range || '',
+  };
+
+  const btn = document.getElementById('improve-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  try {
+    const res = await fetch(FRAGRANCE_CACHE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fragrances: [row] })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.error) throw new Error(data.error || 'Could not save fragrance data');
+
+    const merged = { ...current, ...row };
+    fragStore[_improveFrag.key] = merged;
+    applyImprovedImageToUserData(row);
+    closeModal('modal-improve-fragrance');
+    toast('Fragrance data improved');
+    openFrag(_improveFrag.key);
+  } catch (e) {
+    toast(e.message || 'Could not save fragrance data');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save to ScentHive cache'; }
+  }
 }
 
 function buildWhenHtml(f) {
@@ -2445,6 +2558,7 @@ function openFrag(key) {
         quickAdd(name, house, b.getAttribute('data-img'), b.getAttribute('data-fid'));
       }
       else if (act === 'wish') addToWishlist({ name, house, image_url: b.getAttribute('data-img'), fragella_id: b.getAttribute('data-fid') });
+      else if (act === 'improve') openImproveFragrance(f, key);
     });
   });
   document.querySelectorAll('#frag-content .rel-action').forEach(b => {

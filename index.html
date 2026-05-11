@@ -800,6 +800,42 @@
   </div>
 </div>
 
+<!-- ═══ IMPROVE FRAGRANCE DATA MODAL ═══ -->
+<div class="modal-overlay" id="modal-improve-fragrance">
+  <div class="modal" style="max-height:92vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-kicker">Internal data</div>
+    <div class="modal-title">Improve fragrance</div>
+    <div class="modal-sub">Save better metadata into ScentHive's own fragrance cache.</div>
+    <label class="modal-label">Name</label>
+    <input class="modal-input" id="improve-name" type="text" placeholder="Fragrance name">
+    <label class="modal-label">House</label>
+    <input class="modal-input" id="improve-house" type="text" placeholder="House / brand">
+    <label class="modal-label">Image URL</label>
+    <input class="modal-input" id="improve-image" type="url" placeholder="https://...">
+    <div class="modal-grid">
+      <div>
+        <label class="modal-label">Family</label>
+        <input class="modal-input" id="improve-family" type="text" placeholder="woody aromatic">
+      </div>
+      <div>
+        <label class="modal-label">Year</label>
+        <input class="modal-input" id="improve-year" type="number" inputmode="numeric" placeholder="2024">
+      </div>
+    </div>
+    <label class="modal-label">Accords <span style="color:var(--grey);font-size:9px">comma separated</span></label>
+    <textarea class="modal-input" id="improve-accords" placeholder="citrus, woody, amber" style="height:64px;resize:none;line-height:1.5"></textarea>
+    <label class="modal-label">Top notes</label>
+    <textarea class="modal-input" id="improve-top" placeholder="bergamot, mandarin, pink pepper" style="height:58px;resize:none;line-height:1.5"></textarea>
+    <label class="modal-label">Heart notes</label>
+    <textarea class="modal-input" id="improve-heart" placeholder="iris, rose, jasmine" style="height:58px;resize:none;line-height:1.5"></textarea>
+    <label class="modal-label">Base notes</label>
+    <textarea class="modal-input" id="improve-base" placeholder="vetiver, tonka bean, amber woods" style="height:58px;resize:none;line-height:1.5"></textarea>
+    <button class="modal-submit" id="improve-save-btn" onclick="saveImproveFragrance()">Save to ScentHive cache</button>
+    <button class="modal-cancel" data-close="modal-improve-fragrance">Cancel</button>
+  </div>
+</div>
+
 <!-- ═══ ADD COLLECTION MODAL ═══ -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
