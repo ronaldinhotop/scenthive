@@ -51,10 +51,10 @@ function rowQuality(row) {
     hasNotes,
     hasAccords,
     source,
+    notesOnlyBacklog: hasAccords && !hasNotes,
     repairScore:
       (source === 'scenthive' ? 8 : 0) +
       (!row.image_url ? 6 : 0) +
-      (!hasNotes ? 3 : 0) +
       (!hasAccords ? 2 : 0),
   };
 }
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
 
     const enriched = list.map(row => ({ ...row, _quality: rowQuality(row) }));
     const repairQueue = enriched
-      .filter(row => row._quality.repairScore > 0)
+      .filter(row => row._quality.repairScore > 0 && (!row._quality.hasImage || !row._quality.hasAccords))
       .sort((a, b) => b._quality.repairScore - a._quality.repairScore)
       .slice(0, 20)
       .map(row => ({
@@ -113,6 +113,7 @@ export default async function handler(req, res) {
       if (!row._quality.hasImage) acc.missing_images += 1;
       if (!row._quality.hasNotes) acc.missing_notes += 1;
       if (!row._quality.hasAccords) acc.missing_accords += 1;
+      if (row._quality.notesOnlyBacklog) acc.notes_backlog += 1;
       if (row._quality.source === 'scenthive') acc.scenthive_ids += 1;
       return acc;
     }, {
@@ -122,6 +123,7 @@ export default async function handler(req, res) {
       missing_accords: 0,
       scenthive_ids: 0,
       duplicate_groups: duplicateGroups,
+      notes_backlog: 0,
       capped,
       max_rows: maxRows,
     });

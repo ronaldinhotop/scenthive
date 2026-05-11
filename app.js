@@ -3750,6 +3750,7 @@ function renderCacheDebug(data) {
     ['No image', pct(s.missing_images || 0, s.total || 0)],
     ['No notes', pct(s.missing_notes || 0, s.total || 0)],
     ['No accords', pct(s.missing_accords || 0, s.total || 0)],
+    ['Notes backlog', s.notes_backlog || 0],
     ['Dup groups', s.duplicate_groups || 0]
   ].map(([k, v]) => '<div class="cache-stat"><span>' + escapeHtml(k) + '</span><strong>' + escapeHtml(v) + '</strong></div>').join('');
 
@@ -3781,7 +3782,7 @@ function renderCacheDebug(data) {
     : '';
   const repairHtml = repairQueue.length
     ? '<div class="cache-dupes"><div class="cache-debug-label">Repair queue</div>' +
-      '<div class="cache-debug-note" style="margin-bottom:8px">Highest-value ScentHive rows to enrich next.</div>' +
+      '<div class="cache-debug-note" style="margin-bottom:8px">Actionable rows missing image or accords. Notes-only rows are tracked as backlog.</div>' +
       repairQueue.slice(0, 8).map(row => {
         const missing = (row.missing || []).join(', ') || 'metadata';
         const source = row.quality?.source === 'scenthive' ? 'ScentHive' : 'Cache';
@@ -3792,11 +3793,13 @@ function renderCacheDebug(data) {
         '</div>';
       }).join('') +
       '</div>'
-    : '';
+    : '<div class="cache-dupes"><div class="cache-debug-label">Repair queue</div>' +
+      '<div class="cache-debug-empty">No urgent image/accord repairs. Notes-only gaps are tracked as backlog.</div>' +
+      '</div>';
 
   el.innerHTML = '<div class="cache-stats">' + statHtml + '</div>' +
     cappedNote +
-    '<div class="cache-debug-note">Showing up to 120 cached rows. Missing notes are okay for v1; missing image and duplicates are the first cleanup targets.</div>' +
+    '<div class="cache-debug-note">Showing up to 120 cached rows. Missing notes are okay for v1; missing image, missing accords, and duplicates are the first cleanup targets.</div>' +
     repairHtml +
     dupesHtml +
     '<div class="cache-list">' + (rowHtml || '<div class="cache-debug-empty">No cache rows yet.</div>') + '</div>';
