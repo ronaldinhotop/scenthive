@@ -2271,9 +2271,9 @@ function setImproveField(id, value) {
   if (el) el.value = value || '';
 }
 
-function openImproveFragrance(f, key) {
+function openImproveFragrance(f, key, source) {
   if (!f?.name) { toast('Open a fragrance first'); return; }
-  _improveFrag = { key, f };
+  _improveFrag = { key, f, source: source || 'detail' };
   setImproveField('improve-name', f.name || '');
   setImproveField('improve-house', f.house || '');
   setImproveField('improve-image', f.image_url || '');
@@ -2355,7 +2355,11 @@ async function saveImproveFragrance() {
     applyImprovedImageToUserData(row);
     closeModal('modal-improve-fragrance');
     toast('Fragrance data improved');
-    openFrag(_improveFrag.key);
+    if (_improveFrag.source === 'cache-debug') {
+      await loadCacheDebug();
+    } else {
+      openFrag(_improveFrag.key);
+    }
   } catch (e) {
     toast(e.message || 'Could not save fragrance data');
   } finally {
@@ -3907,6 +3911,7 @@ function renderCacheDebug(data) {
           '<strong>' + escapeHtml(source) + '</strong>' +
           '<span>' + escapeHtml(row.name || 'Unnamed') + (row.house ? ' · ' + escapeHtml(row.house) : '') +
             '<br><em>Missing ' + escapeHtml(missing) + '</em></span>' +
+          '<button class="cache-fix-btn" data-cache-fix="' + escapeAttr(row.fragella_id || '') + '">Fix</button>' +
         '</div>';
       }).join('') +
       '</div>'
@@ -3920,6 +3925,26 @@ function renderCacheDebug(data) {
     repairHtml +
     dupesHtml +
     '<div class="cache-list">' + (rowHtml || '<div class="cache-debug-empty">No cache rows yet.</div>') + '</div>';
+
+  el.querySelectorAll('[data-cache-fix]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-cache-fix') || '';
+      const row = repairQueue.find(item => String(item.fragella_id || '') === id);
+      if (!row) return;
+      openImproveFragrance({
+        fragella_id: row.fragella_id || '',
+        name: row.name || '',
+        house: row.house || '',
+        image_url: row.image_url || '',
+        family: row.family || '',
+        launch_year: row.launch_year || null,
+        accords: row.accords || [],
+        notes_top: row.notes_top || [],
+        notes_heart: row.notes_heart || [],
+        notes_base: row.notes_base || [],
+      }, 'cache_fix_' + (row.fragella_id || stableFragranceId(row.name, row.house)), 'cache-debug');
+    });
+  });
 }
 
 async function previewCacheMerge() {

@@ -100,6 +100,11 @@ export default async function handler(req, res) {
         name: row.name || '',
         house: row.house || '',
         image_url: row.image_url || '',
+        family: row.family || '',
+        accords: row.accords || [],
+        notes_top: row.notes_top || [],
+        notes_heart: row.notes_heart || [],
+        notes_base: row.notes_base || [],
         launch_year: row.launch_year || null,
         quality: row._quality,
         missing: [
