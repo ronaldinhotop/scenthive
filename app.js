@@ -2213,6 +2213,7 @@ function buildFragranceRelationshipHtml(f) {
       (inHive ? '<button class="rel-action muted" data-rel-act="hive">In hive</button>' : '<button class="rel-action" data-rel-act="hive">Add to hive</button>') +
       (inWishlist ? '<button class="rel-action muted" data-rel-act="wish">On wishlist</button>' : '<button class="rel-action" data-rel-act="wish">Want to try</button>') +
       '<button class="rel-action" data-rel-act="share">Share scent</button>' +
+      '<button class="rel-action is-internal" data-rel-act="improve">Improve data</button>' +
     '</div>' +
   '</div>';
 }
@@ -2573,6 +2574,8 @@ function openFrag(key) {
         addToWishlist(f);
       } else if (act === 'share') {
         shareFragrance(f);
+      } else if (act === 'improve') {
+        openImproveFragrance(f, key);
       }
     });
   });

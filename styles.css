@@ -536,6 +536,7 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .rel-action{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);border-radius:20px;padding:8px 13px;color:var(--gold);cursor:pointer}
 .rel-action:first-child{background:var(--gold);border-color:var(--gold);color:var(--bg)}
 .rel-action.muted{color:var(--grey);border-color:var(--border)}
+.rel-action.is-internal{border-color:var(--gold-dim);color:var(--gold-light)}
 .fd-desc-text{font-size:14px;color:var(--white2);line-height:1.7;font-style:italic;margin:0}
 .fd-when-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
 .fd-when-chip{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;padding:5px 13px;border-radius:20px;background:var(--bg4);color:var(--white2);border:1px solid var(--border)}
