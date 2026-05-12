@@ -596,6 +596,7 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .modal-submit{width:100%;padding:14px;background:var(--gold);color:var(--bg);font-weight:500;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;margin-top:6px;border-radius:10px;transition:background 0.2s}
 .modal-submit:hover{background:var(--gold-light)}
 .modal-cancel{width:100%;padding:11px;color:var(--grey);font-size:12px;cursor:pointer;margin-top:6px;text-align:center}
+.improve-suggest-btn{border:1px solid var(--border);background:var(--bg3);border-radius:10px;color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase}
 .log-search-result:hover{background:var(--bg2)}
 .log-search-result:active{background:var(--bg3)}
 

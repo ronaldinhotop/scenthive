@@ -2271,6 +2271,10 @@ function setImproveField(id, value) {
   if (el) el.value = value || '';
 }
 
+function getImproveField(id) {
+  return document.getElementById(id)?.value.trim() || '';
+}
+
 function openImproveFragrance(f, key, source) {
   if (!f?.name) { toast('Open a fragrance first'); return; }
   _improveFrag = { key, f, source: source || 'detail' };
@@ -2284,6 +2288,61 @@ function openImproveFragrance(f, key, source) {
   setImproveField('improve-heart', listToInput(f.notes_heart || f['Middle Notes'] || []));
   setImproveField('improve-base', listToInput(f.notes_base || f['Base Notes'] || []));
   openModal('modal-improve-fragrance');
+}
+
+function getImproveDraft() {
+  return {
+    name: getImproveField('improve-name'),
+    house: getImproveField('improve-house'),
+  };
+}
+
+function sameFragranceLoose(a, b) {
+  if (!a || !b) return false;
+  const aName = normalizeText(a.name || a.fragrance_name || '');
+  const bName = normalizeText(b.name || b.fragrance_name || '');
+  const aHouse = normalizeText(a.house || '');
+  const bHouse = normalizeText(b.house || '');
+  return Boolean(aName && bName && aName === bName && (!aHouse || !bHouse || aHouse === bHouse || aHouse.includes(bHouse) || bHouse.includes(aHouse)));
+}
+
+function applyImproveSuggestion(match) {
+  if (!match) return false;
+  const fillIfEmpty = (id, value) => {
+    const el = document.getElementById(id);
+    if (el && !el.value.trim() && value) el.value = value;
+  };
+  fillIfEmpty('improve-image', match.image_url || '');
+  fillIfEmpty('improve-family', match.family || '');
+  fillIfEmpty('improve-year', match.launch_year || '');
+  fillIfEmpty('improve-accords', listToInput(match.accords || match['Main Accords'] || []));
+  fillIfEmpty('improve-top', listToInput(match.notes_top || match['Top Notes'] || []));
+  fillIfEmpty('improve-heart', listToInput(match.notes_heart || match['Middle Notes'] || []));
+  fillIfEmpty('improve-base', listToInput(match.notes_base || match['Base Notes'] || []));
+  return true;
+}
+
+async function suggestImproveFragrance() {
+  const draft = getImproveDraft();
+  if (!draft.name) { toast('Add a name first'); return; }
+  const btn = document.getElementById('improve-suggest-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Looking...'; }
+  try {
+    const query = draft.name + (draft.house ? ' ' + draft.house : '');
+    const staticHits = staticSearch(query);
+    let match = staticHits.find(f => sameFragranceLoose(f, draft)) || staticHits[0] || null;
+    if (!match) {
+      const results = await searchFragella(query);
+      match = results.find(f => sameFragranceLoose(f, draft)) || results[0] || null;
+    }
+    if (!match) { toast('No suggestion found'); return; }
+    applyImproveSuggestion(match);
+    toast('Suggestion applied — review before saving');
+  } catch(e) {
+    toast('Could not load suggestion');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Suggest from ScentHive cache'; }
+  }
 }
 
 function applyImprovedImageToUserData(row) {
