@@ -3860,6 +3860,7 @@ function renderCacheDebug(data) {
   const rows = Array.isArray(data.rows) ? data.rows : [];
   const duplicateExamples = Array.isArray(data.duplicate_examples) ? data.duplicate_examples : [];
   const repairQueue = Array.isArray(data.repair_queue) ? data.repair_queue : [];
+  const notesBacklog = Array.isArray(data.notes_backlog) ? data.notes_backlog : [];
   const pct = (bad, total) => total ? Math.round((bad / total) * 100) + '%' : '0%';
   const totalLabel = String(s.total || 0) + (s.capped ? '+' : '');
   const cappedNote = s.capped
@@ -3923,6 +3924,7 @@ function renderCacheDebug(data) {
     cappedNote +
     '<div class="cache-debug-note">Showing up to 120 cached rows. Missing notes are okay for v1; missing image, missing accords, and duplicates are the first cleanup targets.</div>' +
     repairHtml +
+    (notesBacklog.length ? '<button class="modal-cancel cache-inline-btn" id="cache-notes-backlog-btn">Open notes backlog</button>' : '') +
     dupesHtml +
     '<div class="cache-list">' + (rowHtml || '<div class="cache-debug-empty">No cache rows yet.</div>') + '</div>';
 
@@ -3931,18 +3933,57 @@ function renderCacheDebug(data) {
       const id = btn.getAttribute('data-cache-fix') || '';
       const row = repairQueue.find(item => String(item.fragella_id || '') === id);
       if (!row) return;
-      openImproveFragrance({
-        fragella_id: row.fragella_id || '',
-        name: row.name || '',
-        house: row.house || '',
-        image_url: row.image_url || '',
-        family: row.family || '',
-        launch_year: row.launch_year || null,
-        accords: row.accords || [],
-        notes_top: row.notes_top || [],
-        notes_heart: row.notes_heart || [],
-        notes_base: row.notes_base || [],
-      }, 'cache_fix_' + (row.fragella_id || stableFragranceId(row.name, row.house)), 'cache-debug');
+      openCacheRowEditor(row, 'cache-debug');
+    });
+  });
+
+  const notesBtn = document.getElementById('cache-notes-backlog-btn');
+  if (notesBtn) notesBtn.addEventListener('click', () => renderNotesBacklog(notesBacklog));
+}
+
+function openCacheRowEditor(row, source) {
+  if (!row) return;
+  openImproveFragrance({
+    fragella_id: row.fragella_id || '',
+    name: row.name || '',
+    house: row.house || '',
+    image_url: row.image_url || '',
+    family: row.family || '',
+    launch_year: row.launch_year || null,
+    accords: row.accords || [],
+    notes_top: row.notes_top || [],
+    notes_heart: row.notes_heart || [],
+    notes_base: row.notes_base || [],
+  }, 'cache_fix_' + (row.fragella_id || stableFragranceId(row.name, row.house)), source || 'cache-debug');
+}
+
+function renderNotesBacklog(notesBacklog) {
+  const el = document.getElementById('cache-debug-body');
+  if (!el) return;
+  const rows = Array.isArray(notesBacklog) ? notesBacklog : [];
+  const rowHtml = rows.slice(0, 40).map(row => {
+    const source = row.quality?.source === 'scenthive' ? 'ScentHive' : 'Cache';
+    const accords = (row.accords || []).slice(0, 4).map(getAccordName).filter(Boolean).join(', ');
+    return '<div class="cache-dupe-row">' +
+      '<strong>' + escapeHtml(source) + '</strong>' +
+      '<span>' + escapeHtml(row.name || 'Unnamed') + (row.house ? ' · ' + escapeHtml(row.house) : '') +
+        (accords ? '<br><em>Accords: ' + escapeHtml(accords) + '</em>' : '') + '</span>' +
+      '<button class="cache-fix-btn" data-notes-fix="' + escapeAttr(row.fragella_id || '') + '">Fix notes</button>' +
+    '</div>';
+  }).join('');
+
+  el.innerHTML = '<div class="cache-dupes">' +
+    '<div class="cache-debug-label">Notes backlog</div>' +
+    '<div class="cache-debug-note">Rows with image and accords, but no top/heart/base notes yet.</div>' +
+    (rowHtml || '<div class="cache-debug-empty">No notes backlog rows.</div>') +
+    '</div>' +
+    '<button class="modal-cancel cache-inline-btn" onclick="loadCacheDebug()">Back to cache debug</button>';
+
+  el.querySelectorAll('[data-notes-fix]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-notes-fix') || '';
+      const row = rows.find(item => String(item.fragella_id || '') === id);
+      openCacheRowEditor(row, 'cache-debug');
     });
   });
 }

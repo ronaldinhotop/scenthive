@@ -471,6 +471,7 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .cache-dupe-row em{font-style:normal;color:var(--grey);font-size:10px}
 .cache-dupe-row span{flex:1;min-width:0}
 .cache-fix-btn{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:var(--bg);background:var(--gold);border-radius:999px;padding:6px 10px;cursor:pointer;flex-shrink:0}
+.cache-inline-btn{border:1px solid var(--border);background:var(--bg3);border-radius:8px;margin:0 0 13px;padding:10px 12px}
 .cache-list{display:flex;flex-direction:column;border-top:1px solid var(--border2)}
 .cache-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border2)}
 .cache-img{width:42px;height:54px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}

@@ -113,6 +113,27 @@ export default async function handler(req, res) {
           !row._quality.hasAccords ? 'accords' : '',
         ].filter(Boolean),
       }));
+    const notesBacklog = enriched
+      .filter(row => row._quality.notesOnlyBacklog)
+      .sort((a, b) => {
+        const sourceDelta = (a._quality.source === 'scenthive' ? 0 : 1) - (b._quality.source === 'scenthive' ? 0 : 1);
+        if (sourceDelta) return sourceDelta;
+        return String(a.name || '').localeCompare(String(b.name || ''));
+      })
+      .slice(0, 80)
+      .map(row => ({
+        fragella_id: row.fragella_id || row.id || '',
+        name: row.name || '',
+        house: row.house || '',
+        image_url: row.image_url || '',
+        family: row.family || '',
+        accords: row.accords || [],
+        notes_top: row.notes_top || [],
+        notes_heart: row.notes_heart || [],
+        notes_base: row.notes_base || [],
+        launch_year: row.launch_year || null,
+        quality: row._quality,
+      }));
     const stats = enriched.reduce((acc, row) => {
       acc.total += 1;
       if (!row._quality.hasImage) acc.missing_images += 1;
@@ -144,6 +165,7 @@ export default async function handler(req, res) {
       stats,
       duplicate_examples: duplicateExamples,
       repair_queue: repairQueue,
+      notes_backlog: notesBacklog,
       rows: enriched.slice(0, 120).map(row => ({
         fragella_id: row.fragella_id || row.id || '',
         name: row.name || '',
