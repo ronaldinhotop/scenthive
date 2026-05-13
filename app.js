@@ -2941,13 +2941,7 @@ function renderDiary() {
   const el = document.getElementById('diary-list');
   if (!el) return;
   if (diary.length === 0) {
-    el.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-emoji">📖</div>
-        <div class="empty-state-title">Your diary is empty</div>
-        <div class="empty-state-sub">Every fragrance you wear gets logged here. Tap + Log to start.</div>
-        <button class="btn-primary" onclick="openLog()">+ Log a fragrance</button>
-      </div>`;
+    el.innerHTML = buildDiaryEmptyState();
     return;
   }
   // Group by month
@@ -3012,6 +3006,32 @@ function renderDiary() {
   enrichImages(diary, 'fragrance_name', 'journal_entries').then(changed => {
     if (changed) renderDiary();
   });
+}
+
+function buildDiaryEmptyState() {
+  return `
+    <div class="premium-empty">
+      <div class="premium-empty-visual diary">
+        <div class="premium-empty-date">${new Date().getDate()}</div>
+        <div class="premium-empty-lines">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="premium-empty-body">
+        <div class="premium-empty-kicker">Start the habit</div>
+        <div class="premium-empty-title">What did you wear today?</div>
+        <div class="premium-empty-copy">Your diary becomes valuable fast: every wear builds memory, ratings, streaks, and better recommendations.</div>
+        <div class="premium-empty-actions">
+          <button class="premium-empty-primary" onclick="openLog()">Log today's scent</button>
+          <button class="premium-empty-secondary" onclick="showTab('collection')">Use my Hive</button>
+        </div>
+        <div class="premium-empty-steps">
+          <div><strong>01</strong><span>Search scent</span></div>
+          <div><strong>02</strong><span>Rate the wear</span></div>
+          <div><strong>03</strong><span>Build taste</span></div>
+        </div>
+      </div>
+    </div>`;
 }
 
 // ─── Entry sheet state ───────────────────────────────────────────────────────
@@ -3137,12 +3157,7 @@ function renderCollection() {
   if (collection.length === 0) {
     grid.innerHTML = `
       <div style="grid-column:1/-1">
-        <div class="empty-state">
-          <div class="empty-state-emoji">🐝</div>
-          <div class="empty-state-title">Your hive is empty</div>
-          <div class="empty-state-sub">Add fragrances you own to keep track of your collection.</div>
-          <button class="btn-primary" onclick="showTab('home')">Browse &amp; add</button>
-        </div>
+        ${buildHiveEmptyState()}
       </div>`;
     return;
   }
@@ -3243,6 +3258,31 @@ function renderCollection() {
   enrichImages(collection, 'name', 'collection').then(changed => {
     if (changed) renderCollection();
   });
+}
+
+function buildHiveEmptyState() {
+  return `
+    <div class="premium-empty">
+      <div class="premium-empty-visual hive">
+        <div class="premium-hive-grid">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="premium-empty-body">
+        <div class="premium-empty-kicker">Build your shelf</div>
+        <div class="premium-empty-title">Add the bottles you actually own.</div>
+        <div class="premium-empty-copy">Your Hive powers scent of the day, wardrobe gaps, collection value, and smarter recommendations.</div>
+        <div class="premium-empty-actions">
+          <button class="premium-empty-primary" onclick="openAdd()">Add first bottle</button>
+          <button class="premium-empty-secondary" onclick="openScan()">Scan bottle</button>
+        </div>
+        <div class="premium-empty-steps">
+          <div><strong>01</strong><span>Add 3 bottles</span></div>
+          <div><strong>02</strong><span>Log wears</span></div>
+          <div><strong>03</strong><span>See patterns</span></div>
+        </div>
+      </div>
+    </div>`;
 }
 
 // ═══════ TASTE PROFILE COMPUTE ═══════

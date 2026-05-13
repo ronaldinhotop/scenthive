@@ -668,6 +668,27 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .empty-state-sub,.empty-state-text{font-size:13px;max-width:260px;line-height:1.5;color:var(--white2);margin:0 auto}
 .empty-state-sub span,.empty-state-text span{color:var(--gold);font-weight:500}
 .empty-state .btn-primary{margin-top:12px;background:var(--gold);color:#080810;border:none;border-radius:20px;padding:10px 22px;font-size:13px;font-weight:600;cursor:pointer}
+.premium-empty{display:grid;grid-template-columns:minmax(180px,0.8fr) minmax(0,1.2fr);gap:0;min-height:360px;margin:18px 16px 28px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;background:linear-gradient(145deg,rgba(20,20,34,0.96),rgba(8,8,16,0.98));box-shadow:0 24px 70px rgba(0,0,0,0.34)}
+.premium-empty-visual{position:relative;min-height:300px;background:radial-gradient(circle at 36% 24%,rgba(240,192,64,0.2),transparent 34%),linear-gradient(145deg,#15111f,#07070f);display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,0.08)}
+.premium-empty-visual.diary:after{content:'';position:absolute;inset:20px;border:1px solid rgba(240,192,64,0.18);border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))}
+.premium-empty-date{position:relative;z-index:1;font-family:'Playfair Display',serif;font-size:82px;line-height:1;color:var(--gold);font-style:italic}
+.premium-empty-lines{position:absolute;z-index:1;left:22%;right:22%;bottom:28%;display:grid;gap:9px}
+.premium-empty-lines span{height:1px;background:rgba(240,240,250,0.16)}
+.premium-hive-grid{display:grid;grid-template-columns:repeat(3,54px);gap:10px}
+.premium-hive-grid span{height:78px;border:1px solid rgba(240,192,64,0.2);border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));box-shadow:inset 0 -22px 30px rgba(240,192,64,0.06)}
+.premium-hive-grid span:nth-child(2),.premium-hive-grid span:nth-child(5){transform:translateY(-12px)}
+.premium-empty-body{padding:34px;display:flex;flex-direction:column;justify-content:center}
+.premium-empty-kicker{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:10px}
+.premium-empty-title{font-family:'Playfair Display',serif;font-size:34px;font-style:italic;line-height:1.05;color:var(--white);margin-bottom:10px}
+.premium-empty-copy{font-size:13px;color:var(--white2);line-height:1.65;max-width:430px;margin-bottom:20px}
+.premium-empty-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+.premium-empty-primary,.premium-empty-secondary{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:11px 15px;border-radius:6px;cursor:pointer}
+.premium-empty-primary{background:var(--gold);color:var(--bg)}
+.premium-empty-secondary{border:1px solid var(--border);color:var(--white2);background:var(--bg3)}
+.premium-empty-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--border2);border-radius:8px;overflow:hidden;background:var(--border2)}
+.premium-empty-steps div{background:rgba(8,8,16,0.72);padding:12px 10px}
+.premium-empty-steps strong{display:block;font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.12em;margin-bottom:5px}
+.premium-empty-steps span{display:block;font-size:11px;color:var(--white2);line-height:1.3}
 
 /* ═══ ENTRY SHEET ═══ */
 .entry-sheet{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;justify-content:flex-end}
@@ -910,6 +931,12 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
   .landing-wear-row{grid-template-columns:62px 1fr;gap:12px}
   .landing-wear-row img,.landing-thumb{width:62px;height:80px}
   .landing-wear-row>strong{grid-column:2}
+  .premium-empty{grid-template-columns:1fr;margin:14px 14px 24px}
+  .premium-empty-visual{min-height:190px;border-right:0;border-bottom:1px solid rgba(255,255,255,0.08)}
+  .premium-empty-body{padding:24px 18px}
+  .premium-empty-title{font-size:28px}
+  .premium-empty-actions button{width:100%}
+  .premium-empty-steps{grid-template-columns:1fr}
 }
 
 @media(min-width:1200px){
