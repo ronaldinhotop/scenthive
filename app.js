@@ -2264,6 +2264,155 @@ function shareFragrance(f) {
   navigator.clipboard?.writeText(text).then(() => toast('Fragrance share text copied')).catch(() => toast(text));
 }
 
+let _shareWearEntry = null;
+
+function buildWearShareCaption(entry) {
+  if (!entry) return 'Logged on ScentHive.';
+  const rating = entry.rating ? ` · ${entry.rating}/5` : '';
+  const occasion = entry.occasion ? ` · ${entry.occasion}` : '';
+  const note = entry.notes ? `\n"${entry.notes}"` : '';
+  return `Today I wore ${entry.fragrance_name || 'a fragrance'}${entry.house ? ' by ' + entry.house : ''}${rating}${occasion}.\nLogged on ScentHive.${note}`;
+}
+
+function openLatestWearShare() {
+  closeModal('modal-first-log-payoff');
+  if (diary[0]) openWearShare(diary[0]);
+}
+
+function openWearShare(entry) {
+  if (!entry) return;
+  _shareWearEntry = entry;
+  const name = entry.fragrance_name || 'Today\'s scent';
+  const house = entry.house || '';
+  const date = entry.worn_at
+    ? new Date(entry.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    : 'Today';
+  const rating = entry.rating ? '★'.repeat(Math.max(0, Math.min(5, Number(entry.rating) || 0))) : '';
+  const bottle = document.getElementById('wear-share-bottle');
+  if (bottle) {
+    bottle.innerHTML = entry.image_url
+      ? `<img src="${escapeAttr(entry.image_url)}" alt="${escapeAttr(name)}" onerror="this.outerHTML='<div class=&quot;wear-share-bottle-empty&quot;>${escapeHtml(name[0] || 'S')}</div>'">`
+      : `<div class="wear-share-bottle-empty">${escapeHtml(name[0] || 'S')}</div>`;
+  }
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value || '';
+  };
+  setText('wear-share-date', `${date} · Today I wore`);
+  setText('wear-share-name', name);
+  setText('wear-share-house', house);
+  setText('wear-share-rating', rating || 'Logged');
+  setText('wear-share-note', entry.notes ? `"${entry.notes}"` : (entry.occasion ? entry.occasion : 'Saved in my fragrance diary.'));
+  setText('wear-share-caption', buildWearShareCaption(entry));
+  openModal('modal-wear-share');
+}
+
+function shareWearCard() {
+  const text = buildWearShareCaption(_shareWearEntry);
+  if (navigator.share) {
+    navigator.share({ title: 'My ScentHive wear', text }).catch(() => {});
+    return;
+  }
+  navigator.clipboard?.writeText(text).then(() => toast('Wear caption copied')).catch(() => toast(text));
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  let line = '';
+  let lines = 0;
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, y);
+      y += lineHeight;
+      line = word;
+      lines += 1;
+      if (lines >= maxLines - 1) break;
+    } else {
+      line = test;
+    }
+  }
+  if (line && lines < maxLines) ctx.fillText(line, x, y);
+}
+
+async function downloadWearCard() {
+  if (!_shareWearEntry) return;
+  const entry = _shareWearEntry;
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext('2d');
+  const grd = ctx.createLinearGradient(0, 0, 0, 1920);
+  grd.addColorStop(0, '#090712');
+  grd.addColorStop(0.56, '#17111e');
+  grd.addColorStop(1, '#05040b');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, 1080, 1920);
+  ctx.fillStyle = 'rgba(240,192,64,0.18)';
+  ctx.beginPath();
+  ctx.arc(300, 260, 300, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(99,116,200,0.16)';
+  ctx.beginPath();
+  ctx.arc(870, 700, 340, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#f0c040';
+  ctx.font = '700 34px Inter, sans-serif';
+  ctx.fillText('ScentHive', 86, 120);
+  ctx.fillStyle = 'rgba(240,240,250,0.46)';
+  ctx.font = '700 24px monospace';
+  ctx.fillText('YOUR FRAGRANCE DIARY', 86, 1780);
+
+  const initial = (entry.fragrance_name || 'S')[0].toUpperCase();
+  ctx.strokeStyle = 'rgba(240,192,64,0.26)';
+  ctx.lineWidth = 3;
+  roundRect(ctx, 355, 330, 370, 520, 24);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.045)';
+  roundRect(ctx, 355, 330, 370, 520, 24);
+  ctx.fill();
+  ctx.fillStyle = '#f0c040';
+  ctx.font = 'italic 190px Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(initial, 540, 650);
+  ctx.textAlign = 'left';
+
+  const date = entry.worn_at
+    ? new Date(entry.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    : 'Today';
+  ctx.fillStyle = '#f0c040';
+  ctx.font = '700 28px monospace';
+  ctx.fillText(`${date.toUpperCase()} · TODAY I WORE`, 86, 1030);
+  ctx.fillStyle = '#f0f0fa';
+  ctx.font = 'italic 92px Georgia, serif';
+  wrapCanvasText(ctx, entry.fragrance_name || 'Today\'s scent', 86, 1135, 900, 92, 3);
+  ctx.fillStyle = 'rgba(240,192,64,0.65)';
+  ctx.font = '700 28px monospace';
+  ctx.fillText(String(entry.house || '').toUpperCase(), 86, 1425);
+  ctx.fillStyle = '#f0c040';
+  ctx.font = '700 38px monospace';
+  ctx.fillText(entry.rating ? `${entry.rating}/5` : 'LOGGED', 86, 1500);
+  ctx.fillStyle = 'rgba(240,240,250,0.78)';
+  ctx.font = 'italic 34px Inter, sans-serif';
+  wrapCanvasText(ctx, entry.notes ? `"${entry.notes}"` : (entry.occasion || 'Saved in my fragrance diary.'), 86, 1580, 900, 48, 3);
+
+  const link = document.createElement('a');
+  link.download = `scenthive-${slugify(entry.fragrance_name || 'wear')}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
 function listToInput(value) {
   if (!Array.isArray(value)) return '';
   return value.map(item => typeof item === 'string' ? item : (item?.name || '')).filter(Boolean).join(', ');
@@ -3093,9 +3242,14 @@ function _renderEntrySheet(mode) {
       ${e.notes ? `<div class="entry-sheet-notes">${escapeHtml(e.notes)}</div>` : ''}
       ${!hasContent ? '<div style="font-size:12px;color:var(--grey);font-style:italic;margin-bottom:16px">No rating or note yet.</div>' : ''}
       <button class="entry-sheet-edit" onclick="_renderEntrySheet('edit')">${hasContent ? 'Edit' : '+ Add rating & note'}</button>
+      <button class="entry-sheet-edit" style="margin-top:10px" onclick="openWearShareFromEntry()">Share wear card</button>
       <button class="entry-sheet-delete" style="margin-top:10px" onclick="deleteEntryFromSheet(${JSON.stringify(String(e.id || ''))})">Delete entry</button>
     `;
   }
+}
+
+function openWearShareFromEntry() {
+  if (_esEntry) openWearShare(_esEntry);
 }
 
 function esSetRating(n) {
@@ -4275,6 +4429,10 @@ function normalizeText(value) {
     .trim();
 }
 
+function slugify(value) {
+  return normalizeText(value).replace(/\s+/g, '-').slice(0, 60) || 'wear';
+}
+
 function parseManualFragrance(name, house) {
   const cleanName = String(name || '').trim();
   const cleanHouse = String(house || '').trim();
@@ -4440,6 +4598,7 @@ async function saveLog() {
   updateRightSidebar();
   loadCommunityFeed();
   maybeShowFirstLogPayoff(wasFirstDiaryEntry);
+  if (!wasFirstDiaryEntry && diary[0]) setTimeout(() => openWearShare(diary[0]), 650);
 }
 
 async function quickLog(name, house, imageUrl, fragellaId) {
@@ -4556,6 +4715,7 @@ function _afterQuickLog() {
   loadCommunityFeed();
   if (curScreen === 'profile') renderProfile();
   maybeShowFirstLogPayoff(wasFirstDiaryEntry);
+  if (!wasFirstDiaryEntry && diary[0]) setTimeout(() => openWearShare(diary[0]), 450);
 }
 
 // ═══════ UPGRADE ═══════

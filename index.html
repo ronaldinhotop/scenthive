@@ -1281,8 +1281,35 @@
       <div><strong id="first-payoff-hive-count">0</strong><span>in Hive</span></div>
       <div><strong>Live</strong><span>taste profile</span></div>
     </div>
+    <button class="modal-submit" onclick="openLatestWearShare()">Share wear card</button>
     <button class="modal-submit" onclick="closeModal('modal-first-log-payoff');setTimeout(()=>openAdd(),260)">Add bottles to Hive</button>
     <button class="modal-cancel" onclick="closeModal('modal-first-log-payoff');showTab('diary')" style="margin-top:8px">See my diary</button>
+  </div>
+</div>
+
+<!-- ═══ WEAR SHARE CARD MODAL ═══ -->
+<div class="modal-overlay" id="modal-wear-share">
+  <div class="modal wear-share-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-kicker">Shareable wear card</div>
+    <div class="modal-title">Today's scent</div>
+    <div class="wear-share-frame" id="wear-share-card">
+      <div class="wear-share-bg"></div>
+      <div class="wear-share-brand"><img src="/assets/logo-full.png" alt="ScentHive"></div>
+      <div class="wear-share-bottle" id="wear-share-bottle"></div>
+      <div class="wear-share-content">
+        <div class="wear-share-kicker" id="wear-share-date">Today I wore</div>
+        <div class="wear-share-name" id="wear-share-name"></div>
+        <div class="wear-share-house" id="wear-share-house"></div>
+        <div class="wear-share-rating" id="wear-share-rating"></div>
+        <div class="wear-share-note" id="wear-share-note"></div>
+      </div>
+      <div class="wear-share-footer">YOUR FRAGRANCE DIARY</div>
+    </div>
+    <div class="share-modal-url" id="wear-share-caption">ScentHive</div>
+    <button class="modal-submit" onclick="shareWearCard()">Share / copy caption</button>
+    <button class="modal-cancel" onclick="downloadWearCard()">Download card</button>
+    <button class="modal-cancel" data-close="modal-wear-share">Done</button>
   </div>
 </div>
 
