@@ -6389,11 +6389,43 @@ function openShareProfile() {
     s.topRated ? `Top rated: ${s.topRated.name} ★${s.topRated.avg.toFixed(1)}` : '',
     url
   ].filter(Boolean).join('\n');
+  const initial = (name || 'S')[0].toUpperCase();
   document.getElementById('share-card-name').textContent = name;
-  document.getElementById('share-card-stats').textContent = statsStr;
+  document.getElementById('share-card-avatar').textContent = initial;
+  document.getElementById('share-card-handle').textContent = getShareUsername();
+  document.getElementById('share-card-logged').textContent = s.logged;
+  document.getElementById('share-card-hive').textContent = s.collection;
+  document.getElementById('share-card-avg').textContent = s.avg;
+  document.getElementById('share-card-taste').textContent = s.taste;
+  document.getElementById('share-card-facts').innerHTML = buildProfileShareFacts(s);
   document.getElementById('share-url').textContent = url;
   document.getElementById('share-url').setAttribute('data-share-text', shareText);
+  document.getElementById('share-url').setAttribute('data-stats-text', statsStr);
   openModal('modal-share');
+}
+
+function buildProfileShareFacts(s) {
+  const facts = [
+    s.mostWorn ? `<div><strong>Most worn</strong> ${escapeHtml(s.mostWorn.name)}</div>` : '',
+    s.topRated ? `<div><strong>Top rated</strong> ${escapeHtml(s.topRated.name)} · ${s.topRated.avg.toFixed(1)}</div>` : '',
+    s.topHouse ? `<div><strong>Top house</strong> ${escapeHtml(s.topHouse.house)}</div>` : '',
+  ].filter(Boolean);
+  return facts.length ? facts.join('') : '<div><strong>Diary starting</strong> Log a few wears to reveal your fragrance identity.</div>';
+}
+
+async function shareProfileCard() {
+  const url = document.getElementById('share-url').textContent;
+  const text = document.getElementById('share-url').getAttribute('data-share-text') || url;
+  const file = await createProfileCardFile();
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ title: 'My ScentHive profile', text, url, files: [file] });
+      return;
+    } catch (e) {
+      if (e?.name === 'AbortError') return;
+    }
+  }
+  copyShareUrl();
 }
 
 function copyShareUrl() {
@@ -6409,6 +6441,107 @@ function copyShareUrl() {
       toast('Select and copy the link above');
     });
   }
+}
+
+async function createProfileCardFile() {
+  if (!user) return null;
+  const canvas = renderProfileCardCanvas();
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
+  if (!blob) return null;
+  return new File([blob], `scenthive-profile-${slugify(user.user_metadata?.name || user.email || 'profile')}.png`, { type: 'image/png' });
+}
+
+function downloadProfileCard() {
+  if (!user) return;
+  const canvas = renderProfileCardCanvas();
+  const link = document.createElement('a');
+  link.download = `scenthive-profile-${slugify(user.user_metadata?.name || user.email || 'profile')}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function renderProfileCardCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext('2d');
+  const name = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Scenthead';
+  const s = buildProfileSnapshot();
+  const grd = ctx.createLinearGradient(0, 0, 0, 1920);
+  grd.addColorStop(0, '#080711');
+  grd.addColorStop(0.58, '#15111f');
+  grd.addColorStop(1, '#05040b');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, 1080, 1920);
+  ctx.fillStyle = 'rgba(240,192,64,0.2)';
+  ctx.beginPath();
+  ctx.arc(540, 180, 330, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#f0c040';
+  ctx.font = '700 46px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ScentHive', 540, 125);
+
+  ctx.beginPath();
+  ctx.arc(540, 335, 96, 0, Math.PI * 2);
+  ctx.fillStyle = '#f0c040';
+  ctx.fill();
+  ctx.fillStyle = '#080810';
+  ctx.font = 'italic 86px Georgia, serif';
+  ctx.fillText((name || 'S')[0].toUpperCase(), 540, 364);
+
+  ctx.fillStyle = '#f0f0fa';
+  ctx.font = 'italic 82px Georgia, serif';
+  wrapCanvasText(ctx, name, 140, 510, 800, 86, 2);
+  ctx.fillStyle = 'rgba(240,192,64,0.62)';
+  ctx.font = '700 28px monospace';
+  ctx.fillText(getShareUsername().toUpperCase(), 540, 650);
+
+  const cells = [
+    ['Logged', s.logged],
+    ['Hive', s.collection],
+    ['Avg', s.avg],
+    ['Taste', s.taste],
+  ];
+  const gridX = 110;
+  const gridY = 760;
+  const cellW = 430;
+  const cellH = 190;
+  cells.forEach(([label, value], i) => {
+    const x = gridX + (i % 2) * cellW;
+    const y = gridY + Math.floor(i / 2) * cellH;
+    ctx.fillStyle = 'rgba(255,255,255,0.055)';
+    roundRect(ctx, x, y, cellW - 10, cellH - 10, 18);
+    ctx.fill();
+    ctx.fillStyle = '#f0c040';
+    ctx.font = '500 62px Georgia, serif';
+    ctx.fillText(String(value), x + cellW / 2 - 5, y + 86);
+    ctx.fillStyle = 'rgba(240,240,250,0.58)';
+    ctx.font = '700 22px monospace';
+    ctx.fillText(label.toUpperCase(), x + cellW / 2 - 5, y + 132);
+  });
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(240,192,64,0.08)';
+  roundRect(ctx, 110, 1190, 860, 300, 24);
+  ctx.fill();
+  ctx.fillStyle = '#f0c040';
+  ctx.font = '700 30px Inter, sans-serif';
+  ctx.fillText('Fragrance identity', 150, 1260);
+  ctx.fillStyle = 'rgba(240,240,250,0.82)';
+  ctx.font = '34px Inter, sans-serif';
+  const facts = [
+    s.mostWorn ? `Most worn: ${s.mostWorn.name}` : '',
+    s.topRated ? `Top rated: ${s.topRated.name} · ${s.topRated.avg.toFixed(1)}` : '',
+    s.topHouse ? `Top house: ${s.topHouse.house}` : '',
+  ].filter(Boolean);
+  wrapCanvasText(ctx, facts.length ? facts.join('  /  ') : 'Log a few wears to reveal your fragrance identity.', 150, 1340, 780, 48, 3);
+  ctx.fillStyle = 'rgba(240,240,250,0.38)';
+  ctx.font = '700 24px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('YOUR FRAGRANCE IDENTITY', 540, 1810);
+  ctx.textAlign = 'left';
+  return canvas;
 }
 
 // ═══════ PUBLIC PROFILE ═══════

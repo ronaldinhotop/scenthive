@@ -1197,6 +1197,21 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 /* ═══ SHARE PROFILE ═══ */
 .share-modal-url{font-family:'DM Mono',monospace;font-size:11px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--white2);word-break:break-all;line-height:1.5;margin-bottom:12px;cursor:text;user-select:all}
 .share-card{background:linear-gradient(135deg,var(--gold-pale),var(--purple-pale));border-radius:4px;padding:20px;margin-bottom:14px;text-align:center}
+.profile-share-modal{max-width:460px}
+.profile-card-frame{position:relative;aspect-ratio:9/16;width:min(100%,340px);margin:0 auto 14px;border:1px solid rgba(240,192,64,0.22);border-radius:8px;overflow:hidden;background:#05040b;box-shadow:0 22px 70px rgba(0,0,0,0.44)}
+.profile-card-stage{position:absolute;inset:0;padding:30px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;background:radial-gradient(circle at 50% 8%,rgba(240,192,64,0.28),transparent 30%),radial-gradient(circle at 88% 52%,rgba(99,116,200,0.18),transparent 34%),linear-gradient(180deg,#080711 0%,#15111f 58%,#05040b 100%)}
+.profile-card-brand img{width:150px;height:auto;mix-blend-mode:screen;margin-bottom:34px}
+.profile-card-avatar{width:92px;height:92px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--bg);font-family:'Playfair Display',serif;font-size:44px;font-style:italic;border:2px solid rgba(255,255,255,0.18);box-shadow:0 18px 40px rgba(0,0,0,0.28);margin-bottom:16px}
+.profile-card-name{font-family:'Playfair Display',serif;font-size:36px;font-style:italic;line-height:1;color:var(--white);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-card-handle{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold-dim);letter-spacing:0.1em;text-transform:uppercase;margin-top:8px}
+.profile-card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;width:100%;margin-top:34px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden}
+.profile-card-grid div{background:rgba(255,255,255,0.045);padding:16px 10px}
+.profile-card-grid strong{display:block;font-family:'Playfair Display',serif;font-size:30px;line-height:1;color:var(--gold);font-weight:500}
+.profile-card-grid span{display:block;margin-top:6px;font-family:'DM Mono',monospace;font-size:8px;color:var(--white2);letter-spacing:0.12em;text-transform:uppercase}
+.profile-card-facts{width:100%;margin-top:22px;padding:16px;border:1px solid rgba(240,192,64,0.16);border-radius:8px;background:rgba(240,192,64,0.07);color:rgba(240,240,250,0.82);font-size:13px;line-height:1.55;text-align:left}
+.profile-card-facts div+div{margin-top:8px}
+.profile-card-facts strong{color:var(--gold);font-weight:600}
+.profile-card-footer{margin-top:auto;font-family:'DM Mono',monospace;font-size:8px;color:rgba(240,240,250,0.38);letter-spacing:0.16em;text-transform:uppercase}
 .wear-share-modal{max-width:460px}
 .wear-share-frame{position:relative;aspect-ratio:9/16;width:min(100%,340px);margin:0 auto 14px;border:1px solid rgba(255,255,255,0.12);border-radius:8px;overflow:hidden;background:#2f3034;box-shadow:0 22px 70px rgba(0,0,0,0.44)}
 .wear-share-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:26px;background:radial-gradient(circle at 22% 18%,rgba(240,192,64,0.18),transparent 28%),linear-gradient(135deg,#77716a 0%,#39383d 54%,#17171c 100%)}

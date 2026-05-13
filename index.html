@@ -1215,16 +1215,28 @@
 
 <!-- ═══ SHARE PROFILE MODAL ═══ -->
 <div class="modal-overlay" id="modal-share">
-  <div class="modal">
+  <div class="modal profile-share-modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Share your profile</div>
-    <div class="share-card">
-      <div style="font-size:28px;margin-bottom:8px">🐝</div>
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;margin-bottom:4px" id="share-card-name">Your profile</div>
-      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:0.1em" id="share-card-stats"></div>
+    <div class="profile-card-frame" id="profile-share-card">
+      <div class="profile-card-stage">
+        <div class="profile-card-brand"><img src="/assets/logo-full.png" alt="ScentHive"></div>
+        <div class="profile-card-avatar" id="share-card-avatar">S</div>
+        <div class="profile-card-name" id="share-card-name">Your profile</div>
+        <div class="profile-card-handle" id="share-card-handle">@scenthive</div>
+        <div class="profile-card-grid">
+          <div><strong id="share-card-logged">0</strong><span>Logged</span></div>
+          <div><strong id="share-card-hive">0</strong><span>Hive</span></div>
+          <div><strong id="share-card-avg">-</strong><span>Avg</span></div>
+          <div><strong id="share-card-taste">New</strong><span>Taste</span></div>
+        </div>
+        <div class="profile-card-facts" id="share-card-facts"></div>
+        <div class="profile-card-footer">YOUR FRAGRANCE IDENTITY</div>
+      </div>
     </div>
     <div class="share-modal-url" id="share-url">scenthive.app</div>
-    <button class="modal-submit" onclick="copyShareUrl()">Copy link</button>
+    <button class="modal-submit" onclick="shareProfileCard()">Share profile card</button>
+    <button class="modal-cancel" onclick="downloadProfileCard()">Download card</button>
     <button class="modal-cancel" data-close="modal-share">Done</button>
   </div>
 </div>
