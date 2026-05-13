@@ -1294,17 +1294,26 @@
     <div class="modal-kicker">Shareable wear card</div>
     <div class="modal-title">Today's scent</div>
     <div class="wear-share-frame" id="wear-share-card">
-      <div class="wear-share-bg"></div>
-      <div class="wear-share-brand"><img src="/assets/logo-full.png" alt="ScentHive"></div>
-      <div class="wear-share-bottle" id="wear-share-bottle"></div>
-      <div class="wear-share-content">
-        <div class="wear-share-kicker" id="wear-share-date">Today I wore</div>
-        <div class="wear-share-name" id="wear-share-name"></div>
-        <div class="wear-share-house" id="wear-share-house"></div>
-        <div class="wear-share-rating" id="wear-share-rating"></div>
-        <div class="wear-share-note" id="wear-share-note"></div>
+      <div class="wear-share-stage">
+        <div class="wear-share-sticker">
+          <div class="wear-share-top">
+            <div class="wear-share-avatar">SH</div>
+            <div><strong id="wear-share-user">@scenthive</strong><span id="wear-share-date">now</span></div>
+            <div class="wear-share-mark">⬡</div>
+          </div>
+          <div class="wear-share-main">
+            <div class="wear-share-bottle" id="wear-share-bottle"></div>
+            <div class="wear-share-info">
+              <div class="wear-share-name" id="wear-share-name"></div>
+              <div class="wear-share-house" id="wear-share-house"></div>
+            </div>
+            <div class="wear-share-score" id="wear-share-rating"></div>
+          </div>
+          <div class="wear-share-tags" id="wear-share-tags"></div>
+          <div class="wear-share-note" id="wear-share-note"></div>
+        </div>
+        <div class="wear-share-footer">ScentHive · your fragrance diary</div>
       </div>
-      <div class="wear-share-footer">YOUR FRAGRANCE DIARY</div>
     </div>
     <div class="share-modal-url" id="wear-share-caption">ScentHive</div>
     <button class="modal-submit" onclick="shareWearCard()">Share card to apps</button>

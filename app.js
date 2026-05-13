@@ -2287,7 +2287,7 @@ function openWearShare(entry) {
   const date = entry.worn_at
     ? new Date(entry.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
     : 'Today';
-  const rating = entry.rating ? '★'.repeat(Math.max(0, Math.min(5, Number(entry.rating) || 0))) : '';
+  const rating = formatWearScore(entry.rating);
   const bottle = document.getElementById('wear-share-bottle');
   if (bottle) {
     bottle.innerHTML = entry.image_url
@@ -2298,13 +2298,43 @@ function openWearShare(entry) {
     const el = document.getElementById(id);
     if (el) el.textContent = value || '';
   };
-  setText('wear-share-date', `${date} · Today I wore`);
+  setText('wear-share-user', getShareUsername());
+  setText('wear-share-date', `${date} · now`);
   setText('wear-share-name', name);
-  setText('wear-share-house', house);
+  setText('wear-share-house', house ? `${house} · Fragrance` : 'Fragrance');
   setText('wear-share-rating', rating || 'Logged');
   setText('wear-share-note', entry.notes ? `"${entry.notes}"` : (entry.occasion ? entry.occasion : 'Saved in my fragrance diary.'));
+  renderWearShareTags(entry);
   setText('wear-share-caption', buildWearShareCaption(entry));
   openModal('modal-wear-share');
+}
+
+function getShareUsername() {
+  const raw = user?.user_metadata?.username || user?.user_metadata?.name || user?.email?.split('@')[0] || 'scenthive';
+  return '@' + String(raw).toLowerCase().replace(/[^a-z0-9_.]+/g, '').slice(0, 22);
+}
+
+function formatWearScore(rating) {
+  const n = Number(rating) || 0;
+  if (!n) return '';
+  return (n * 2).toFixed(n % 1 ? 1 : 0);
+}
+
+function getWearTags(entry) {
+  const tags = [];
+  if (entry.occasion) tags.push(entry.occasion);
+  const haystack = `${entry.fragrance_name || ''} ${entry.house || ''}`.toLowerCase();
+  if (/oud|tobacco|leather|noire|black|ombre/.test(haystack)) tags.push('dark');
+  if (/fresh|aqua|neroli|citrus|blue|bleu|light/.test(haystack)) tags.push('fresh');
+  if (/vanille|vanilla|gourmand|cherry|honey|sweet/.test(haystack)) tags.push('sweet');
+  if (!tags.length) tags.push('daily wear');
+  return [...new Set(tags)].slice(0, 2);
+}
+
+function renderWearShareTags(entry) {
+  const el = document.getElementById('wear-share-tags');
+  if (!el) return;
+  el.innerHTML = getWearTags(entry).map(tag => `<span>${escapeHtml(tag)}</span>`).join('');
 }
 
 async function shareWearCard() {
@@ -2361,60 +2391,98 @@ function renderWearCardCanvas(entry) {
   canvas.width = 1080;
   canvas.height = 1920;
   const ctx = canvas.getContext('2d');
-  const grd = ctx.createLinearGradient(0, 0, 0, 1920);
-  grd.addColorStop(0, '#090712');
-  grd.addColorStop(0.56, '#17111e');
-  grd.addColorStop(1, '#05040b');
+  const grd = ctx.createLinearGradient(0, 0, 1080, 1920);
+  grd.addColorStop(0, '#837d73');
+  grd.addColorStop(0.55, '#3e3d42');
+  grd.addColorStop(1, '#17171c');
   ctx.fillStyle = grd;
   ctx.fillRect(0, 0, 1080, 1920);
-  ctx.fillStyle = 'rgba(240,192,64,0.18)';
+  ctx.fillStyle = 'rgba(240,192,64,0.16)';
   ctx.beginPath();
-  ctx.arc(300, 260, 300, 0, Math.PI * 2);
+  ctx.arc(280, 340, 360, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = 'rgba(99,116,200,0.16)';
-  ctx.beginPath();
-  ctx.arc(870, 700, 340, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#f0c040';
-  ctx.font = '700 34px Inter, sans-serif';
-  ctx.fillText('ScentHive', 86, 120);
-  ctx.fillStyle = 'rgba(240,240,250,0.46)';
-  ctx.font = '700 24px monospace';
-  ctx.fillText('YOUR FRAGRANCE DIARY', 86, 1780);
 
   const initial = (entry.fragrance_name || 'S')[0].toUpperCase();
-  ctx.strokeStyle = 'rgba(240,192,64,0.26)';
-  ctx.lineWidth = 3;
-  roundRect(ctx, 355, 330, 370, 520, 24);
-  ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,0.045)';
-  roundRect(ctx, 355, 330, 370, 520, 24);
+  const cardX = 86;
+  const cardY = 560;
+  const cardW = 908;
+  const cardH = 520;
+  ctx.shadowColor = 'rgba(0,0,0,0.28)';
+  ctx.shadowBlur = 46;
+  ctx.shadowOffsetY = 24;
+  ctx.fillStyle = 'rgba(255,255,255,0.90)';
+  roundRect(ctx, cardX, cardY, cardW, cardH, 38);
   ctx.fill();
-  ctx.fillStyle = '#f0c040';
-  ctx.font = 'italic 190px Georgia, serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(initial, 540, 650);
-  ctx.textAlign = 'left';
+  ctx.shadowColor = 'transparent';
 
   const date = entry.worn_at
     ? new Date(entry.worn_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
     : 'Today';
   ctx.fillStyle = '#f0c040';
-  ctx.font = '700 28px monospace';
-  ctx.fillText(`${date.toUpperCase()} · TODAY I WORE`, 86, 1030);
-  ctx.fillStyle = '#f0f0fa';
-  ctx.font = 'italic 92px Georgia, serif';
-  wrapCanvasText(ctx, entry.fragrance_name || 'Today\'s scent', 86, 1135, 900, 92, 3);
-  ctx.fillStyle = 'rgba(240,192,64,0.65)';
-  ctx.font = '700 28px monospace';
-  ctx.fillText(String(entry.house || '').toUpperCase(), 86, 1425);
-  ctx.fillStyle = '#f0c040';
-  ctx.font = '700 38px monospace';
-  ctx.fillText(entry.rating ? `${entry.rating}/5` : 'LOGGED', 86, 1500);
-  ctx.fillStyle = 'rgba(240,240,250,0.78)';
+  ctx.beginPath();
+  ctx.arc(cardX + 58, cardY + 58, 34, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#111111';
+  ctx.font = '800 20px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('SH', cardX + 58, cardY + 66);
+  ctx.textAlign = 'left';
+  ctx.font = '800 30px Inter, sans-serif';
+  ctx.fillText(getShareUsername(), cardX + 108, cardY + 52);
+  ctx.fillStyle = '#777777';
+  ctx.font = '500 26px Inter, sans-serif';
+  ctx.fillText(`${date} · now`, cardX + 108, cardY + 88);
+  ctx.fillStyle = '#111111';
+  ctx.font = '800 44px Inter, sans-serif';
+  ctx.fillText('⬡', cardX + cardW - 82, cardY + 72);
+
+  ctx.fillStyle = '#f2f0ed';
+  roundRect(ctx, cardX + 34, cardY + 130, 150, 190, 20);
+  ctx.fill();
+  ctx.fillStyle = '#c99520';
+  ctx.font = 'italic 72px Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(initial, cardX + 109, cardY + 248);
+  ctx.textAlign = 'left';
+
+  ctx.fillStyle = '#111111';
+  ctx.font = '800 44px Inter, sans-serif';
+  wrapCanvasText(ctx, entry.fragrance_name || 'Today\'s scent', cardX + 214, cardY + 188, 430, 52, 2);
+  ctx.fillStyle = '#555555';
+  ctx.font = '500 30px Inter, sans-serif';
+  wrapCanvasText(ctx, `${entry.house || 'Fragrance'} · Fragrance`, cardX + 214, cardY + 302, 410, 36, 1);
+
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 12;
+  ctx.beginPath();
+  ctx.arc(cardX + cardW - 112, cardY + 226, 78, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = '#22c55e';
+  ctx.font = '800 48px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(formatWearScore(entry.rating) || 'Log', cardX + cardW - 112, cardY + 244);
+  ctx.textAlign = 'left';
+
+  let tagX = cardX + 34;
+  getWearTags(entry).forEach(tag => {
+    ctx.font = '500 24px Inter, sans-serif';
+    const width = Math.min(190, ctx.measureText(tag).width + 38);
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    roundRect(ctx, tagX, cardY + 358, width, 48, 24);
+    ctx.fill();
+    ctx.fillStyle = '#444444';
+    ctx.fillText(tag, tagX + 18, cardY + 390);
+    tagX += width + 12;
+  });
+
+  ctx.fillStyle = '#222222';
   ctx.font = 'italic 34px Inter, sans-serif';
-  wrapCanvasText(ctx, entry.notes ? `"${entry.notes}"` : (entry.occasion || 'Saved in my fragrance diary.'), 86, 1580, 900, 48, 3);
+  wrapCanvasText(ctx, entry.notes ? `"${entry.notes}"` : (entry.occasion || 'Saved in my fragrance diary.'), cardX + 34, cardY + 460, cardW - 68, 44, 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.72)';
+  ctx.font = '700 24px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('SCENTHIVE · YOUR FRAGRANCE DIARY', 540, 1810);
+  ctx.textAlign = 'left';
   return canvas;
 }
 
