@@ -28,8 +28,87 @@
 </head>
 <body>
 
+<!-- ═══ LANDING ═══ -->
+<div class="screen active" id="screen-landing">
+  <nav class="landing-nav" aria-label="Landing">
+    <button class="landing-logo" onclick="showScreen('landing')" aria-label="ScentHive">
+      <img src="/assets/logo-full.png" alt="ScentHive">
+    </button>
+    <div class="landing-nav-actions">
+      <button class="landing-link" onclick="startLandingAuth('signin')">Sign in</button>
+      <button class="landing-button primary" onclick="startLandingAuth('signup')">Start diary</button>
+    </div>
+  </nav>
+
+  <main class="landing-main">
+    <section class="landing-hero">
+      <div class="landing-bottle-field" aria-hidden="true">
+        <div class="landing-bottle"><img src="https://cdn.fragella.com/images/creed-aventus.jpg" alt=""></div>
+        <div class="landing-bottle"><img src="https://cdn.fragella.com/images/tom-ford-oud-wood.jpg" alt=""></div>
+        <div class="landing-bottle"><img src="https://cdn.fragella.com/images/maison-francis-kurkdjian-baccarat-rouge-540.jpg" alt=""></div>
+        <div class="landing-bottle"><img src="https://cdn.fragella.com/images/le-labo-santal-33.jpg" alt=""></div>
+        <div class="landing-bottle"><img src="https://cdn.fragella.com/images/dior-sauvage-elixir.jpg" alt=""></div>
+        <div class="landing-bottle"><img src="https://cdn.fragella.com/images/mojave-ghost-byredo.jpg" alt=""></div>
+        <div class="landing-bottle"><img src="https://cdn.fragella.com/images/tom-ford-black-orchid.jpg" alt=""></div>
+        <div class="landing-bottle"><img src="https://cdn.fragella.com/images/diptyque-tam-dao.jpg" alt=""></div>
+      </div>
+      <div class="landing-hero-copy">
+        <div class="landing-kicker">Your fragrance diary</div>
+        <h1>Scent<em>Hive</em></h1>
+        <p>Log every wear, build your Hive, and turn your fragrance taste into a living profile you can remember, share, and improve.</p>
+        <div class="landing-actions">
+          <button class="landing-button primary" onclick="startLandingAuth('signup')">Start your diary</button>
+          <button class="landing-button" onclick="enterAsGuest()">Try without account</button>
+        </div>
+        <div class="landing-proof">
+          <div><strong>Diary</strong><span>Every wear remembered</span></div>
+          <div><strong>Hive</strong><span>Your real collection</span></div>
+          <div><strong>Taste</strong><span>Patterns over time</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section" id="landing-first-loop">
+      <div class="landing-section-head">
+        <div>
+          <div class="landing-kicker">First 60 seconds</div>
+          <h2>Start with the scent you wore today.</h2>
+        </div>
+        <p>ScentHive becomes valuable when the user creates memory. The first action is simple: log a scent, rate it, then watch the diary, Hive, and profile begin to connect.</p>
+      </div>
+      <div class="landing-product-grid">
+        <article class="landing-panel">
+          <div class="landing-panel-top"><span>Today</span><span>Diary</span></div>
+          <div class="landing-wear-row">
+            <div class="landing-thumb">SL</div>
+            <div>
+              <h3>Speed Legends</h3>
+              <p>Ex Nihilo · clean, fast, night-drive energy</p>
+            </div>
+            <strong>4.2</strong>
+          </div>
+          <div class="landing-wear-row">
+            <img src="https://cdn.fragella.com/images/tom-ford-oud-wood.jpg" alt="Tom Ford Oud Wood">
+            <div>
+              <h3>Oud Wood</h3>
+              <p>Tom Ford · calm confidence, easy reach</p>
+            </div>
+            <strong>4.5</strong>
+          </div>
+        </article>
+        <aside class="landing-panel">
+          <div class="landing-panel-top"><span>Why return?</span><span>Profile</span></div>
+          <div class="landing-insight gold"><span>Most worn accord</span><strong>Woody amber</strong></div>
+          <div class="landing-insight blue"><span>Wardrobe gap</span><strong>Fresh summer signature</strong></div>
+          <div class="landing-insight green"><span>Tomorrow</span><strong>Pick my scent of the day</strong></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+</div>
+
 <!-- ═══ AUTH ═══ -->
-<div class="screen active" id="screen-auth">
+<div class="screen" id="screen-auth">
   <div class="auth-wrap">
     <div class="auth-logo">
       <img class="auth-mark-img" src="/assets/logo-mark.png" alt="" aria-hidden="true">

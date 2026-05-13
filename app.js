@@ -402,9 +402,9 @@ function showScreen(id) {
   document.querySelectorAll('.gtnav-link[data-tab]').forEach(l => {
     l.classList.toggle('active', l.getAttribute('data-tab') === id);
   });
-  // Show/hide global topnav on auth/article screens
+  // Show/hide global topnav on public/auth/article screens
   const gtnav = document.getElementById('global-topnav');
-  if (gtnav) gtnav.style.display = (id === 'auth' || id === 'article') ? 'none' : '';
+  if (gtnav) gtnav.style.display = (id === 'landing' || id === 'auth' || id === 'article') ? 'none' : '';
   // Update avatar initial
   const av = document.getElementById('gtnav-avatar');
   if (av && typeof user !== 'undefined' && user) {
@@ -425,6 +425,15 @@ function goBack() { showScreen(prevScreen || 'home') }
 function goToProfile() { showTab('profile') }
 
 // ═══════ AUTH ═══════
+function startLandingAuth(mode) {
+  setAuthMode(mode || 'signup');
+  showScreen('auth');
+  setTimeout(() => {
+    const target = document.getElementById(mode === 'signin' ? 'auth-email' : 'auth-name') || document.getElementById('auth-email');
+    if (target) target.focus();
+  }, 120);
+}
+
 function setAuthMode(mode) {
   authMode = mode;
   document.getElementById('tab-signin').classList.toggle('active', mode === 'signin');
@@ -525,7 +534,7 @@ async function doSignOut() {
   diary = [];
   collection = [];
   closeModal('modal-settings');
-  showScreen('auth');
+  showScreen('landing');
 }
 
 // ═══════ DATA ═══════
@@ -6474,8 +6483,12 @@ document.addEventListener('keydown', function(e) {
     if (session?.user) {
       user = session.user;
       await initApp();
+    } else {
+      showScreen('landing');
     }
-  } catch (e) {}
+  } catch (e) {
+    showScreen('landing');
+  }
   sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       user = session.user;
@@ -6485,7 +6498,7 @@ document.addEventListener('keydown', function(e) {
       user = null;
       diary = [];
       collection = [];
-      showScreen('auth');
+      showScreen('landing');
     }
   });
 })();
