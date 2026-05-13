@@ -21,6 +21,27 @@ let curScreen = 'auth';
 let searchTimer = null;
 let fragStore = {};
 let _improveFrag = null;
+let _currentDuelPair = null;
+
+const DUEL_TARGET = 10;
+const DUEL_STARTER_QUERIES = [
+  'Creed Aventus',
+  'Dior Sauvage Elixir',
+  'Bleu de Chanel',
+  'Tom Ford Oud Wood',
+  'Tom Ford Tobacco Vanille',
+  'Le Labo Santal 33',
+  'Baccarat Rouge 540 Maison Francis Kurkdjian',
+  'Xerjoff Naxos',
+  'Byredo Bal d Afrique',
+  'Diptyque Philosykos',
+  'Parfums de Marly Layton',
+  'Frederic Malle Portrait of a Lady',
+  'Nishane Hacivat',
+  'Giorgio Armani Acqua di Gio Profumo',
+  'Maison Margiela Jazz Club',
+  'Initio Oud for Greatness'
+];
 
 // ═══════ COMMUNITY FEED STATE ═══════
 let _feedEntries = [];
@@ -722,6 +743,7 @@ async function renderHome() {
   updateHero();
   renderTodayWear();
   renderScentOfDay();
+  renderScentDuelsModule();
   renderContinueStrip();
   renderNoseCta();
   renderRecentsShelf();
@@ -1442,6 +1464,360 @@ function logScentToday() {
 
 function openScentTodayDetail() {
   if (_scentTodayKey) openFrag(_scentTodayKey);
+}
+
+function emptyDuelState() {
+  return { version: 1, battles: [], skipped: [], updated_at: null };
+}
+
+function cleanDuelState(raw) {
+  const state = raw && typeof raw === 'object' ? raw : {};
+  return {
+    version: 1,
+    battles: Array.isArray(state.battles) ? state.battles.filter(b => b && b.winner && b.loser).slice(-80) : [],
+    skipped: Array.isArray(state.skipped) ? state.skipped.filter(Boolean).slice(-60) : [],
+    updated_at: state.updated_at || null,
+    summary: state.summary || null
+  };
+}
+
+function getDuelState() {
+  let local = null;
+  let remote = null;
+  try {
+    local = cleanDuelState(JSON.parse(localStorage.getItem(firstRunStorageKey('scent_duels')) || 'null'));
+  } catch (e) {}
+  if (user?.user_metadata?.scent_duels) {
+    remote = cleanDuelState(user.user_metadata.scent_duels);
+  }
+  const choices = [local, remote].filter(Boolean);
+  if (!choices.length) return emptyDuelState();
+  choices.sort((a, b) => {
+    const battleDiff = (b.battles?.length || 0) - (a.battles?.length || 0);
+    if (battleDiff) return battleDiff;
+    return new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime();
+  });
+  return choices[0];
+}
+
+function saveDuelState(state) {
+  const clean = cleanDuelState(state);
+  clean.updated_at = new Date().toISOString();
+  clean.summary = computeDuelTaste(clean);
+  try {
+    localStorage.setItem(firstRunStorageKey('scent_duels'), JSON.stringify(clean));
+  } catch (e) {}
+
+  if (user) {
+    const payload = {
+      ...clean,
+      battles: clean.battles.slice(-80),
+      skipped: clean.skipped.slice(-60)
+    };
+    sb.auth.updateUser({ data: { scent_duels: payload } }).then(({ data }) => {
+      if (data?.user) user = data.user;
+      else user.user_metadata = { ...(user.user_metadata || {}), scent_duels: payload };
+    }).catch(() => {});
+  }
+  return clean;
+}
+
+function buildDuelPool() {
+  const picks = [];
+  const seen = new Set();
+  const push = source => {
+    if (!source) return;
+    const base = hydrateFragranceFromStatic({
+      name: source.name || source.fragrance_name || '',
+      house: source.house || '',
+      image_url: source.image_url || null,
+      fragella_id: source.fragella_id || null,
+      family: source.family || '',
+      accords: source.accords || [],
+      notes_top: source.notes_top || [],
+      notes_heart: source.notes_heart || [],
+      notes_base: source.notes_base || []
+    });
+    if (!base.name) return;
+    const key = normalizeText(base.name + ' ' + (base.house || ''));
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    picks.push(base);
+  };
+
+  collection.forEach(push);
+  diary.forEach(push);
+  DUEL_STARTER_QUERIES.forEach(q => {
+    const hits = staticSearch(q);
+    if (hits[0]) push(hits[0]);
+  });
+  if (picks.length < 12) {
+    ['vanilla', 'fresh citrus', 'oud', 'iris', 'woody', 'musk', 'rose', 'tobacco'].forEach(q => {
+      staticSearch(q).slice(0, 2).forEach(push);
+    });
+  }
+  return picks.slice(0, 60);
+}
+
+function duelPairKey(a, b) {
+  return [scentKey(a), scentKey(b)].sort().join('::');
+}
+
+function pickDuelPair(state) {
+  const pool = buildDuelPool();
+  if (pool.length < 2) return null;
+  const blocked = new Set([
+    ...(state.battles || []).map(b => b.pair_key).filter(Boolean),
+    ...(state.skipped || [])
+  ]);
+  const seedBase = [
+    new Date().toISOString().slice(0, 10),
+    user?.id || 'guest',
+    state.battles.length,
+    state.skipped.length
+  ].join('|');
+  let seed = hashText(seedBase);
+  for (let i = 0; i < 90; i++) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    const a = pool[seed % pool.length];
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    const b = pool[seed % pool.length];
+    if (!a || !b || scentKey(a) === scentKey(b)) continue;
+    const key = duelPairKey(a, b);
+    if (!blocked.has(key) || blocked.size > pool.length * 2) return { items: [a, b], key };
+  }
+  return { items: [pool[0], pool[1]], key: duelPairKey(pool[0], pool[1]) };
+}
+
+function compactDuelFragrance(f) {
+  const accords = (f.accords || []).map(getAccordName).filter(Boolean).slice(0, 5);
+  return {
+    name: f.name || '',
+    house: f.house || '',
+    image_url: f.image_url || '',
+    family: f.family || '',
+    accords,
+    key: scentKey(f),
+    signals: duelSignals(f).slice(0, 10)
+  };
+}
+
+function duelSignals(f) {
+  const values = [
+    f.family,
+    ...(Array.isArray(f.accords) ? f.accords.map(getAccordName) : []),
+    ...(Array.isArray(f.notes_top) ? f.notes_top : []),
+    ...(Array.isArray(f.notes_heart) ? f.notes_heart : []),
+    ...(Array.isArray(f.notes_base) ? f.notes_base : [])
+  ];
+  return values
+    .map(v => normalizeText(typeof v === 'string' ? v : (v?.name || '')))
+    .filter(Boolean)
+    .flatMap(v => [...new Set([v, ...v.split(/\s+/)])])
+    .filter(Boolean);
+}
+
+function computeDuelTaste(state) {
+  const battles = (state?.battles || []).filter(b => b?.winner);
+  const signalCounts = {};
+  const houseCounts = {};
+  battles.forEach(b => {
+    const winner = b.winner;
+    if (winner.house) houseCounts[winner.house] = (houseCounts[winner.house] || 0) + 1;
+    (winner.signals || []).forEach(signal => {
+      signalCounts[signal] = (signalCounts[signal] || 0) + 1;
+    });
+  });
+
+  const styles = [
+    { key: 'dark', label: 'Dark Statement Wearer', copy: 'You lean toward scents with shadow, texture, and presence.', match: ['oud','smoky','smoke','leather','tobacco','amber','resin','incense','balsamic'] },
+    { key: 'fresh', label: 'Fresh Signature Seeker', copy: 'You reach for clean lift, citrus brightness, and easy daily wear.', match: ['fresh','citrus','aromatic','aquatic','marine','green','ozonic','bergamot','lemon'] },
+    { key: 'woody', label: 'Woody Minimalist', copy: 'You seem drawn to structured woods, dry texture, and calm confidence.', match: ['woody','wood','cedar','sandalwood','vetiver','moss','earthy','patchouli'] },
+    { key: 'gourmand', label: 'Sweet Gourmand Romantic', copy: 'You choose warmth, vanilla, comfort, and edible softness more than you may admit.', match: ['vanilla','sweet','gourmand','tonka','caramel','honey','coffee','chocolate','almond'] },
+    { key: 'soft', label: 'Soft Skin-Scent Curator', copy: 'You prefer close, polished scents that feel personal rather than loud.', match: ['musk','musky','powdery','iris','floral','rose','jasmine','clean','aldehydic'] }
+  ];
+  const scored = styles.map(style => ({
+    ...style,
+    score: style.match.reduce((sum, token) => sum + (signalCounts[token] || 0), 0)
+  })).sort((a, b) => b.score - a.score);
+  const winner = scored[0]?.score ? scored[0] : {
+    label: 'Taste Explorer',
+    copy: 'Your choices are still broad. A few more duels will sharpen the read.',
+    key: 'explorer',
+    score: 0
+  };
+  const topSignals = Object.entries(signalCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([signal]) => titleCaseWords(signal));
+  const topHouse = Object.entries(houseCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+  return {
+    label: winner.label,
+    copy: winner.copy,
+    topSignals,
+    topHouse,
+    count: battles.length,
+    progress: Math.min(DUEL_TARGET, battles.length)
+  };
+}
+
+function renderScentDuelsModule() {
+  const section = document.getElementById('section-duels');
+  const card = document.getElementById('duels-home-card');
+  if (!section || !card) return;
+  const pool = buildDuelPool();
+  if (pool.length < 2) {
+    section.style.display = 'none';
+    return;
+  }
+
+  const state = getDuelState();
+  const summary = computeDuelTaste(state);
+  const progress = Math.min(DUEL_TARGET, state.battles.length);
+  const percent = Math.round((progress / DUEL_TARGET) * 100);
+  const pair = pickDuelPair(state);
+  const resultUnlocked = state.battles.length >= DUEL_TARGET;
+  const miniPair = pair?.items?.length === 2 ? pair.items.map(f => {
+    const img = f.image_url
+      ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + escapeHtml(f.name || '') + '" onerror="this.style.display=\'none\'">'
+      : '<span>' + escapeHtml((f.name || 'S')[0]) + '</span>';
+    return '<div class="duel-mini-bottle">' + img + '</div>';
+  }).join('<div class="duel-mini-vs">vs</div>') : '';
+
+  card.innerHTML = '<div class="duel-home-card">' +
+    '<div class="duel-home-main">' +
+      '<div class="duel-home-kicker">' + (resultUnlocked ? 'Taste identity unlocked' : '10 choices to unlock') + '</div>' +
+      '<div class="duel-home-title">' + escapeHtml(resultUnlocked ? summary.label : 'Train your ScentHive taste') + '</div>' +
+      '<div class="duel-home-sub">' + escapeHtml(resultUnlocked ? summary.copy : 'Pick between two fragrances. Your winners become taste signals for future recommendations.') + '</div>' +
+      '<div class="duel-home-progress"><span style="width:' + percent + '%"></span></div>' +
+      '<div class="duel-home-meta">' + progress + '/' + DUEL_TARGET + ' duels' + (summary.topSignals?.length ? ' · ' + escapeHtml(summary.topSignals.slice(0, 2).join(' / ')) : '') + '</div>' +
+    '</div>' +
+    '<button class="duel-home-side" onclick="openScentDuels()">' +
+      '<div class="duel-mini-pair">' + miniPair + '</div>' +
+      '<span>' + (resultUnlocked ? 'View result' : 'Play') + '</span>' +
+    '</button>' +
+  '</div>';
+  section.style.display = '';
+}
+
+function openScentDuels(forceGame = false) {
+  renderScentDuel(forceGame);
+  openModal('modal-duels');
+}
+
+function renderScentDuel(forceGame = false) {
+  const body = document.getElementById('duel-modal-body');
+  const sub = document.getElementById('duel-modal-sub');
+  const skip = document.getElementById('duel-skip-btn');
+  if (!body) return;
+  const state = getDuelState();
+  if (state.battles.length >= DUEL_TARGET && !forceGame) {
+    _currentDuelPair = null;
+    if (skip) skip.style.display = 'none';
+    renderDuelResult(body, state);
+    if (sub) sub.textContent = 'Your first taste read is ready. Keep dueling later to sharpen it.';
+    return;
+  }
+
+  const pair = pickDuelPair(state);
+  if (!pair) {
+    body.innerHTML = '<div class="duel-result-card"><div class="duel-result-name">Not enough scents yet</div><div class="duel-result-copy">Add a few bottles or keep browsing so ScentHive has something to compare.</div></div>';
+    if (skip) skip.style.display = 'none';
+    return;
+  }
+
+  _currentDuelPair = pair;
+  if (skip) skip.style.display = '';
+  if (sub) sub.textContent = 'Pick the one you would rather wear today.';
+  const progress = Math.min(DUEL_TARGET, state.battles.length);
+  body.innerHTML = '<div class="duel-progress-row">' +
+      '<span>' + progress + '/' + DUEL_TARGET + ' taste signals</span>' +
+      '<strong>' + (DUEL_TARGET - progress) + ' to unlock</strong>' +
+    '</div>' +
+    '<div class="duel-progress-track"><span style="width:' + Math.round((progress / DUEL_TARGET) * 100) + '%"></span></div>' +
+    '<div class="duel-pair">' +
+      renderDuelOption(pair.items[0], 0) +
+      '<div class="duel-vs">VS</div>' +
+      renderDuelOption(pair.items[1], 1) +
+    '</div>';
+}
+
+function renderDuelOption(f, index) {
+  const mood = buildMoodPoster(f);
+  const img = f.image_url
+    ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + escapeHtml(f.name || '') + '" onerror="this.outerHTML=\'<div class=&quot;duel-empty-art&quot;>' + escapeHtml((f.name || 'S')[0]) + '</div>\'">'
+    : '<div class="duel-empty-art">' + escapeHtml((f.name || 'S')[0]) + '</div>';
+  const chips = (f.accords || []).map(getAccordName).filter(Boolean).slice(0, 3)
+    .map(a => '<span>' + escapeHtml(titleCaseWords(a)) + '</span>').join('');
+  return '<button class="duel-option" onclick="chooseDuel(' + index + ')">' +
+    '<div class="duel-art">' + mood.html + img + '</div>' +
+    '<div class="duel-name">' + escapeHtml(f.name || '') + '</div>' +
+    '<div class="duel-house">' + escapeHtml(f.house || '') + '</div>' +
+    (chips ? '<div class="duel-chip-row">' + chips + '</div>' : '') +
+  '</button>';
+}
+
+function chooseDuel(index) {
+  if (!_currentDuelPair?.items?.[index]) {
+    renderScentDuel();
+    return;
+  }
+  const winner = _currentDuelPair.items[index];
+  const loser = _currentDuelPair.items[index === 0 ? 1 : 0];
+  const state = getDuelState();
+  const already = state.battles.some(b => b.pair_key === _currentDuelPair.key);
+  if (!already) {
+    state.battles.push({
+      pair_key: _currentDuelPair.key,
+      chosen_at: new Date().toISOString(),
+      winner: compactDuelFragrance(winner),
+      loser: compactDuelFragrance(loser)
+    });
+  }
+  const saved = saveDuelState(state);
+  renderScentDuelsModule();
+  if (saved.battles.length === DUEL_TARGET) toast('Taste identity unlocked');
+  renderScentDuel();
+}
+
+function skipDuel() {
+  if (!_currentDuelPair) {
+    renderScentDuel(true);
+    return;
+  }
+  const state = getDuelState();
+  if (!state.skipped.includes(_currentDuelPair.key)) state.skipped.push(_currentDuelPair.key);
+  saveDuelState(state);
+  renderScentDuelsModule();
+  renderScentDuel(true);
+}
+
+function renderDuelResult(body, state) {
+  const summary = computeDuelTaste(state);
+  const chips = [
+    ...(summary.topSignals || []),
+    summary.topHouse ? 'House: ' + summary.topHouse : ''
+  ].filter(Boolean).slice(0, 5);
+  body.innerHTML = '<div class="duel-result-card">' +
+    '<div class="duel-result-kicker">Taste identity</div>' +
+    '<div class="duel-result-name">' + escapeHtml(summary.label) + '</div>' +
+    '<div class="duel-result-copy">' + escapeHtml(summary.copy) + '</div>' +
+    '<div class="duel-result-stats">' +
+      '<div><strong>' + escapeHtml(summary.count) + '</strong><span>Duels</span></div>' +
+      '<div><strong>' + escapeHtml(summary.topSignals?.[0] || 'Open') + '</strong><span>Top signal</span></div>' +
+    '</div>' +
+    (chips.length ? '<div class="duel-chip-row result">' + chips.map(c => '<span>' + escapeHtml(c) + '</span>').join('') + '</div>' : '') +
+    '<button class="modal-submit" onclick="openScentDuels(true)">Keep dueling</button>' +
+    '<button class="duel-reset-btn" onclick="resetScentDuels()">Restart taste game</button>' +
+  '</div>';
+}
+
+function resetScentDuels() {
+  if (!window.confirm('Restart Scent Duels and clear your current duel history?')) return;
+  const fresh = saveDuelState(emptyDuelState());
+  renderScentDuelsModule();
+  renderDuelResult(document.getElementById('duel-modal-body'), fresh);
+  toast('Scent Duels reset');
 }
 
 const _shelfCache = {};

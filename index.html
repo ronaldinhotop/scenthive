@@ -264,6 +264,18 @@
         <div id="scent-today-card"></div>
       </div>
 
+      <div class="section" id="section-duels" style="display:none">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">Taste game</div>
+            <div class="section-title">Scent <em>duels</em></div>
+            <div class="section-sub">Choose between two fragrances. ScentHive learns what your nose reaches for.</div>
+          </div>
+          <span class="section-more" onclick="openScentDuels()">Play →</span>
+        </div>
+        <div id="duels-home-card"></div>
+      </div>
+
       <div class="section" id="section-continue" style="display:none">
         <div class="section-header">
           <div>
@@ -1296,6 +1308,19 @@
     <button class="modal-submit" onclick="openLatestWearShare()">Share wear card</button>
     <button class="modal-submit" onclick="closeModal('modal-first-log-payoff');setTimeout(()=>openAdd(),260)">Add bottles to Hive</button>
     <button class="modal-cancel" onclick="closeModal('modal-first-log-payoff');showTab('diary')" style="margin-top:8px">See my diary</button>
+  </div>
+</div>
+
+<!-- ═══ SCENT DUELS MODAL ═══ -->
+<div class="modal-overlay" id="modal-duels">
+  <div class="modal scent-duel-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-kicker">Scent duels</div>
+    <div class="modal-title">Which would you rather wear?</div>
+    <div class="modal-sub" id="duel-modal-sub">Pick honestly. No wrong answers, just taste signals.</div>
+    <div id="duel-modal-body"></div>
+    <button class="modal-cancel" id="duel-skip-btn" onclick="skipDuel()">I have not smelled both</button>
+    <button class="modal-cancel" data-close="modal-duels">Close</button>
   </div>
 </div>
 
