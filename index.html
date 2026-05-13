@@ -1234,35 +1234,55 @@
   <div class="modal">
     <div class="modal-handle"></div>
     <div style="text-align:center;padding:8px 0 20px">
-      <div style="font-size:40px;margin-bottom:10px">🐝</div>
-      <div class="modal-title" style="font-size:22px;margin:0">Welcome to ScentHive</div>
-      <div style="font-size:13px;color:var(--white2);margin-top:6px;line-height:1.5">Your personal fragrance diary. Here's what you can do:</div>
+      <div style="font-size:40px;margin-bottom:10px">📓</div>
+      <div class="modal-kicker">Start your diary</div>
+      <div class="modal-title" style="font-size:24px;margin:0">What did you wear today?</div>
+      <div style="font-size:13px;color:var(--white2);margin-top:8px;line-height:1.55">One log is enough to make ScentHive yours. Search the scent, rate it, and your taste profile starts building.</div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
-      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
-        <div style="font-size:24px;flex-shrink:0">📝</div>
+    <div class="first-run-actions">
+      <button class="first-run-card primary" onclick="closeModal('modal-onboard');setTimeout(()=>openLog(),260)">
+        <div class="first-run-icon">+</div>
         <div>
-          <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Log your diary</div>
-          <div style="font-size:12px;color:var(--grey2);line-height:1.5">Track what you wear each day, add ratings and notes. Build your streak.</div>
+          <strong>Search fragrance</strong>
+          <span>Find what you wore and create your first entry.</span>
         </div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
-        <div style="font-size:24px;flex-shrink:0">🐝</div>
+      </button>
+      <button class="first-run-card" onclick="firstRunFromHive()">
+        <div class="first-run-icon">H</div>
         <div>
-          <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Build your hive</div>
-          <div style="font-size:12px;color:var(--grey2);line-height:1.5">Add fragrances you own to your collection. Track what you want to try.</div>
+          <strong>I wore something from my Hive</strong>
+          <span>Add owned bottles first, then log from your collection.</span>
         </div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2)">
-        <div style="font-size:24px;flex-shrink:0">🔍</div>
+      </button>
+      <button class="first-run-card" onclick="closeModal('modal-onboard');setTimeout(()=>openAdd(),260)">
+        <div class="first-run-icon">M</div>
         <div>
-          <div style="font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px">Discover scents</div>
-          <div style="font-size:12px;color:var(--grey2);line-height:1.5">Search 100k+ fragrances. Get AI recommendations. Read community reviews.</div>
+          <strong>Add manually</strong>
+          <span>Use this when search misses your scent.</span>
         </div>
-      </div>
+      </button>
     </div>
-    <button class="modal-submit" onclick="closeModal('modal-onboard');setTimeout(()=>openLog(),300)">Log my first scent →</button>
     <button class="modal-cancel" data-close="modal-onboard" style="margin-top:8px">Explore first</button>
+  </div>
+</div>
+
+<!-- ═══ FIRST LOG PAYOFF MODAL ═══ -->
+<div class="modal-overlay" id="modal-first-log-payoff">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:8px 0 20px">
+      <div style="font-size:40px;margin-bottom:10px">✓</div>
+      <div class="modal-kicker">Diary started</div>
+      <div class="modal-title" style="font-size:24px;margin:0">ScentHive remembers now.</div>
+      <div style="font-size:13px;color:var(--white2);margin-top:8px;line-height:1.55">Your first wear is saved. Add a few bottles to your Hive next and recommendations get much more personal.</div>
+    </div>
+    <div class="first-payoff-grid">
+      <div><strong>1</strong><span>wear logged</span></div>
+      <div><strong id="first-payoff-hive-count">0</strong><span>in Hive</span></div>
+      <div><strong>Live</strong><span>taste profile</span></div>
+    </div>
+    <button class="modal-submit" onclick="closeModal('modal-first-log-payoff');setTimeout(()=>openAdd(),260)">Add bottles to Hive</button>
+    <button class="modal-cancel" onclick="closeModal('modal-first-log-payoff');showTab('diary')" style="margin-top:8px">See my diary</button>
   </div>
 </div>
 

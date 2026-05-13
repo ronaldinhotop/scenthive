@@ -517,6 +517,7 @@ function enterAsGuest() {
   updateHero();
   loadCommunityFeed();
   updateRightSidebar();
+  maybeShowOnboarding();
 }
 
 async function initApp() {
@@ -4194,6 +4195,7 @@ function openLog(prefilled) {
   if (dot) { dot.style.background = 'var(--grey2)'; dot.style.left = '2px'; }
   if (prefilled) selectFrag(prefilled);
   openModal('modal-log');
+  if (!prefilled) setTimeout(() => document.getElementById('log-search')?.focus(), 180);
 }
 
 function resetLogStep() {
@@ -4347,6 +4349,7 @@ function onLogSearch(q) {
 
 async function saveLog() {
   if (!selectedFrag) { toast('Search and select a fragrance first'); return; }
+  const wasFirstDiaryEntry = diary.length === 0;
   const review = document.getElementById('log-review').value.trim();
   const occChip = document.querySelector('#log-occ .occ-chip.selected');
   const occ = occChip ? occChip.getAttribute('data-v') : '';
@@ -4396,10 +4399,12 @@ async function saveLog() {
   renderScentOfDay();
   updateRightSidebar();
   loadCommunityFeed();
+  maybeShowFirstLogPayoff(wasFirstDiaryEntry);
 }
 
 async function quickLog(name, house, imageUrl, fragellaId) {
   if (!name) { toast('Choose a fragrance first'); return; }
+  _quickLogWasFirstDiaryEntry = diary.length === 0;
   const entry = {
     fragrance_name: name,
     house: house || '',
@@ -4442,6 +4447,7 @@ async function quickLog(name, house, imageUrl, fragellaId) {
 // ═══════ QUICK-REVIEW NUDGE ═══════
 let _qrEntryId = null;
 let _qrRating  = 0;
+let _quickLogWasFirstDiaryEntry = false;
 
 function openQuickReview(entryId, name, house) {
   _qrEntryId = entryId;
@@ -4497,9 +4503,11 @@ function skipQuickReview() {
 }
 
 function _afterQuickLog() {
+  const wasFirstDiaryEntry = _quickLogWasFirstDiaryEntry;
   closeModal('modal-quick-review');
   _qrEntryId = null;
   _qrRating  = 0;
+  _quickLogWasFirstDiaryEntry = false;
   renderDiary();
   renderTodayWear();
   renderDiaryExtras();
@@ -4507,6 +4515,7 @@ function _afterQuickLog() {
   updateRightSidebar();
   loadCommunityFeed();
   if (curScreen === 'profile') renderProfile();
+  maybeShowFirstLogPayoff(wasFirstDiaryEntry);
 }
 
 // ═══════ UPGRADE ═══════
@@ -6179,12 +6188,36 @@ async function checkPublicUrl() {
 }
 
 // ═══════ ONBOARDING ═══════
+function firstRunStorageKey(suffix) {
+  return user?.id ? `sh_${suffix}_${user.id}` : `sh_${suffix}_guest`;
+}
+
+function firstRunFromHive() {
+  closeModal('modal-onboard');
+  if (collection.length) {
+    showTab('collection');
+    setTimeout(() => toast('Pick a bottle from your Hive and tap Log & Rate'), 250);
+  } else {
+    setTimeout(() => openAdd(), 260);
+  }
+}
+
 function maybeShowOnboarding() {
-  if (!user) return;
-  const key = 'sh_onboarded_' + user.id;
+  if (diary.length > 0) return;
+  const key = firstRunStorageKey('onboarded');
   if (localStorage.getItem(key)) return;
   localStorage.setItem(key, '1');
   setTimeout(() => openModal('modal-onboard'), 800);
+}
+
+function maybeShowFirstLogPayoff(wasFirstDiaryEntry) {
+  if (!wasFirstDiaryEntry || diary.length === 0) return;
+  const key = firstRunStorageKey('first_log_payoff');
+  if (localStorage.getItem(key)) return;
+  localStorage.setItem(key, '1');
+  const hiveCount = document.getElementById('first-payoff-hive-count');
+  if (hiveCount) hiveCount.textContent = String(collection.length || 0);
+  setTimeout(() => openModal('modal-first-log-payoff'), 650);
 }
 
 // ═══════ HERO PERSONALISATION ═══════
