@@ -2307,13 +2307,34 @@ function openWearShare(entry) {
   openModal('modal-wear-share');
 }
 
-function shareWearCard() {
+async function shareWearCard() {
   const text = buildWearShareCaption(_shareWearEntry);
+  const file = await createWearCardFile();
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        title: 'My ScentHive wear',
+        text,
+        files: [file]
+      });
+      return;
+    } catch (e) {
+      if (e?.name === 'AbortError') return;
+    }
+  }
   if (navigator.share) {
     navigator.share({ title: 'My ScentHive wear', text }).catch(() => {});
     return;
   }
   navigator.clipboard?.writeText(text).then(() => toast('Wear caption copied')).catch(() => toast(text));
+}
+
+async function createWearCardFile() {
+  if (!_shareWearEntry) return null;
+  const canvas = renderWearCardCanvas(_shareWearEntry);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
+  if (!blob) return null;
+  return new File([blob], `scenthive-${slugify(_shareWearEntry.fragrance_name || 'wear')}.png`, { type: 'image/png' });
 }
 
 function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
@@ -2335,9 +2356,7 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
   if (line && lines < maxLines) ctx.fillText(line, x, y);
 }
 
-async function downloadWearCard() {
-  if (!_shareWearEntry) return;
-  const entry = _shareWearEntry;
+function renderWearCardCanvas(entry) {
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
   canvas.height = 1920;
@@ -2396,9 +2415,14 @@ async function downloadWearCard() {
   ctx.fillStyle = 'rgba(240,240,250,0.78)';
   ctx.font = 'italic 34px Inter, sans-serif';
   wrapCanvasText(ctx, entry.notes ? `"${entry.notes}"` : (entry.occasion || 'Saved in my fragrance diary.'), 86, 1580, 900, 48, 3);
+  return canvas;
+}
 
+async function downloadWearCard() {
+  if (!_shareWearEntry) return;
+  const canvas = renderWearCardCanvas(_shareWearEntry);
   const link = document.createElement('a');
-  link.download = `scenthive-${slugify(entry.fragrance_name || 'wear')}.png`;
+  link.download = `scenthive-${slugify(_shareWearEntry.fragrance_name || 'wear')}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
 }
