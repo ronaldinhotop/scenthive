@@ -1192,6 +1192,198 @@ const _nicheGatewayPool = [
   'Lost Cherry Tom Ford', 'Black Orchid Tom Ford'
 ];
 
+const TASTE_SIGNAL_DEFS = [
+  { key:'fresh', label:'Fresh', terms:['fresh','clean','aromatic','aquatic','marine','ozonic','water','sea','salt'], queries:['Reflection Man Amouage','Acqua di Gio Profumo','Bleu de Chanel EDP','Silver Mountain Water Creed'] },
+  { key:'citrus', label:'Citrus', terms:['citrus','bergamot','lemon','orange','mandarin','grapefruit','lime','neroli'], queries:['Terre Hermes','Eau Sauvage Dior','Neroli Portofino Tom Ford','Lime Basil Mandarin Jo Malone'] },
+  { key:'woody', label:'Woody', terms:['woody','wood','cedar','sandalwood','vetiver','oakmoss','moss','earthy','patchouli'], queries:['Santal 33 Le Labo','Tam Dao Diptyque','Vetiver Guerlain','Terre Hermes EDT'] },
+  { key:'amber', label:'Amber', terms:['amber','resin','balsamic','labdanum','benzoin'], queries:['Grand Soir Maison Francis Kurkdjian','Ambre Nuit Dior','Baccarat Rouge 540','Musc Ravageur Frederic Malle'] },
+  { key:'vanilla', label:'Vanilla', terms:['vanilla','tonka','gourmand','sweet','caramel','honey','chocolate','praline','almond','lactonic'], queries:['Naxos Xerjoff','Tobacco Vanille Tom Ford','Ani Nishane','Angels Share Kilian'] },
+  { key:'floral', label:'Floral', terms:['floral','rose','jasmine','violet','iris','tuberose','white floral','yellow floral','flower','petal'], queries:['Portrait of a Lady Frederic Malle','Delina Parfums de Marly','Carnal Flower Frederic Malle','Chloe EDP'] },
+  { key:'smoky', label:'Smoky', terms:['smoky','smoke','incense','burnt'], queries:['Encre Noire Lalique','Black Afgano Nasomatto','Interlude Man Amouage','Memoir Man Amouage'] },
+  { key:'leather', label:'Leather', terms:['leather','suede'], queries:['Ombre Leather Tom Ford','Tuscan Leather Tom Ford','Fahrenheit Dior','Cuir Beluga Guerlain'] },
+  { key:'oud', label:'Oud', terms:['oud','agarwood'], queries:['Oud Wood Tom Ford','Oud Satin Mood Maison Francis Kurkdjian','Oud for Greatness Initio','M7 Oud Absolu YSL'] },
+  { key:'musk', label:'Musk', terms:['musk','musky','powdery','aldehydic','cotton','skin'], queries:['Another 13 Le Labo','Molecule 01 Escentric Molecules','Musc Ravageur Frederic Malle','Fleur de Peau Diptyque'] },
+  { key:'spicy', label:'Spicy', terms:['spicy','warm spicy','fresh spicy','pepper','cinnamon','cardamom','saffron','clove','ginger'], queries:['Spicebomb Viktor Rolf','Layton Parfums de Marly','La Nuit de L Homme YSL','Sauvage Elixir Dior'] },
+  { key:'green', label:'Green', terms:['green','herbal','herb','fig','tea','grass','mint'], queries:['Philosykos Diptyque','Wulong Cha Nishane','H24 Hermes','Greenley Parfums de Marly'] }
+];
+
+function tasteSignalDef(key) {
+  return TASTE_SIGNAL_DEFS.find(def => def.key === key);
+}
+
+function canonicalTasteSignal(token) {
+  const normalized = normalizeText(token);
+  if (!normalized) return '';
+  const match = TASTE_SIGNAL_DEFS.find(def =>
+    def.terms.some(term => normalized === normalizeText(term) || normalized.includes(normalizeText(term)))
+  );
+  return match?.key || '';
+}
+
+function addTasteSignal(scores, sources, key, weight, source) {
+  if (!key || !weight) return;
+  scores[key] = (scores[key] || 0) + weight;
+  sources[source] = (sources[source] || 0) + Math.max(0, weight);
+}
+
+function addFragranceTasteSignals(scores, sources, f, weight, source) {
+  const hydrated = hydrateFragranceFromStatic(f || {});
+  const seen = new Set();
+  duelSignals(hydrated).forEach(token => {
+    const key = canonicalTasteSignal(token);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    addTasteSignal(scores, sources, key, weight, source);
+  });
+}
+
+function getTasteSignals() {
+  const scores = {};
+  const sources = {};
+  const preferredHouses = {};
+  const duelState = getDuelState();
+  const duelTaste = computeDuelTaste(duelState);
+
+  (duelState.battles || []).forEach(battle => {
+    addFragranceTasteSignals(scores, sources, battle.winner, 5, 'duels');
+    if (battle.winner?.house) preferredHouses[battle.winner.house] = (preferredHouses[battle.winner.house] || 0) + 3;
+    addFragranceTasteSignals(scores, sources, battle.loser, -0.8, 'duels');
+  });
+
+  diary.forEach(entry => {
+    const rating = Number(entry.rating) || 0;
+    const weight = rating >= 5 ? 5 : rating >= 4 ? 3.5 : rating >= 3 ? 1.4 : rating ? -1.2 : 0.7;
+    addFragranceTasteSignals(scores, sources, {
+      name: entry.fragrance_name || '',
+      house: entry.house || '',
+      image_url: entry.image_url || '',
+      fragella_id: entry.fragella_id || ''
+    }, weight, 'diary');
+    if (rating >= 4 && entry.house) preferredHouses[entry.house] = (preferredHouses[entry.house] || 0) + rating;
+  });
+
+  collection.forEach(item => {
+    addFragranceTasteSignals(scores, sources, item, 0.9, 'hive');
+  });
+
+  const profile = getTasteProfile();
+  (profile?.queries || []).forEach(query => {
+    const hit = staticSearch(query)?.[0];
+    if (hit) addFragranceTasteSignals(scores, sources, hit, 1.2, 'taste test');
+  });
+
+  const top = Object.entries(scores)
+    .filter(([, score]) => score > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([key, score]) => ({
+      key,
+      score,
+      label: tasteSignalDef(key)?.label || titleCaseWords(key)
+    }));
+
+  const topHouse = Object.entries(preferredHouses)
+    .sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+  const sourceLabel = sources.duels >= 1 ? 'duels' : sources.diary >= 1 ? 'diary' : sources.hive >= 1 ? 'Hive' : profile ? 'taste test' : '';
+  const confidence = Math.round((sources.duels || 0) + (sources.diary || 0) + Math.min(6, sources.hive || 0) + (sources['taste test'] || 0));
+
+  return {
+    top,
+    scoreMap: scores,
+    sources,
+    topHouse,
+    sourceLabel,
+    confidence,
+    profileName: duelTaste.count >= 3 ? duelTaste.label : (profile?.name || '')
+  };
+}
+
+function scoreFragranceAgainstTaste(f, taste) {
+  if (!taste?.top?.length) return 0;
+  const hydrated = hydrateFragranceFromStatic(f || {});
+  const keys = new Set(duelSignals(hydrated).map(canonicalTasteSignal).filter(Boolean));
+  let score = 0;
+  keys.forEach(key => {
+    score += taste.scoreMap?.[key] || 0;
+  });
+  if (taste.topHouse && hydrated.house && normalizeText(hydrated.house) === normalizeText(taste.topHouse)) score += 2.5;
+  return score;
+}
+
+function tasteFitLabels(f, taste, max = 2) {
+  if (!taste?.top?.length) return [];
+  const hydrated = hydrateFragranceFromStatic(f || {});
+  const keys = new Set(duelSignals(hydrated).map(canonicalTasteSignal).filter(Boolean));
+  return taste.top
+    .filter(signal => keys.has(signal.key))
+    .slice(0, max)
+    .map(signal => signal.label);
+}
+
+function tasteSignalSummary(taste) {
+  const labels = (taste?.top || []).slice(0, 3).map(s => s.label);
+  if (!labels.length) return '';
+  const source = taste.sourceLabel ? ' from your ' + taste.sourceLabel : '';
+  return 'Because ScentHive sees ' + labels.join(' / ') + source + '.';
+}
+
+function tasteRecommendationQueries(taste) {
+  const queries = [];
+  (taste?.top || []).slice(0, 4).forEach(signal => {
+    const def = tasteSignalDef(signal.key);
+    if (def?.queries?.length) queries.push(...def.queries);
+    else queries.push(signal.label + ' fragrance');
+  });
+  const profile = getTasteProfile();
+  if (profile?.queries?.length) queries.push(...profile.queries.slice(0, 3));
+  queries.push(..._nicheGatewayPool);
+  const seen = new Set();
+  return queries.filter(q => {
+    const key = normalizeText(q);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 18);
+}
+
+async function loadTasteSignalRecommendations(el, taste) {
+  const hiveNames = new Set(collection.map(c => normalizeText(c.name || '')));
+  const seen = new Set();
+  const candidates = [];
+  const queries = tasteRecommendationQueries(taste);
+
+  for (let i = 0; i < queries.length; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 35));
+    let results = [];
+    try {
+      results = await searchFragella(queries[i]);
+    } catch (e) {}
+    (results || []).slice(0, 5).forEach(raw => {
+      const f = hydrateFragranceFromStatic(raw);
+      const key = normalizeText((f.name || '') + ' ' + (f.house || ''));
+      if (!key || seen.has(key) || hiveNames.has(normalizeText(f.name || ''))) return;
+      seen.add(key);
+      const score = scoreFragranceAgainstTaste(f, taste);
+      candidates.push({ f, score, order: i });
+    });
+    if (candidates.length >= 18) break;
+  }
+
+  const picked = candidates
+    .sort((a, b) => (b.score - a.score) || (a.order - b.order))
+    .slice(0, 8)
+    .map(({ f }) => {
+      const labels = tasteFitLabels(f, taste, 2);
+      return labels.length ? { ...f, _tasteReason: 'Fits ' + labels.join(' / ') } : f;
+    });
+
+  if (!picked.length) throw new Error('no taste recommendations');
+  el.innerHTML = picked.map(f => buildPosterCard(f)).join('');
+  el.querySelectorAll('.poster-card').forEach(card => {
+    card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
+  });
+}
+
 async function renderForYouShelf() {
   const section = document.getElementById('section-foryou');
   const el = document.getElementById('shelf-foryou');
@@ -1199,6 +1391,25 @@ async function renderForYouShelf() {
   const title = document.getElementById('foryou-title');
   const sub = document.getElementById('foryou-sub');
   if (!section || !el) return;
+
+  const taste = getTasteSignals();
+  const hasTasteSignals = taste.top.length > 0 && taste.confidence >= 2;
+  const firstName = user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || '';
+
+  if (hasTasteSignals) {
+    if (eyebrow) eyebrow.textContent = taste.sourceLabel === 'duels' ? 'Taste-trained by duels' : 'Taste-trained';
+    if (title) title.innerHTML = firstName ? `Picked for <em>${escapeHtml(firstName)}</em>` : 'Picked <em>for your nose</em>';
+    if (sub) sub.textContent = tasteSignalSummary(taste);
+    section.style.display = '';
+    el.innerHTML = '<div class="loading-row"><div class="spinner"></div></div>';
+
+    try {
+      await loadTasteSignalRecommendations(el, taste);
+      return;
+    } catch (e) {
+      // Fall through to the previous source-based logic if taste matching cannot load.
+    }
+  }
 
   let sourceName = '';
   let sourceHouse = '';
@@ -1219,7 +1430,6 @@ async function renderForYouShelf() {
     return;
   }
 
-  const firstName = user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || '';
   if (eyebrow) eyebrow.textContent = 'Tuned to your taste';
   if (title) title.innerHTML = firstName ? `Picked for <em>${escapeHtml(firstName)}</em>` : 'Picked <em>for you</em>';
   if (sub) sub.textContent = `Because you have ${[sourceHouse, sourceName].filter(Boolean).join(' ')}`;
@@ -1344,6 +1554,7 @@ function renderScentOfDay(forceNew = false) {
 function pickScentOfDay(forceNew = false) {
   const now = new Date();
   const today = localDateKey(now);
+  const taste = getTasteSignals();
   const hydrated = collection.map(c => hydrateFragranceFromStatic({
     name: c.name || '',
     house: c.house || '',
@@ -1358,13 +1569,13 @@ function pickScentOfDay(forceNew = false) {
     _scentTodaySkip.add(scentKey(fragStore[_scentTodayKey]));
   }
 
-  const scored = hydrated.map(f => scoreScentOfDay(f, now, today))
+  const scored = hydrated.map(f => scoreScentOfDay(f, now, today, taste))
     .filter(p => !_scentTodaySkip.has(scentKey(p.fragrance)))
     .sort((a, b) => b.score - a.score);
-  return scored[0] || hydrated.map(f => scoreScentOfDay(f, now, today)).sort((a, b) => b.score - a.score)[0];
+  return scored[0] || hydrated.map(f => scoreScentOfDay(f, now, today, taste)).sort((a, b) => b.score - a.score)[0];
 }
 
-function scoreScentOfDay(f, now, today) {
+function scoreScentOfDay(f, now, today, taste) {
   const entries = diary.filter(e => sameFragName(e.fragrance_name, f.name));
   const last = entries[0];
   const daysSince = last?.worn_at ? Math.floor((Date.now() - new Date(last.worn_at).getTime()) / 86400000) : 999;
@@ -1381,12 +1592,16 @@ function scoreScentOfDay(f, now, today) {
   if (avgRating) score += (avgRating - 3) * 9;
   score += scoreTokenMatch(text, season.tokens) * 7;
   score += scoreTokenMatch(text, time.tokens) * 5;
+  const tasteScore = scoreFragranceAgainstTaste(f, taste);
+  if (tasteScore > 0) score += Math.min(28, tasteScore * 1.8);
   score -= recentCount * 9;
   if (wornToday) score -= 100;
 
   const reasonBits = [];
   reasonBits.push(formatScentTodayRecency(daysSince));
   if (avgRating >= 4) reasonBits.push('you rate it highly');
+  const tasteLabels = tasteFitLabels(f, taste, 2);
+  if (tasteLabels.length) reasonBits.push('it matches your ' + tasteLabels.join(' / ') + ' taste');
   const fit = scoreTokenMatch(text, season.tokens) >= scoreTokenMatch(text, time.tokens) ? season.label : time.label;
   reasonBits.push('it fits ' + fit.toLowerCase());
   if (recentCount) reasonBits.push('without overusing your recent rotation');
@@ -1906,6 +2121,7 @@ function buildPosterCard(f) {
   const img = f.image_url
     ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" loading="lazy" onerror="this.style.display='none';var e=document.createElement('div');e.className='poster-card-emoji';e.textContent='🏺';this.parentNode.insertBefore(e,this);">`
     : '<div class="poster-card-emoji">🏺</div>';
+  const reason = f._tasteReason ? `<div class="poster-card-rating">${escapeHtml(f._tasteReason)}</div>` : '';
   const actions = `<div class="poster-card-actions">
       <button class="pca-btn pca-log" data-pca="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}">Log</button>
       <button class="pca-btn pca-hive" data-pca="hive" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}" data-fid="${escapeAttr(f.fragella_id||'')}">🐝 Hive</button>
@@ -1917,6 +2133,7 @@ function buildPosterCard(f) {
         <div class="poster-card-info">
           <div class="poster-card-name">${safeName}</div>
           <div class="poster-card-house">${safeHouse}${f.launch_year ? ' · ' + f.launch_year : ''}</div>
+          ${reason}
         </div>
       </div>
     </div>`;
