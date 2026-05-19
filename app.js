@@ -1214,8 +1214,12 @@ function tasteSignalDef(key) {
 function canonicalTasteSignal(token) {
   const normalized = normalizeText(token);
   if (!normalized) return '';
+  const exact = TASTE_SIGNAL_DEFS.find(def =>
+    def.terms.some(term => normalized === normalizeText(term))
+  );
+  if (exact) return exact.key;
   const match = TASTE_SIGNAL_DEFS.find(def =>
-    def.terms.some(term => normalized === normalizeText(term) || normalized.includes(normalizeText(term)))
+    def.terms.some(term => normalized.includes(normalizeText(term)))
   );
   return match?.key || '';
 }
@@ -4210,6 +4214,110 @@ function renderProfileTasteIdentity() {
     </div>`;
 }
 
+function tasteConfidenceLabel(taste) {
+  const c = taste?.confidence || 0;
+  if (c >= 34) return { label: 'Strong read', pct: 92, copy: 'Enough signals to make useful calls.' };
+  if (c >= 18) return { label: 'Solid read', pct: 72, copy: 'Your recommendations should start feeling personal.' };
+  if (c >= 7) return { label: 'Learning', pct: 48, copy: 'A few more logs or duels will sharpen this.' };
+  return { label: 'Early read', pct: 24, copy: 'Start with duels, ratings, and Hive bottles.' };
+}
+
+function buildTasteDashboardGaps(taste) {
+  const keys = new Set((taste?.top || []).map(s => s.key));
+  const gaps = [];
+  const add = (missing, title, copy, action, onclick) => {
+    if (missing.every(key => !keys.has(key))) gaps.push({ title, copy, action, onclick });
+  };
+  add(['fresh','citrus'], 'Fresh daily wear', 'A clean daytime lane makes the wardrobe easier to use.', 'Build summer set', "openSampleBuilder('summer')");
+  add(['woody'], 'Woody backbone', 'Woods give your taste profile structure and all-season range.', 'Build signature set', "openSampleBuilder('signature')");
+  add(['amber','vanilla'], 'Warm evening comfort', 'Amber, vanilla, and spice are useful for date nights and colder weather.', 'Build date set', "openSampleBuilder('date')");
+  add(['musk'], 'Skin scent layer', 'A close musky scent is the easiest way to add quiet daily wear.', 'Build office set', "openSampleBuilder('office')");
+  add(['floral','green'], 'Texture and contrast', 'Florals and green notes stop the collection from becoming one-note.', 'Wildcard set', "openSampleBuilder('wildcard')");
+  return gaps.slice(0, 2);
+}
+
+function renderProfileTasteDashboard() {
+  const el = document.getElementById('taste-dashboard');
+  if (!el) return;
+
+  const taste = getTasteSignals();
+  const duelSummary = computeDuelTaste(getDuelState());
+  const confidence = tasteConfidenceLabel(taste);
+  const topSignals = (taste.top || []).slice(0, 5);
+
+  if (!topSignals.length) {
+    el.innerHTML =
+      '<div class="taste-dash-empty">' +
+        '<div class="taste-dash-empty-kicker">No read yet</div>' +
+        '<div class="taste-dash-empty-title">Give ScentHive something to learn from.</div>' +
+        '<div class="taste-dash-empty-copy">Play a few duels, rate today\'s scent, or add bottles to your Hive. The dashboard becomes useful when it has real behavior, not just guesses.</div>' +
+        '<div class="taste-dash-actions">' +
+          '<button onclick="openScentDuels()">Play Scent Duels</button>' +
+          '<button onclick="openLog()">Log today</button>' +
+          '<button onclick="openAdd()">Add to Hive</button>' +
+        '</div>' +
+      '</div>';
+    return;
+  }
+
+  const maxScore = Math.max(...topSignals.map(s => s.score), 1);
+  const identity = taste.profileName || topSignals.slice(0, 2).map(s => s.label).join(' / ');
+  const summary = tasteSignalSummary(taste) || 'Based on your ScentHive activity.';
+  const gaps = buildTasteDashboardGaps(taste);
+  const nextAction = taste.confidence < 18
+    ? { label: 'Train with duels', onclick: 'openScentDuels()', copy: 'More choices will make this read sharper.' }
+    : collection.length < 5
+      ? { label: 'Add more bottles', onclick: 'openAdd()', copy: 'A richer Hive makes wardrobe advice stronger.' }
+      : { label: 'Build sample set', onclick: 'openSampleBuilder()', copy: 'Turn the taste read into things worth sampling.' };
+
+  el.innerHTML =
+    '<div class="taste-dash-card">' +
+      '<div class="taste-dash-hero">' +
+        '<div>' +
+          '<div class="taste-dash-kicker">Live taste read</div>' +
+          '<div class="taste-dash-title">' + escapeHtml(identity) + '</div>' +
+          '<div class="taste-dash-copy">' + escapeHtml(summary) + '</div>' +
+        '</div>' +
+        '<div class="taste-dash-confidence">' +
+          '<strong>' + escapeHtml(confidence.label) + '</strong>' +
+          '<span>' + escapeHtml(confidence.copy) + '</span>' +
+          '<div class="taste-dash-meter"><i style="width:' + confidence.pct + '%"></i></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="taste-dash-stats">' +
+        '<div><strong>' + escapeHtml(duelSummary.count || 0) + '</strong><span>Duels</span></div>' +
+        '<div><strong>' + escapeHtml(diary.length) + '</strong><span>Logs</span></div>' +
+        '<div><strong>' + escapeHtml(collection.length) + '</strong><span>Hive</span></div>' +
+        '<div><strong>' + escapeHtml(taste.topHouse || '—') + '</strong><span>Top house</span></div>' +
+      '</div>' +
+      '<div class="taste-dash-signals">' +
+        topSignals.map(signal => {
+          const pct = Math.max(8, Math.round((signal.score / maxScore) * 100));
+          return '<div class="taste-signal-row">' +
+            '<div class="taste-signal-top"><span>' + escapeHtml(signal.label) + '</span><strong>' + Math.round(signal.score) + '</strong></div>' +
+            '<div class="taste-signal-track"><i style="width:' + pct + '%"></i></div>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+      '<div class="taste-dash-next">' +
+        '<div>' +
+          '<span>Next best move</span>' +
+          '<strong>' + escapeHtml(nextAction.copy) + '</strong>' +
+        '</div>' +
+        '<button onclick="' + escapeAttr(nextAction.onclick) + '">' + escapeHtml(nextAction.label) + '</button>' +
+      '</div>' +
+      (gaps.length ? '<div class="taste-dash-gaps">' +
+        '<div class="taste-dash-minihead">Potential gaps</div>' +
+        gaps.map(gap =>
+          '<div class="taste-gap-row">' +
+            '<div><strong>' + escapeHtml(gap.title) + '</strong><span>' + escapeHtml(gap.copy) + '</span></div>' +
+            '<button onclick="' + escapeAttr(gap.onclick) + '">' + escapeHtml(gap.action) + '</button>' +
+          '</div>'
+        ).join('') +
+      '</div>' : '') +
+    '</div>';
+}
+
 function profileEntryKey(e) {
   return ((e.fragrance_name || '') + '||' + (e.house || '')).toLowerCase();
 }
@@ -4242,7 +4350,11 @@ function buildProfileSnapshot(entries = diary, bottles = collection) {
     house: h,
     count: safeEntries.filter(e => e.house === h).length + safeBottles.filter(b => b.house === h).length
   })).sort((a, b) => b.count - a.count)[0] || null;
-  const taste = Object.entries(computeTasteProfile()).sort((a, b) => b[1] - a[1]).find(([, v]) => v > 0)?.[0] || 'Building taste';
+  let taste = Object.entries(computeTasteProfile()).sort((a, b) => b[1] - a[1]).find(([, v]) => v > 0)?.[0] || 'Building taste';
+  if (safeEntries === diary && safeBottles === collection) {
+    const liveTaste = getTasteSignals();
+    taste = liveTaste.profileName || liveTaste.top?.[0]?.label || taste;
+  }
   return {
     logged: safeEntries.length,
     collection: safeBottles.length,
@@ -4401,6 +4513,7 @@ function renderProfile() {
   renderFavsGrid(user?.user_metadata?.favourites || null);
   renderProfilePosterShelves();
   renderProfileShareSnapshot();
+  renderProfileTasteDashboard();
 
   // Recent reviews — last 3 with notes
   const recentReviews = diary.filter(e => e.notes).slice(0, 3);
