@@ -741,6 +741,7 @@ async function updateRightSidebar() {
 
 async function renderHome() {
   updateHero();
+  loadWotd();
   renderTodayWear();
   renderScentOfDay();
   renderScentDuelsModule();
@@ -881,6 +882,108 @@ async function renderHome() {
   loadCommunityFeed();
   renderJournalGuides();
   loadArticlesList();
+}
+
+// ═══════ WHAT TO WEAR TODAY ═══════
+const WOTD_CACHE_KEY = 'sh_wotd_cache';
+const WOTD_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
+
+const WOTD_WEATHER_EMOJI = {
+  sunny: '☀️', cloudy: '☁️', foggy: '🌫️',
+  drizzle: '🌦️', rain: '🌧️', snow: '❄️',
+  showers: '🌦️', storm: '⛈️', clear: '🌤️',
+};
+
+function loadWotd() {
+  const section = document.getElementById('section-wotd');
+  if (!section) return;
+
+  // Only show for logged-in users with some data
+  if (!user) { section.style.display = 'none'; return; }
+
+  // Check session cache first
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(WOTD_CACHE_KEY) || 'null');
+    if (cached && (Date.now() - cached.ts) < WOTD_TTL_MS) {
+      renderWotd(cached.data);
+      return;
+    }
+  } catch {}
+
+  // Need geolocation
+  if (!navigator.geolocation) { section.style.display = 'none'; return; }
+
+  // Show loading state while we fetch
+  section.style.display = '';
+  document.getElementById('wotd-card').innerHTML = '<div class="wotd-loading"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div><span>Reading the weather…</span></div>';
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude: lat, longitude: lon } = pos.coords;
+      try {
+        // Build context from user data
+        const tasteRaw = localStorage.getItem('sh_taste_profile');
+        const tasteProfile = tasteRaw ? JSON.parse(tasteRaw) : null;
+        const diaryCtx = diary.slice(0, 40).map(e => ({
+          fragrance_name: e.fragrance_name, house: e.house,
+          rating: e.rating, worn_at: e.worn_at
+        }));
+        const collCtx = collection.map(b => ({ name: b.name, house: b.house }));
+
+        const res = await fetch('/api/wotd', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat, lon, diary: diaryCtx, collection: collCtx, tasteProfile }),
+        });
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        // Cache and render
+        try { sessionStorage.setItem(WOTD_CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); } catch {}
+        renderWotd(data);
+      } catch {
+        section.style.display = 'none';
+      }
+    },
+    () => { section.style.display = 'none'; }, // permission denied
+    { timeout: 6000, maximumAge: 300000 }
+  );
+}
+
+function renderWotd(data) {
+  const section = document.getElementById('section-wotd');
+  const card = document.getElementById('wotd-card');
+  if (!section || !card) return;
+
+  const { weather, recommendation: r } = data;
+  if (!r || !r.name) { section.style.display = 'none'; return; }
+
+  const emoji = WOTD_WEATHER_EMOJI[weather.condition] || '🌤️';
+  const tempStr = weather.temp !== undefined ? `${weather.temp}°C` : '';
+  const cityStr = weather.city ? ` · ${weather.city}` : '';
+  const weatherLine = `${emoji} ${tempStr}${cityStr}`;
+
+  const inHive = r.in_collection || collection.some(b =>
+    b.name && r.name && b.name.toLowerCase().trim() === r.name.toLowerCase().trim()
+  );
+
+  card.innerHTML =
+    '<div class="wotd-weather">' + escapeHtml(weatherLine) + '</div>' +
+    '<div class="wotd-label">Wear today</div>' +
+    '<div class="wotd-name">' + escapeHtml(r.name) + '</div>' +
+    '<div class="wotd-house">' + escapeHtml(r.house || '') + '</div>' +
+    (r.weather_fit ? '<div class="wotd-fit">' + escapeHtml(r.weather_fit) + '</div>' : '') +
+    '<div class="wotd-why">' + escapeHtml(r.why || '') + '</div>' +
+    '<div class="wotd-actions">' +
+      (inHive
+        ? '<span class="wotd-in-hive">✓ In your hive</span>'
+        : '') +
+      '<button class="wotd-btn-log" onclick="quickLog(' + JSON.stringify(r.name) + ',' + JSON.stringify(r.house || '') + ',null,null)">Log it</button>' +
+      '<button class="wotd-btn-explore" onclick="triggerSearch(' + JSON.stringify(r.name) + ')">Explore</button>' +
+    '</div>';
+
+  section.style.display = '';
 }
 
 function renderNoseCta() {

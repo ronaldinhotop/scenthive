@@ -146,6 +146,24 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 @keyframes floatBee1{0%,100%{transform:translateY(0) rotate(-6deg)}40%{transform:translateY(-12px) rotate(6deg)}70%{transform:translateY(3px) rotate(-3deg)}}
 @keyframes floatBee2{0%,100%{transform:translateY(0) rotate(4deg) translateX(0)}35%{transform:translateY(-9px) rotate(-5deg) translateX(7px)}70%{transform:translateY(5px) rotate(2deg) translateX(-4px)}}
 
+/* WHAT TO WEAR TODAY */
+#section-wotd{padding:20px 16px 0}
+.wotd-card{background:linear-gradient(135deg,rgba(240,192,64,0.08) 0%,rgba(14,14,28,0) 60%);border:1px solid rgba(240,192,64,0.22);border-radius:10px;padding:18px 20px 16px;position:relative;overflow:hidden}
+.wotd-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top right,rgba(240,192,64,0.06) 0%,transparent 70%);pointer-events:none}
+.wotd-loading{display:flex;align-items:center;gap:10px;padding:20px;color:var(--grey);font-size:12px;font-style:italic}
+.wotd-weather{font-family:'DM Mono',monospace;font-size:10px;color:var(--grey);letter-spacing:0.06em;margin-bottom:10px}
+.wotd-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);opacity:0.7;margin-bottom:6px}
+.wotd-name{font-family:'Playfair Display',serif;font-size:22px;font-style:italic;color:var(--white);line-height:1.15;margin-bottom:3px}
+.wotd-house{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.wotd-fit{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.06em;color:var(--grey);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:2px 9px;margin-bottom:10px}
+.wotd-why{font-size:12.5px;color:var(--white2);line-height:1.6;margin-bottom:14px}
+.wotd-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wotd-in-hive{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.06em;margin-right:2px}
+.wotd-btn-log{background:var(--gold);color:#0a0a14;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.08em;font-weight:700;border:none;border-radius:4px;padding:8px 16px;cursor:pointer;text-transform:uppercase}
+.wotd-btn-log:hover{opacity:0.88}
+.wotd-btn-explore{background:none;border:1px solid var(--border);color:var(--white2);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.06em;border-radius:4px;padding:8px 14px;cursor:pointer}
+.wotd-btn-explore:hover{border-color:var(--border2);color:var(--white)}
+
 /* SECTIONS */
 .section{padding:44px 0 8px}
 .section+.section{margin-top:0}
