@@ -416,6 +416,15 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .diary-header h2{font-family:'Playfair Display',serif;font-size:28px;margin-bottom:4px}
 .diary-header h2 em{font-style:italic;color:var(--gold-light)}
 .diary-header p{font-size:12px;color:var(--grey)}
+.diary-search-wrap{padding:12px 16px 0;border-bottom:1px solid var(--border2)}
+.diary-search-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--white);font-size:13px;padding:9px 14px;outline:none;font-family:inherit;box-sizing:border-box}
+.diary-search-input::placeholder{color:var(--grey)}
+.diary-search-input:focus{border-color:rgba(240,192,64,0.4)}
+.diary-filter-chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 12px;scrollbar-width:none}
+.diary-filter-chips::-webkit-scrollbar{display:none}
+.diary-chip{background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--grey);font-family:'DM Mono',monospace;font-size:10px;padding:4px 11px;cursor:pointer;white-space:nowrap;letter-spacing:0.04em;transition:all 0.15s;flex-shrink:0}
+.diary-chip:hover{color:var(--white2);border-color:var(--border2)}
+.diary-chip.active{background:var(--gold-pale);border-color:rgba(240,192,64,0.35);color:var(--gold)}
 .diary-month-group{}
 .diary-month-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.2em;text-transform:uppercase;padding:14px 20px 10px;background:var(--bg2);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);opacity:0.85}
 .diary-row-item{display:grid;grid-template-columns:48px 52px 1fr auto;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border2);cursor:pointer;align-items:center}

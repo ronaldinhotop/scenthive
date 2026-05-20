@@ -563,6 +563,16 @@
         </div>
       </div>
     </div>
+    <div class="diary-search-wrap">
+      <input class="diary-search-input" id="diary-search" type="search" placeholder="Search your diary…" oninput="onDiarySearch(this.value)" autocomplete="off">
+      <div class="diary-filter-chips" id="diary-filter-chips">
+        <button class="diary-chip active" data-stars="0" onclick="setDiaryStarFilter(0)">All</button>
+        <button class="diary-chip" data-stars="5" onclick="setDiaryStarFilter(5)">★★★★★</button>
+        <button class="diary-chip" data-stars="4" onclick="setDiaryStarFilter(4)">★★★★</button>
+        <button class="diary-chip" data-stars="3" onclick="setDiaryStarFilter(3)">★★★</button>
+        <button class="diary-chip" data-stars="-1" onclick="setDiaryStarFilter(-1)">No rating</button>
+      </div>
+    </div>
     <div id="diary-list"></div>
   </div>
   <div class="bnav" id="nav-diary"></div>

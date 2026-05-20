@@ -3774,6 +3774,37 @@ async function saveCollection() {
 }
 
 // ═══════ DIARY (Letterboxd table) ═══════
+let _diarySearch = '';
+let _diaryStarFilter = 0; // 0=all, -1=unrated, 1-5=exact stars
+
+function onDiarySearch(q) {
+  _diarySearch = q.trim().toLowerCase();
+  renderDiary();
+}
+
+function setDiaryStarFilter(stars) {
+  _diaryStarFilter = stars;
+  document.querySelectorAll('.diary-chip').forEach(c => {
+    c.classList.toggle('active', Number(c.getAttribute('data-stars')) === stars);
+  });
+  renderDiary();
+}
+
+function _filterDiary(entries) {
+  return entries.filter(e => {
+    if (_diarySearch) {
+      const q = _diarySearch;
+      const matchName = (e.fragrance_name || '').toLowerCase().includes(q);
+      const matchHouse = (e.house || '').toLowerCase().includes(q);
+      const matchNote = (e.notes || '').toLowerCase().includes(q);
+      if (!matchName && !matchHouse && !matchNote) return false;
+    }
+    if (_diaryStarFilter === -1 && e.rating) return false;
+    if (_diaryStarFilter >= 1 && e.rating !== _diaryStarFilter) return false;
+    return true;
+  });
+}
+
 function renderDiary() {
   renderDiaryExtras();
   const el = document.getElementById('diary-list');
@@ -3782,9 +3813,16 @@ function renderDiary() {
     el.innerHTML = buildDiaryEmptyState();
     return;
   }
+  // Apply search + star filter
+  const filtered = _filterDiary(diary.map((e, idx) => ({ ...e, _idx: idx })));
+  if (filtered.length === 0) {
+    el.innerHTML = '<div style="padding:32px 0;text-align:center;font-size:13px;color:var(--grey);font-style:italic">No entries match your filter.</div>';
+    return;
+  }
   // Group by month
   const monthMap = {};
-  diary.forEach((e, idx) => {
+  filtered.forEach(e => {
+    const idx = e._idx;
     const d = new Date(e.worn_at);
     const key = d.getFullYear() + '-' + String(d.getMonth()).padStart(2, '0');
     if (!monthMap[key]) monthMap[key] = { label: d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }), entries: [] };
