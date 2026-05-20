@@ -4226,7 +4226,7 @@ function buildTasteDashboardGaps(taste) {
   const keys = new Set((taste?.top || []).map(s => s.key));
   const gaps = [];
   const add = (missing, title, copy, action, onclick) => {
-    if (missing.every(key => !keys.has(key))) gaps.push({ title, copy, action, onclick });
+    if (missing.every(key => !keys.has(key))) gaps.push({ key: missing[0], title, copy, action, onclick });
   };
   add(['fresh','citrus'], 'Fresh daily wear', 'A clean daytime lane makes the wardrobe easier to use.', 'Build summer set', "openSampleBuilder('summer')");
   add(['woody'], 'Woody backbone', 'Woods give your taste profile structure and all-season range.', 'Build signature set', "openSampleBuilder('signature')");
@@ -4268,7 +4268,7 @@ function renderProfileTasteDashboard() {
     ? { label: 'Train with duels', onclick: 'openScentDuels()', copy: 'More choices will make this read sharper.' }
     : collection.length < 5
       ? { label: 'Add more bottles', onclick: 'openAdd()', copy: 'A richer Hive makes wardrobe advice stronger.' }
-      : { label: 'Build sample set', onclick: 'openSampleBuilder()', copy: 'Turn the taste read into things worth sampling.' };
+      : { label: 'Build sample set', onclick: "openSampleBuilder('personal')", copy: 'Turn the taste read into things worth sampling.' };
 
   el.innerHTML =
     '<div class="taste-dash-card">' +
@@ -6246,7 +6246,7 @@ async function submitNoseQuery() {
   }
 }
 
-let _sampleVibe = 'signature';
+let _sampleVibe = 'personal';
 let _sampleBudget = '35';
 
 const SAMPLE_SET_POOLS = {
@@ -6302,11 +6302,101 @@ function setupSampleBuilderOptions() {
   });
 }
 
+function sampleVibeLabel(vibe) {
+  return {
+    personal: 'Personal taste',
+    signature: 'Signature',
+    office: 'Office',
+    date: 'Date night',
+    summer: 'Summer',
+    wildcard: 'Wildcard'
+  }[vibe] || 'Sample';
+}
+
+function sampleQueryOwned(query) {
+  const q = normalizeText(query);
+  if (!q) return false;
+  return collection.some(item => {
+    const name = normalizeText(item.name || '');
+    const house = normalizeText(item.house || '');
+    if (!name) return false;
+    if (q === name) return true;
+    if (name.length < 4) return false;
+    if (house && q.includes(name) && q.includes(house)) return true;
+    return !house && name.length >= 6 && q.includes(name);
+  });
+}
+
+function mergeSamplePlans(...plans) {
+  const merged = [];
+  const seen = new Set();
+  plans.flat().forEach(item => {
+    if (!Array.isArray(item) || !item[0]) return;
+    const key = normalizeText(item[0]);
+    if (!key || seen.has(key) || sampleQueryOwned(item[0])) return;
+    seen.add(key);
+    merged.push(item);
+  });
+  return merged.slice(0, 5);
+}
+
+function firstSampleQueryForSignal(signal, used) {
+  const def = tasteSignalDef(signal?.key || signal);
+  if (!def?.queries?.length) return '';
+  return def.queries.find(q => !used.has(normalizeText(q)) && !sampleQueryOwned(q)) || '';
+}
+
+function buildTasteSignalSamplePlan(vibe = 'personal') {
+  const taste = getTasteSignals();
+  if (!taste.top.length || taste.confidence < 2) return [];
+
+  const plan = [];
+  const used = new Set();
+  const push = (query, reason, tag) => {
+    const key = normalizeText(query);
+    if (!key || used.has(key) || sampleQueryOwned(query)) return;
+    used.add(key);
+    plan.push([query, reason, tag || 'Taste']);
+  };
+  const pushSignal = (signal, reason) => {
+    const query = firstSampleQueryForSignal(signal, used);
+    if (query) push(query, reason, signal.label);
+  };
+
+  if (vibe === 'personal') {
+    taste.top.slice(0, 3).forEach((signal, i) => {
+      pushSignal(signal, (i === 0 ? 'Core match' : 'Taste expansion') + ': ' + signal.label + ' is one of your strongest live signals.');
+    });
+    buildTasteDashboardGaps(taste).slice(0, 2).forEach(gap => {
+      const query = firstSampleQueryForSignal(gap.key, used);
+      if (query) push(query, 'Wardrobe gap: ' + gap.title.toLowerCase() + '.', 'Gap');
+    });
+    if (plan.length < 5) {
+      const wildcard = TASTE_SIGNAL_DEFS.find(def => !taste.top.some(signal => signal.key === def.key));
+      const query = firstSampleQueryForSignal(wildcard?.key, used);
+      if (query) push(query, 'Control sample: useful contrast against your current taste read.', 'Control');
+    }
+  } else {
+    const top = taste.top[0];
+    if (top) pushSignal(top, 'Taste anchor: keeps this mission connected to your strongest signal, ' + top.label + '.');
+    const second = taste.top.find(signal => signal.key !== top?.key);
+    if (second && ['wildcard', 'signature'].includes(vibe)) {
+      pushSignal(second, 'Second signal: checks whether your ' + second.label + ' lane also works here.');
+    }
+  }
+
+  return plan.slice(0, 5);
+}
+
 function openSampleBuilder(vibe) {
-  if (vibe && SAMPLE_SET_POOLS[vibe]) _sampleVibe = vibe;
+  if (vibe && (vibe === 'personal' || SAMPLE_SET_POOLS[vibe])) {
+    _sampleVibe = vibe;
+  } else if (!vibe && getTasteSignals().top.length) {
+    _sampleVibe = 'personal';
+  }
   const results = document.getElementById('sample-builder-results');
   if (results) {
-    results.innerHTML = '<div class="sample-builder-empty">Choose a mission, then build your 5-sample path.</div>';
+    results.innerHTML = '<div class="sample-builder-empty">Choose a mission, then build your 5-sample path. The personal mode uses your live taste dashboard.</div>';
   }
   openModal('modal-sample-builder');
   setupSampleBuilderOptions();
@@ -6318,21 +6408,29 @@ async function buildSampleSet() {
   const el = document.getElementById('sample-builder-results');
   if (!el) return;
   const profile = getTasteProfile();
+  const taste = getTasteSignals();
+  const tastePlan = buildTasteSignalSamplePlan(_sampleVibe);
   const pool = SAMPLE_SET_POOLS[_sampleVibe] || SAMPLE_SET_POOLS.signature;
-  const profileExtra = profile?.queries?.[0] ? [[profile.queries[0], 'Personal taste-profile anchor']] : [];
-  const plan = [...profileExtra, ...pool].slice(0, 5);
+  const poolPlan = pool.map(([query, reason]) => [query, reason, sampleVibeLabel(_sampleVibe)]);
+  const profileExtra = profile?.queries?.[0] ? [[profile.queries[0], 'Taste-test anchor', profile.name]] : [];
+  const plan = mergeSamplePlans(tastePlan, _sampleVibe === 'personal' ? [] : profileExtra, poolPlan);
   const budgetLabel = _sampleBudget === '100' ? 'flexible budget' : 'target under €' + _sampleBudget;
+  const isPersonal = tastePlan.length > 0;
+  const planTitle = isPersonal ? 'Personal 5-sample path' : '5-sample path';
+  const planSub = isPersonal
+    ? (tasteSignalSummary(taste) || 'Built from your live taste read.') + ' · ' + budgetLabel
+    : budgetLabel + ' · add more logs or duels for a personal path';
 
   el.innerHTML = '<div class="sample-builder-empty"><div class="spinner" style="margin:0 auto 10px"></div>Building your set…</div>';
   const cards = [];
-  for (const [query, reason] of plan) {
+  for (const [query, reason, tag] of plan) {
     try {
       const results = await searchFragella(query);
       const f = results?.[0];
       if (!f) continue;
       const key = 'ss' + Math.random().toString(36).slice(2, 8);
       fragStore[key] = f;
-      cards.push({ key, f, reason });
+      cards.push({ key, f, reason, tag });
     } catch (e) {}
   }
 
@@ -6343,12 +6441,14 @@ async function buildSampleSet() {
 
   el.innerHTML =
     '<div class="sample-builder-summary">' +
-      '<strong>5-sample path</strong><span>' + escapeHtml(budgetLabel) + ' · sample before bottle</span>' +
+      '<strong>' + escapeHtml(planTitle) + '</strong><span>' + escapeHtml(planSub) + '</span>' +
     '</div>' +
-    cards.map(({ key, f, reason }, i) => `
+    (isPersonal ? '<div class="sample-builder-insight">This is a preview of the Pro value: fewer wrong bottles, more intentional sampling.</div>' : '') +
+    cards.map(({ key, f, reason, tag }, i) => `
       <div class="sample-set-card" data-key="${key}">
         <div class="sample-set-num">${String(i + 1).padStart(2, '0')}</div>
         <div class="sample-set-body">
+          ${tag ? `<div class="sample-set-tag">${escapeHtml(tag)}</div>` : ''}
           <div class="sample-set-name">${escapeHtml(f.name || '')}</div>
           <div class="sample-set-house">${escapeHtml(f.house || '')}</div>
           <div class="sample-set-reason">${escapeHtml(reason)}</div>

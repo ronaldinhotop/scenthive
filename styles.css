@@ -1396,9 +1396,11 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .sample-builder-summary{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
 .sample-builder-summary strong{font-family:'Playfair Display',serif;font-size:20px;font-style:italic;font-weight:400;color:var(--white)}
 .sample-builder-summary span{font-family:'DM Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:0.08em;text-transform:uppercase;text-align:right}
+.sample-builder-insight{margin-bottom:10px;padding:11px 13px;border:1px solid rgba(240,192,64,0.18);border-radius:8px;background:rgba(240,192,64,0.07);font-size:12px;color:var(--white2);line-height:1.45}
 .sample-set-card{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--border2);cursor:pointer}
 .sample-set-card:hover .sample-set-name{color:var(--gold-light)}
 .sample-set-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold-dim);letter-spacing:0.08em}
+.sample-set-tag{display:inline-block;margin-bottom:5px;font-family:'DM Mono',monospace;font-size:7.5px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;border:1px solid rgba(240,192,64,0.2);border-radius:999px;padding:3px 7px;background:rgba(240,192,64,0.06)}
 .sample-set-name{font-family:'Playfair Display',serif;font-size:17px;font-style:italic;line-height:1.15;color:var(--white)}
 .sample-set-house{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px}
 .sample-set-reason{font-size:11px;color:var(--grey);line-height:1.45;margin-top:5px}
