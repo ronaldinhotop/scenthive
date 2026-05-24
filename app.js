@@ -770,7 +770,7 @@ async function renderHome() {
       const mood = buildMoodPoster(fragStore[key]);
       const nm = escapeHtml(e.fragrance_name || '');
       const hs = escapeHtml(e.house || '');
-      const imgHtml = e.image_url ? makeImg(e.image_url, nm) : '<div class="poster-card-emoji">🏺</div>';
+      const imgHtml = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
       return '<div class="poster-card" data-key="' + key + '">' +
         '<div class="poster-card-img">' + mood.html + imgHtml +
         '<div class="poster-card-info"><div class="poster-card-name">' + nm + '</div><div class="poster-card-house">' + hs + '</div></div>' +
@@ -1136,12 +1136,10 @@ function renderContinueStrip() {
   strip.innerHTML = unique.map(e => {
     const nm = escapeHtml(e.fragrance_name || '');
     const hs = escapeHtml(e.house || '');
-    const img = e.image_url
-      ? `<img src="${escapeAttr(e.image_url)}" alt="${nm}" loading="lazy" onerror="this.style.display='none'">`
-      : '<span style="font-size:20px">🏺</span>';
+    const vis = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
     const ago = timeAgo(e.worn_at);
     return `<div class="continue-item" onclick="triggerSearch(${JSON.stringify(e.fragrance_name || '')})">
-      <div class="continue-item-img">${img}</div>
+      <div class="continue-item-img">${vis}</div>
       <div class="continue-item-info">
         <div class="continue-item-name">${nm}</div>
         <div class="continue-item-house">${hs}</div>
@@ -1190,11 +1188,9 @@ function renderTodayWear() {
   const extra = entries.length > 1 ? ' +' + (entries.length - 1) + ' more' : '';
   const rating = Number(e.rating) || 0;
   const stars = rating ? '★'.repeat(rating) + '<span>' + '★'.repeat(5 - rating) + '</span>' : '';
-  const img = e.image_url
-    ? '<img src="' + escapeAttr(e.image_url) + '" alt="' + escapeAttr(e.fragrance_name || '') + '" onerror="this.outerHTML=\'<div class=&quot;today-wear-emoji&quot;>🏺</div>\'">'
-    : '<div class="today-wear-emoji">🏺</div>';
+  const vis = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
   card.innerHTML = '<div class="today-wear-card logged">' +
-    '<button class="today-wear-art" onclick="showTab(\'diary\')">' + img + '</button>' +
+    '<button class="today-wear-art" onclick="showTab(\'diary\')">' + vis + '</button>' +
     '<div class="today-wear-main">' +
       '<div class="today-wear-kicker">Logged today' + escapeHtml(extra) + '</div>' +
       '<button class="today-wear-title" onclick="showTab(\'diary\')">' + escapeHtml(e.fragrance_name || '') + '</button>' +
@@ -1585,11 +1581,11 @@ async function loadPopularShelf() {
         const key = 'pop' + Math.random().toString(36).slice(2, 7);
         fragStore[key] = { name: f.fragrance_name, house: f.house, image_url: f.image_url, fragella_id: f.fragella_id };
         const mood = buildMoodPoster(fragStore[key]);
-        const img = f.image_url ? makeImg(f.image_url, f.fragrance_name) : '';
+        const img = buildFragVisual(f.fragrance_name || '', f.house || '', f.family || '', f.accords || []);
         const nm = escapeHtml(f.fragrance_name);
         const hs = escapeHtml(f.house || '');
         return '<div class="poster-card" data-key="' + key + '">' +
-          '<div class="poster-card-img">' + mood.html + (img || '<div class="poster-card-emoji">🏺</div>') +
+          '<div class="poster-card-img">' + mood.html + img +
           '<div class="poster-card-info">' +
           '<div class="poster-card-name">' + nm + '</div>' +
           '<div class="poster-card-house">' + hs + '</div>' +
@@ -1640,11 +1636,9 @@ function renderScentOfDay(forceNew = false) {
   _scentTodayKey = 'sotd' + Math.random().toString(36).slice(2, 8);
   fragStore[_scentTodayKey] = f;
   const mood = buildMoodPoster(f);
-  const img = f.image_url
-    ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + escapeHtml(f.name || '') + '" onerror="this.outerHTML=\'<div class=&quot;sotd-emoji&quot;>🏺</div>\'">'
-    : '<div class="sotd-emoji">🏺</div>';
+  const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
   card.innerHTML = '<div class="sotd-card">' +
-    '<button class="sotd-art" onclick="openScentTodayDetail()">' + mood.html + img + '</button>' +
+    '<button class="sotd-art" onclick="openScentTodayDetail()">' + mood.html + vis + '</button>' +
     '<div class="sotd-copy">' +
       '<div class="sotd-kicker">' + escapeHtml(pick.context) + '</div>' +
       '<button class="sotd-name" onclick="openScentTodayDetail()">' + escapeHtml(f.name || '') + '</button>' +
@@ -2000,10 +1994,8 @@ function renderScentDuelsModule() {
   const pair = pickDuelPair(state);
   const resultUnlocked = state.battles.length >= DUEL_TARGET;
   const miniPair = pair?.items?.length === 2 ? pair.items.map(f => {
-    const img = f.image_url
-      ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + escapeHtml(f.name || '') + '" onerror="this.style.display=\'none\'">'
-      : '<span>' + escapeHtml((f.name || 'S')[0]) + '</span>';
-    return '<div class="duel-mini-bottle">' + img + '</div>';
+    const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+    return '<div class="duel-mini-bottle">' + vis + '</div>';
   }).join('<div class="duel-mini-vs">vs</div>') : '';
 
   card.innerHTML = '<div class="duel-home-card">' +
@@ -2066,13 +2058,11 @@ function renderScentDuel(forceGame = false) {
 
 function renderDuelOption(f, index) {
   const mood = buildMoodPoster(f);
-  const img = f.image_url
-    ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + escapeHtml(f.name || '') + '" onerror="this.outerHTML=\'<div class=&quot;duel-empty-art&quot;>' + escapeHtml((f.name || 'S')[0]) + '</div>\'">'
-    : '<div class="duel-empty-art">' + escapeHtml((f.name || 'S')[0]) + '</div>';
+  const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
   const chips = (f.accords || []).map(getAccordName).filter(Boolean).slice(0, 3)
     .map(a => '<span>' + escapeHtml(titleCaseWords(a)) + '</span>').join('');
   return '<button class="duel-option" onclick="chooseDuel(' + index + ')">' +
-    '<div class="duel-art">' + mood.html + img + '</div>' +
+    '<div class="duel-art">' + mood.html + vis + '</div>' +
     '<div class="duel-name">' + escapeHtml(f.name || '') + '</div>' +
     '<div class="duel-house">' + escapeHtml(f.house || '') + '</div>' +
     (chips ? '<div class="duel-chip-row">' + chips + '</div>' : '') +
@@ -2225,9 +2215,7 @@ function buildPosterCard(f) {
   const safeName = escapeHtml(f.name || '');
   const safeHouse = escapeHtml(f.house || '');
   const mood = buildMoodPoster(f);
-  const img = f.image_url
-    ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" loading="lazy" onerror="this.style.display='none';var e=document.createElement('div');e.className='poster-card-emoji';e.textContent='🏺';this.parentNode.insertBefore(e,this);">`
-    : '<div class="poster-card-emoji">🏺</div>';
+  const img = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
   const reason = f._tasteReason ? `<div class="poster-card-rating">${escapeHtml(f._tasteReason)}</div>` : '';
   const actions = `<div class="poster-card-actions">
       <button class="pca-btn pca-log" data-pca="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}">Log</button>
@@ -2318,10 +2306,68 @@ function hashText(text) {
 }
 
 
-function makeImg(url, alt, cls, style) {
-  if (!url) return '';
-  var s = style || 'max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:luminosity;filter:brightness(1.3)';
-  return '<img src="' + escapeAttr(url) + '" alt="' + escapeHtml(alt||'') + '" class="' + (cls||'') + '" style="' + s + '" loading="lazy" onerror="this.style.display=\'none\';var e=document.createElement(\'div\');e.className=\'poster-card-emoji\';e.textContent=\'🏺\';this.parentNode.insertBefore(e,this);">';
+// ─── Fragrance Visual Art System ────────────────────────────────────────────
+// Generates a deterministic, branded CSS visual for every fragrance.
+// No external CDN needed — color + letter art from family/name only.
+
+var FRAG_VIS_THEMES = {
+  floral:   { a:'#2a0a1e', b:'#561434', c:'#3a0f28', g:'rgba(220,100,140,0.42)', l:'#f0a0c0' },
+  rose:     { a:'#2a0a1e', b:'#561434', c:'#3a0f28', g:'rgba(220,100,140,0.42)', l:'#f0a0c0' },
+  woody:    { a:'#160905', b:'#3a1608', c:'#240f05', g:'rgba(180,110,50,0.48)',   l:'#d4956a' },
+  wood:     { a:'#160905', b:'#3a1608', c:'#240f05', g:'rgba(180,110,50,0.48)',   l:'#d4956a' },
+  earthy:   { a:'#140e04', b:'#302208', c:'#1e1605', g:'rgba(160,130,50,0.42)',   l:'#c8a85a' },
+  oriental: { a:'#160820', b:'#32104a', c:'#240c34', g:'rgba(160,80,220,0.42)',   l:'#c090e0' },
+  amber:    { a:'#180a04', b:'#381408', c:'#240c05', g:'rgba(220,130,40,0.48)',   l:'#e8a060' },
+  spicy:    { a:'#180604', b:'#380c10', c:'#240808', g:'rgba(220,60,50,0.42)',    l:'#e08070' },
+  aquatic:  { a:'#04121e', b:'#082840', c:'#06182e', g:'rgba(40,150,220,0.48)',   l:'#60c0f0' },
+  marine:   { a:'#04121e', b:'#082840', c:'#06182e', g:'rgba(40,150,220,0.48)',   l:'#60c0f0' },
+  fresh:    { a:'#041408', b:'#082e14', c:'#061c0c', g:'rgba(40,200,100,0.38)',   l:'#70e0a0' },
+  citrus:   { a:'#140e04', b:'#342208', c:'#221604', g:'rgba(220,190,40,0.48)',   l:'#f0d060' },
+  green:    { a:'#040e06', b:'#0c2410', c:'#081808', g:'rgba(60,180,80,0.38)',    l:'#80c880' },
+  aromatic: { a:'#060e0e', b:'#0e2228', c:'#0a1a1c', g:'rgba(80,180,170,0.38)',  l:'#70d0c0' },
+  musk:     { a:'#100c0c', b:'#241c1a', c:'#181410', g:'rgba(180,150,120,0.32)', l:'#c8b090' },
+  powdery:  { a:'#1a0c16', b:'#342030', c:'#261a22', g:'rgba(200,140,180,0.32)', l:'#e0b0d0' },
+  gourmand: { a:'#160a04', b:'#341408', c:'#220e05', g:'rgba(200,150,60,0.42)',   l:'#e0b870' },
+  sweet:    { a:'#160a04', b:'#341408', c:'#220e05', g:'rgba(200,150,60,0.42)',   l:'#e0b870' },
+  chypre:   { a:'#100e04', b:'#221e08', c:'#181605', g:'rgba(140,180,60,0.38)',   l:'#b0d070' },
+  fougere:  { a:'#060e08', b:'#101e12', c:'#0c160e', g:'rgba(60,170,90,0.38)',   l:'#70c888' },
+};
+var FRAG_VIS_DEFAULT = { a:'#0c0a14', b:'#181628', c:'#100e1e', g:'rgba(140,120,200,0.32)', l:'#b0a0e0' };
+
+function nameHash(str, max) {
+  // Deterministic integer in [0, max) from any string
+  var h = hashText(str);
+  return h % max;
+}
+
+function _getFragTheme(family, accords) {
+  var fk = (family || '').toLowerCase().replace(/[^a-z]/g, '');
+  if (FRAG_VIS_THEMES[fk]) return FRAG_VIS_THEMES[fk];
+  var al = Array.isArray(accords) ? accords : [];
+  for (var i = 0; i < al.length; i++) {
+    var ak = String(typeof al[i] === 'string' ? al[i] : (al[i] && al[i].name) || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (FRAG_VIS_THEMES[ak]) return FRAG_VIS_THEMES[ak];
+  }
+  return FRAG_VIS_DEFAULT;
+}
+
+function buildFragVisual(name, house, family, accords) {
+  var t = _getFragTheme(family, accords);
+  var h = nameHash((name || '') + (house || ''), 100);
+  var h2 = nameHash((house || '') + (name || ''), 60);
+  var gx = 30 + (h % 40);
+  var gy = 15 + (h2 % 40);
+  var clean = (name || '').replace(/^(the|le|la|les|un|une|de|di|l')\s*/i, '').trim();
+  var letter = escapeHtml((clean.charAt(0) || '◈').toUpperCase());
+  return '<div class="frag-vis" style="background:linear-gradient(155deg,' + t.a + ' 0%,' + t.b + ' 55%,' + t.c + ' 100%)">' +
+    '<div style="position:absolute;width:72%;padding-top:72%;border-radius:50%;top:' + gy + '%;left:' + gx + '%;transform:translate(-50%,-50%);background:radial-gradient(circle,' + t.g + ' 0%,transparent 65%);pointer-events:none"></div>' +
+    '<div class="frag-vis-letter" style="color:' + t.l + '">' + letter + '</div>' +
+  '</div>';
+}
+
+function makeImg(url, alt, cls, style, house) {
+  // Generates a branded CSS visual — no longer depends on external image URLs.
+  return buildFragVisual(alt || '', house || '', '', []);
 }
 
 function escapeHtml(s) {
@@ -2395,9 +2441,7 @@ function buildResultItem(f) {
   const key = 'r' + Math.random().toString(36).slice(2, 8);
   fragStore[key] = f;
   const safeName = escapeHtml(f.name || 'Unknown');
-  const img = f.image_url
-    ? `<img src="${escapeAttr(f.image_url)}" alt="${safeName}" onerror="this.outerHTML='<div class=&quot;result-img-emoji&quot;>🏺</div>'">`
-    : '<div class="result-img-emoji">🏺</div>';
+  const img = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
 
   // Meta chips: family, year, gender
   const chips = [f.family, f.launch_year, f.gender, f.oil_type]
@@ -2990,9 +3034,8 @@ function openWearShare(entry) {
   const rating = formatWearScore(entry.rating);
   const bottle = document.getElementById('wear-share-bottle');
   if (bottle) {
-    bottle.innerHTML = entry.image_url
-      ? `<img src="${escapeAttr(entry.image_url)}" alt="${escapeAttr(name)}" onerror="this.outerHTML='<div class=&quot;wear-share-bottle-empty&quot;>${escapeHtml(name[0] || 'S')}</div>'">`
-      : `<div class="wear-share-bottle-empty">${escapeHtml(name[0] || 'S')}</div>`;
+    bottle.style.position = 'relative';
+    bottle.innerHTML = buildFragVisual(name || '', house || '', '', []);
   }
   const setText = (id, value) => {
     const el = document.getElementById(id);
@@ -3520,7 +3563,7 @@ function openFrag(key) {
 
   document.getElementById('frag-content').innerHTML =
     '<div class="frag-hero">' +
-      '<div class="frag-hero-img">' + mood.html + (f.image_url ? '<img src="' + escapeAttr(f.image_url) + '" alt="' + safeName + '">' : '<div class="frag-hero-img-emoji">🏺</div>') + '</div>' +
+      '<div class="frag-hero-img">' + mood.html + buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []) + '</div>' +
       '<div class="frag-hero-body">' +
         '<div class="frag-hero-eyebrow">' + safeHouse + '</div>' +
         '<div class="frag-hero-name">' + safeName + '</div>' +
@@ -3797,11 +3840,8 @@ function selectAddFrag(f) {
   document.getElementById('add-selected-name').textContent = f.name || '';
   document.getElementById('add-selected-house').textContent = f.house || '';
   const imgWrap = document.getElementById('add-selected-img');
-  if (f.image_url) {
-    imgWrap.innerHTML = makeImg(f.image_url, f.name, '', 'width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;padding:4px') || '🏺';
-  } else {
-    imgWrap.textContent = '🏺';
-  }
+  imgWrap.style.position = 'relative';
+  imgWrap.innerHTML = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
 }
 
 function selectManualAdd() {
@@ -3827,9 +3867,9 @@ function onAddSearch(q) {
     results.innerHTML = frags.slice(0, 6).map((f, i) => {
       const key = 'as' + i + Math.random().toString(36).slice(2, 6);
       fragStore[key] = f;
-      const img = f.image_url ? makeImg(f.image_url, f.name) : '🏺';
+      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
-        '<div style="width:36px;height:46px;background:var(--bg3);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:18px;flex-shrink:0">' + img + '</div>' +
+        '<div style="width:36px;height:46px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative">' + vis + '</div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name || '') + '</div>' +
           '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">' + escapeHtml(f.house || '') + '</div>' +
@@ -3948,7 +3988,7 @@ function renderDiary() {
                 <div class="diary-day">${day}</div>
                 <div class="diary-day-sub">${dayName}</div>
               </div>
-              <div class="diary-bottle">${e.image_url ? `<img src="${escapeAttr(e.image_url)}" alt="${escapeHtml(e.fragrance_name)}" onerror="this.outerHTML='<div class=&quot;diary-bottle-emoji&quot;>🏺</div>'">` : '<div class="diary-bottle-emoji">🏺</div>'}</div>
+              <div class="diary-bottle">${buildFragVisual(e.fragrance_name||'', e.house||'', '', [])}</div>
               <div class="diary-info">
                 <div class="diary-name">${escapeHtml(e.fragrance_name)}</div>
                 <div class="diary-house">${escapeHtml(e.house || '')}</div>
@@ -4146,10 +4186,7 @@ function renderCollection() {
     return;
   }
   grid.innerHTML = collection.map((b, idx) => {
-    const initial = escapeHtml((b.name || '?')[0].toUpperCase());
-    const img = b.image_url
-      ? `<img src="${escapeAttr(b.image_url)}" alt="${escapeAttr(b.name || '')}" onerror="this.outerHTML='<div class=&quot;col-cell-monogram&quot;>${initial}</div>'">`
-      : `<div class="col-cell-monogram">${initial}</div>`;
+    const img = buildFragVisual(b.name || '', b.house || '', b.family || '', b.accords || []);
     return `
       <div class="col-cell" data-idx="${idx}" data-id="${escapeAttr(b.id||'')}" data-name="${escapeAttr(b.name||'')}" data-house="${escapeAttr(b.house||'')}">
         ${img}
@@ -4184,40 +4221,7 @@ function renderCollection() {
     });
   });
 
-  // Auto-fetch missing bottle images from fragella
-  const missingImgCells = [...grid.querySelectorAll('.col-cell[data-idx]')].filter(cell => {
-    const idx = parseInt(cell.getAttribute('data-idx'));
-    return collection[idx] && !collection[idx].image_url;
-  });
-  if (missingImgCells.length && sb) {
-    missingImgCells.forEach(async cell => {
-      const idx = parseInt(cell.getAttribute('data-idx'));
-      const b = collection[idx];
-      if (!b || b.image_url) return;
-      try {
-        const q = getImageLookupQuery(b, 'name');
-        const { data } = await sb.from('fragella').select('name,house,image_url').ilike('name', '%' + q.split(' ')[0] + '%').limit(5);
-        if (!data || !data.length) return;
-        // Best match: same house
-        const match = data.find(r => r.house && b.house && r.house.toLowerCase().includes(b.house.toLowerCase().split(' ')[0])) || data[0];
-        if (!match || !match.image_url) return;
-        // Update the cell
-        const placeholder = cell.querySelector('.col-cell-monogram, .col-cell-emoji');
-        if (placeholder) {
-          const img = document.createElement('img');
-          img.src = match.image_url;
-          img.alt = b.name || '';
-          img.onerror = () => img.remove();
-          placeholder.replaceWith(img);
-        }
-        // Persist to DB if logged in
-        collection[idx].image_url = match.image_url;
-        if (user && b.id) {
-          sb.from('collection').update({ image_url: match.image_url }).eq('id', b.id).then(() => {});
-        }
-      } catch(e) {}
-    });
-  }
+  // Visuals are now generated via buildFragVisual — no CDN image fetch needed.
 
   // Wire clicks: open fragrance detail
   grid.querySelectorAll('.col-cell').forEach(cell => {
@@ -4581,7 +4585,7 @@ function renderProfilePosterShelves() {
       fragStore[key] = { name: e.fragrance_name, house: e.house, image_url: e.image_url, fragella_id: e.fragella_id };
       const nm = escapeHtml(e.fragrance_name || '');
       const hs = escapeHtml(e.house || '');
-      const imgHtml = e.image_url ? makeImg(e.image_url, nm) : '<div class="poster-card-emoji">🏺</div>';
+      const imgHtml = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
       return '<div class="poster-card" data-key="' + key + '">' +
         '<div class="poster-card-img">' + imgHtml +
           '<div class="poster-card-info">' +
@@ -5344,13 +5348,10 @@ function selectFrag(f) {
   document.getElementById('log-step-2').style.display = 'block';
   document.getElementById('log-selected-name').textContent = f.name || '';
   document.getElementById('log-selected-house').textContent = f.house || '';
-  // Show image
+  // Show visual
   const imgWrap = document.getElementById('log-selected-img');
-  if (f.image_url) {
-    imgWrap.innerHTML = makeImg(f.image_url, f.name, '', 'width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;padding:4px') || '🏺';
-  } else {
-    imgWrap.textContent = '🏺';
-  }
+  imgWrap.style.position = 'relative';
+  imgWrap.innerHTML = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
 }
 
 function titleCaseWords(value) {
@@ -5465,11 +5466,9 @@ function onLogSearch(q) {
     results.innerHTML = frags.slice(0, 6).map((f, i) => {
       const key = 'ls' + i + Math.random().toString(36).slice(2,6);
       fragStore[key] = f;
-      const img = f.image_url
-        ? makeImg(f.image_url, f.name)
-        : '🏺';
+      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
-        '<div style="width:36px;height:46px;background:var(--bg3);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:18px;flex-shrink:0">' + img + '</div>' +
+        '<div style="width:36px;height:46px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative">' + vis + '</div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name || '') + '</div>' +
           '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">' + escapeHtml(f.house || '') + '</div>' +
@@ -5695,9 +5694,9 @@ function onPickFavSearch(q) {
     results.innerHTML = frags.slice(0, 6).map((f, i) => {
       const key = 'pf' + i + Math.random().toString(36).slice(2, 5);
       fragStore[key] = f;
-      const img = f.image_url ? makeImg(f.image_url, f.name) : '🏺';
+      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
-        '<div style="width:36px;height:46px;background:var(--bg3);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:18px;flex-shrink:0">' + img + '</div>' +
+        '<div style="width:36px;height:46px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative">' + vis + '</div>' +
         '<div style="flex:1;min-width:0"><div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name || '') + '</div>' +
         '<div style="font-family:DM Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">' + escapeHtml(f.house || '') + '</div></div>' +
         '<span style="color:var(--grey)">+</span></div>';
@@ -5737,11 +5736,9 @@ function renderFavsGrid(favs) {
   const slots = Array(4).fill(null).map((_, i) => (favs || [])[i] || null);
   grid.innerHTML = slots.map((f, i) => {
     if (f && f.name) {
-      const img = f.image_url
-        ? `<img src="${escapeAttr(f.image_url)}" alt="${escapeHtml(f.name)}" onerror="this.outerHTML='<div class=&quot;fav-cell-empty&quot;>🏺</div>'">`
-        : `<div class="fav-cell-empty" style="font-family:'Playfair Display',serif;font-size:24px;color:var(--gold-dim);font-style:italic">${escapeHtml(f.name[0])}</div>`;
+      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return `<div class="fav-cell" data-favslot="${i}" data-name="${escapeAttr(f.name)}" data-house="${escapeAttr(f.house||'')}">
-        ${img}
+        ${vis}
         <div class="fav-cell-overlay">${escapeHtml(f.name)}</div>
         <button class="col-del-btn" style="opacity:0.7" onclick="event.stopPropagation();removeFavourite(${i})" title="Remove">×</button>
       </div>`;
@@ -5873,9 +5870,7 @@ async function loadCommunityFeed() {
       const d = new Date(e.worn_at);
       const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
       const stars = e.rating ? '★'.repeat(e.rating) + '<span style="color:var(--grey2)">' + '★'.repeat(5-e.rating) + '</span>' : '';
-      const imgHtml = e.image_url
-        ? makeImg(e.image_url, e.fragrance_name)
-        : '<span style="font-size:20px;opacity:0.4">🏺</span>';
+      const imgHtml = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
       const count = likeCountMap[e.id] || 0;
       const liked = likedByMe.has(e.id);
       const likedClass = liked ? ' liked' : '';
@@ -7231,9 +7226,9 @@ function onWishlistSearch(q) {
     results.innerHTML = frags.slice(0,6).map((f,i) => {
       const key = 'wl'+i+Math.random().toString(36).slice(2,5);
       fragStore[key] = f;
-      const img = f.image_url ? makeImg(f.image_url, f.name) : '🏺';
+      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return `<div class="log-search-result" data-key="${key}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">
-        <div style="width:36px;height:46px;background:var(--bg3);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:18px;flex-shrink:0">${img}</div>
+        <div style="width:36px;height:46px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative">${vis}</div>
         <div style="flex:1;min-width:0">
           <div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.name||'')}</div>
           <div style="font-family:DM Mono,monospace;font-size:9px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">${escapeHtml(f.house||'')}</div>
