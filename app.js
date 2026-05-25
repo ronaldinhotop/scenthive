@@ -770,7 +770,7 @@ async function renderHome() {
       const mood = buildMoodPoster(fragStore[key]);
       const nm = escapeHtml(e.fragrance_name || '');
       const hs = escapeHtml(e.house || '');
-      const imgHtml = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
+      const imgHtml = e.image_url ? makeImg(e.image_url, nm) : buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
       return '<div class="poster-card" data-key="' + key + '">' +
         '<div class="poster-card-img">' + mood.html + imgHtml +
         '<div class="poster-card-info"><div class="poster-card-name">' + nm + '</div><div class="poster-card-house">' + hs + '</div></div>' +
@@ -1136,7 +1136,7 @@ function renderContinueStrip() {
   strip.innerHTML = unique.map(e => {
     const nm = escapeHtml(e.fragrance_name || '');
     const hs = escapeHtml(e.house || '');
-    const vis = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
+    const vis = e.image_url ? makeImg(e.image_url, e.fragrance_name) : buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
     const ago = timeAgo(e.worn_at);
     return `<div class="continue-item" onclick="triggerSearch(${JSON.stringify(e.fragrance_name || '')})">
       <div class="continue-item-img">${vis}</div>
@@ -1188,7 +1188,7 @@ function renderTodayWear() {
   const extra = entries.length > 1 ? ' +' + (entries.length - 1) + ' more' : '';
   const rating = Number(e.rating) || 0;
   const stars = rating ? '★'.repeat(rating) + '<span>' + '★'.repeat(5 - rating) + '</span>' : '';
-  const vis = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
+  const vis = e.image_url ? makeImg(e.image_url, e.fragrance_name) : buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
   card.innerHTML = '<div class="today-wear-card logged">' +
     '<button class="today-wear-art" onclick="showTab(\'diary\')">' + vis + '</button>' +
     '<div class="today-wear-main">' +
@@ -1581,7 +1581,7 @@ async function loadPopularShelf() {
         const key = 'pop' + Math.random().toString(36).slice(2, 7);
         fragStore[key] = { name: f.fragrance_name, house: f.house, image_url: f.image_url, fragella_id: f.fragella_id };
         const mood = buildMoodPoster(fragStore[key]);
-        const img = buildFragVisual(f.fragrance_name || '', f.house || '', f.family || '', f.accords || []);
+        const img = f.image_url ? makeImg(f.image_url, f.fragrance_name) : buildFragVisual(f.fragrance_name || '', f.house || '', f.family || '', f.accords || []);
         const nm = escapeHtml(f.fragrance_name);
         const hs = escapeHtml(f.house || '');
         return '<div class="poster-card" data-key="' + key + '">' +
@@ -1636,7 +1636,7 @@ function renderScentOfDay(forceNew = false) {
   _scentTodayKey = 'sotd' + Math.random().toString(36).slice(2, 8);
   fragStore[_scentTodayKey] = f;
   const mood = buildMoodPoster(f);
-  const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+  const vis = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
   card.innerHTML = '<div class="sotd-card">' +
     '<button class="sotd-art" onclick="openScentTodayDetail()">' + mood.html + vis + '</button>' +
     '<div class="sotd-copy">' +
@@ -1994,7 +1994,7 @@ function renderScentDuelsModule() {
   const pair = pickDuelPair(state);
   const resultUnlocked = state.battles.length >= DUEL_TARGET;
   const miniPair = pair?.items?.length === 2 ? pair.items.map(f => {
-    const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+    const vis = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
     return '<div class="duel-mini-bottle">' + vis + '</div>';
   }).join('<div class="duel-mini-vs">vs</div>') : '';
 
@@ -2058,7 +2058,7 @@ function renderScentDuel(forceGame = false) {
 
 function renderDuelOption(f, index) {
   const mood = buildMoodPoster(f);
-  const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+  const vis = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
   const chips = (f.accords || []).map(getAccordName).filter(Boolean).slice(0, 3)
     .map(a => '<span>' + escapeHtml(titleCaseWords(a)) + '</span>').join('');
   return '<button class="duel-option" onclick="chooseDuel(' + index + ')">' +
@@ -2215,7 +2215,7 @@ function buildPosterCard(f) {
   const safeName = escapeHtml(f.name || '');
   const safeHouse = escapeHtml(f.house || '');
   const mood = buildMoodPoster(f);
-  const img = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+  const img = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
   const reason = f._tasteReason ? `<div class="poster-card-rating">${escapeHtml(f._tasteReason)}</div>` : '';
   const actions = `<div class="poster-card-actions">
       <button class="pca-btn pca-log" data-pca="log" data-name="${escapeAttr(f.name||'')}" data-house="${escapeAttr(f.house||'')}" data-img="${escapeAttr(f.image_url||'')}">Log</button>
@@ -2366,8 +2366,9 @@ function buildFragVisual(name, house, family, accords) {
 }
 
 function makeImg(url, alt, cls, style, house) {
-  // Generates a branded CSS visual — no longer depends on external image URLs.
-  return buildFragVisual(alt || '', house || '', '', []);
+  if (!url) return buildFragVisual(alt || '', house || '', '', []);
+  var s = style || 'max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:luminosity;filter:brightness(1.3)';
+  return '<img src="' + escapeAttr(url) + '" alt="' + escapeHtml(alt||'') + '" class="' + (cls||'') + '" style="' + s + '" loading="lazy" onerror="this.style.display=\'none\'">';
 }
 
 function escapeHtml(s) {
@@ -2441,7 +2442,7 @@ function buildResultItem(f) {
   const key = 'r' + Math.random().toString(36).slice(2, 8);
   fragStore[key] = f;
   const safeName = escapeHtml(f.name || 'Unknown');
-  const img = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+  const img = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
 
   // Meta chips: family, year, gender
   const chips = [f.family, f.launch_year, f.gender, f.oil_type]
@@ -3035,7 +3036,7 @@ function openWearShare(entry) {
   const bottle = document.getElementById('wear-share-bottle');
   if (bottle) {
     bottle.style.position = 'relative';
-    bottle.innerHTML = buildFragVisual(name || '', house || '', '', []);
+    bottle.innerHTML = entry.image_url ? makeImg(entry.image_url, name) : buildFragVisual(name || '', house || '', '', []);
   }
   const setText = (id, value) => {
     const el = document.getElementById(id);
@@ -3563,7 +3564,7 @@ function openFrag(key) {
 
   document.getElementById('frag-content').innerHTML =
     '<div class="frag-hero">' +
-      '<div class="frag-hero-img">' + mood.html + buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []) + '</div>' +
+      '<div class="frag-hero-img">' + mood.html + (f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || [])) + '</div>' +
       '<div class="frag-hero-body">' +
         '<div class="frag-hero-eyebrow">' + safeHouse + '</div>' +
         '<div class="frag-hero-name">' + safeName + '</div>' +
@@ -3841,7 +3842,7 @@ function selectAddFrag(f) {
   document.getElementById('add-selected-house').textContent = f.house || '';
   const imgWrap = document.getElementById('add-selected-img');
   imgWrap.style.position = 'relative';
-  imgWrap.innerHTML = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+  imgWrap.innerHTML = f.image_url ? makeImg(f.image_url, f.name, '', 'width:100%;height:100%;object-fit:contain;padding:4px') : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
 }
 
 function selectManualAdd() {
@@ -3867,7 +3868,7 @@ function onAddSearch(q) {
     results.innerHTML = frags.slice(0, 6).map((f, i) => {
       const key = 'as' + i + Math.random().toString(36).slice(2, 6);
       fragStore[key] = f;
-      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+      const vis = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
         '<div style="width:36px;height:46px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative">' + vis + '</div>' +
         '<div style="flex:1;min-width:0">' +
@@ -3988,7 +3989,7 @@ function renderDiary() {
                 <div class="diary-day">${day}</div>
                 <div class="diary-day-sub">${dayName}</div>
               </div>
-              <div class="diary-bottle">${buildFragVisual(e.fragrance_name||'', e.house||'', '', [])}</div>
+              <div class="diary-bottle">${e.image_url ? makeImg(e.image_url, e.fragrance_name) : buildFragVisual(e.fragrance_name||'', e.house||'', '', [])}</div>
               <div class="diary-info">
                 <div class="diary-name">${escapeHtml(e.fragrance_name)}</div>
                 <div class="diary-house">${escapeHtml(e.house || '')}</div>
@@ -4186,7 +4187,7 @@ function renderCollection() {
     return;
   }
   grid.innerHTML = collection.map((b, idx) => {
-    const img = buildFragVisual(b.name || '', b.house || '', b.family || '', b.accords || []);
+    const img = b.image_url ? makeImg(b.image_url, b.name) : buildFragVisual(b.name || '', b.house || '', b.family || '', b.accords || []);
     return `
       <div class="col-cell" data-idx="${idx}" data-id="${escapeAttr(b.id||'')}" data-name="${escapeAttr(b.name||'')}" data-house="${escapeAttr(b.house||'')}">
         ${img}
@@ -4585,7 +4586,7 @@ function renderProfilePosterShelves() {
       fragStore[key] = { name: e.fragrance_name, house: e.house, image_url: e.image_url, fragella_id: e.fragella_id };
       const nm = escapeHtml(e.fragrance_name || '');
       const hs = escapeHtml(e.house || '');
-      const imgHtml = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
+      const imgHtml = e.image_url ? makeImg(e.image_url, e.fragrance_name) : buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
       return '<div class="poster-card" data-key="' + key + '">' +
         '<div class="poster-card-img">' + imgHtml +
           '<div class="poster-card-info">' +
@@ -5351,7 +5352,7 @@ function selectFrag(f) {
   // Show visual
   const imgWrap = document.getElementById('log-selected-img');
   imgWrap.style.position = 'relative';
-  imgWrap.innerHTML = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+  imgWrap.innerHTML = f.image_url ? makeImg(f.image_url, f.name, '', 'width:100%;height:100%;object-fit:contain;padding:4px') : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
 }
 
 function titleCaseWords(value) {
@@ -5466,7 +5467,7 @@ function onLogSearch(q) {
     results.innerHTML = frags.slice(0, 6).map((f, i) => {
       const key = 'ls' + i + Math.random().toString(36).slice(2,6);
       fragStore[key] = f;
-      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+      const vis = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
         '<div style="width:36px;height:46px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative">' + vis + '</div>' +
         '<div style="flex:1;min-width:0">' +
@@ -5694,7 +5695,7 @@ function onPickFavSearch(q) {
     results.innerHTML = frags.slice(0, 6).map((f, i) => {
       const key = 'pf' + i + Math.random().toString(36).slice(2, 5);
       fragStore[key] = f;
-      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+      const vis = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return '<div class="log-search-result" data-key="' + key + '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">' +
         '<div style="width:36px;height:46px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative">' + vis + '</div>' +
         '<div style="flex:1;min-width:0"><div style="font-family:Playfair Display,serif;font-size:15px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name || '') + '</div>' +
@@ -5736,7 +5737,7 @@ function renderFavsGrid(favs) {
   const slots = Array(4).fill(null).map((_, i) => (favs || [])[i] || null);
   grid.innerHTML = slots.map((f, i) => {
     if (f && f.name) {
-      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+      const vis = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return `<div class="fav-cell" data-favslot="${i}" data-name="${escapeAttr(f.name)}" data-house="${escapeAttr(f.house||'')}">
         ${vis}
         <div class="fav-cell-overlay">${escapeHtml(f.name)}</div>
@@ -5870,7 +5871,7 @@ async function loadCommunityFeed() {
       const d = new Date(e.worn_at);
       const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
       const stars = e.rating ? '★'.repeat(e.rating) + '<span style="color:var(--grey2)">' + '★'.repeat(5-e.rating) + '</span>' : '';
-      const imgHtml = buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
+      const imgHtml = e.image_url ? makeImg(e.image_url, e.fragrance_name) : buildFragVisual(e.fragrance_name || '', e.house || '', '', []);
       const count = likeCountMap[e.id] || 0;
       const liked = likedByMe.has(e.id);
       const likedClass = liked ? ' liked' : '';
@@ -7226,7 +7227,7 @@ function onWishlistSearch(q) {
     results.innerHTML = frags.slice(0,6).map((f,i) => {
       const key = 'wl'+i+Math.random().toString(36).slice(2,5);
       fragStore[key] = f;
-      const vis = buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
+      const vis = f.image_url ? makeImg(f.image_url, f.name) : buildFragVisual(f.name || '', f.house || '', f.family || '', f.accords || []);
       return `<div class="log-search-result" data-key="${key}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">
         <div style="width:36px;height:46px;border-radius:4px;overflow:hidden;flex-shrink:0;position:relative">${vis}</div>
         <div style="flex:1;min-width:0">
