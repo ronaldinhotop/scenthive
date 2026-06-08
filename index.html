@@ -299,6 +299,27 @@
         <div class="wotd-card" id="wotd-card"></div>
       </div>
 
+      <div class="section" id="section-occasion" style="display:none">
+        <div class="section-header">
+          <div>
+            <div class="section-eyebrow">AI pick</div>
+            <div class="section-title">Dress for the <em>moment</em></div>
+            <div class="section-sub">Tell ScentHive where you're going.</div>
+          </div>
+        </div>
+        <div class="occasion-chips" id="occasion-chips">
+          <button class="occasion-chip" data-occ="date">🌙 Date Night</button>
+          <button class="occasion-chip" data-occ="office">💼 Office</button>
+          <button class="occasion-chip" data-occ="night">🎉 Night Out</button>
+          <button class="occasion-chip" data-occ="casual">☕ Casual</button>
+          <button class="occasion-chip" data-occ="cozy">🕯️ Cozy In</button>
+          <button class="occasion-chip" data-occ="travel">✈️ Travel</button>
+          <button class="occasion-chip" data-occ="sport">🏃 Sport</button>
+          <button class="occasion-chip" data-occ="beach">🌊 Beach</button>
+        </div>
+        <div id="occasion-result" style="display:none"></div>
+      </div>
+
       <div class="section" id="section-today-wear" style="display:none">
         <div class="section-header">
           <div>
@@ -739,6 +760,17 @@
         <span class="profile-sec-more" onclick="openScentDuels()">Train →</span>
       </div>
       <div id="taste-dashboard"></div>
+    </div>
+
+    <div class="profile-section" id="sample-plan-section">
+      <div class="profile-sec-header">
+        <div>
+          <div class="profile-sec-title">Sample <em style="font-style:italic;color:var(--gold-light)">plan</em></div>
+          <div class="profile-sec-sub">Your next five scents to test before you buy another bottle.</div>
+        </div>
+        <span class="profile-sec-more" onclick="openSampleBuilder('personal')">Build →</span>
+      </div>
+      <div id="profile-sample-plan"></div>
     </div>
 
     <!-- Upgrade strip (logged-in only) -->

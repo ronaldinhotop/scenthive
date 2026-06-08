@@ -742,6 +742,7 @@ async function updateRightSidebar() {
 async function renderHome() {
   updateHero();
   loadWotd();
+  renderOccasionPicker();
   renderTodayWear();
   renderScentOfDay();
   renderScentDuelsModule();
@@ -984,6 +985,129 @@ function renderWotd(data) {
     '</div>';
 
   section.style.display = '';
+}
+
+// ═══════ OCCASION PICKER ═══════
+const OCCASION_CACHE_KEY = 'sh_occasion_cache';
+const OCCASION_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours per occasion
+
+const OCCASION_LABELS = {
+  date: 'Date Night', office: 'Office', night: 'Night Out',
+  casual: 'Casual', cozy: 'Cozy Night In', travel: 'Travel',
+  sport: 'Sport / Gym', beach: 'Beach',
+};
+
+function renderOccasionPicker() {
+  const section = document.getElementById('section-occasion');
+  if (!section) return;
+  // Only show for logged-in users (or users with some data)
+  if (!user && !collection.length && !diary.length) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+
+  // Wire up chip clicks (idempotent — remove old listeners by replacing HTML is avoided;
+  // we delegate via the container instead)
+  const chipsEl = document.getElementById('occasion-chips');
+  if (chipsEl && !chipsEl._ocBound) {
+    chipsEl._ocBound = true;
+    chipsEl.addEventListener('click', e => {
+      const chip = e.target.closest('.occasion-chip');
+      if (!chip) return;
+      const occ = chip.getAttribute('data-occ');
+      if (occ) loadOccasionRec(occ);
+    });
+  }
+}
+
+async function loadOccasionRec(occasion) {
+  const section = document.getElementById('section-occasion');
+  const resultEl = document.getElementById('occasion-result');
+  const chipsEl = document.getElementById('occasion-chips');
+  if (!resultEl) return;
+
+  // Mark active chip
+  if (chipsEl) {
+    chipsEl.querySelectorAll('.occasion-chip').forEach(c =>
+      c.classList.toggle('active', c.getAttribute('data-occ') === occasion)
+    );
+  }
+
+  // Check session cache
+  try {
+    const allCached = JSON.parse(sessionStorage.getItem(OCCASION_CACHE_KEY) || '{}');
+    const entry = allCached[occasion];
+    if (entry && (Date.now() - entry.ts) < OCCASION_TTL_MS) {
+      renderOccasionRec(entry.data, occasion);
+      return;
+    }
+  } catch {}
+
+  // Loading state
+  resultEl.style.display = '';
+  resultEl.innerHTML = '<div class="occasion-loading"><div class="spinner" style="width:14px;height:14px;border-width:1.5px"></div><span>Picking your scent…</span></div>';
+
+  try {
+    const tp = getTasteProfile();
+    const diaryCtx = diary.slice(0, 40).map(e => ({
+      fragrance_name: e.fragrance_name, house: e.house,
+      rating: e.rating, worn_at: e.worn_at
+    }));
+    const collCtx = collection.map(b => ({ name: b.name, house: b.house }));
+
+    const res = await fetch('/api/occasion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ occasion, diary: diaryCtx, collection: collCtx, tasteProfile: tp }),
+    });
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    // Cache per-occasion
+    try {
+      const allCached = JSON.parse(sessionStorage.getItem(OCCASION_CACHE_KEY) || '{}');
+      allCached[occasion] = { ts: Date.now(), data };
+      sessionStorage.setItem(OCCASION_CACHE_KEY, JSON.stringify(allCached));
+    } catch {}
+
+    renderOccasionRec(data, occasion);
+  } catch {
+    resultEl.innerHTML = '<div class="occasion-error">Couldn\'t reach the AI — try again in a moment.</div>';
+  }
+}
+
+function renderOccasionRec(data, occasion) {
+  const resultEl = document.getElementById('occasion-result');
+  if (!resultEl) return;
+  const r = data.recommendation;
+  if (!r || !r.name) { resultEl.style.display = 'none'; return; }
+
+  const label = OCCASION_LABELS[occasion] || occasion;
+  const inHive = r.in_collection || collection.some(b =>
+    b.name && r.name && b.name.toLowerCase().trim() === r.name.toLowerCase().trim()
+  );
+
+  const intensityDot = { light: '#7ec8e3', moderate: '#c8a96e', bold: '#e07060' }[r.intensity] || '#888';
+
+  resultEl.style.display = '';
+  resultEl.innerHTML =
+    '<div class="occasion-rec">' +
+      '<div class="occasion-rec-top">' +
+        '<div class="occasion-rec-for">For ' + escapeHtml(label) + '</div>' +
+        (r.intensity ? '<div class="occasion-rec-intensity" style="--dot:' + intensityDot + '">' + escapeHtml(r.intensity) + '</div>' : '') +
+      '</div>' +
+      '<div class="occasion-rec-name">' + escapeHtml(r.name) + '</div>' +
+      '<div class="occasion-rec-house">' + escapeHtml(r.house || '') + '</div>' +
+      (r.occasion_fit ? '<div class="occasion-rec-fit">' + escapeHtml(r.occasion_fit) + '</div>' : '') +
+      '<div class="occasion-rec-why">' + escapeHtml(r.why || '') + '</div>' +
+      '<div class="occasion-rec-actions">' +
+        (inHive ? '<span class="occasion-in-hive">✓ In your hive</span>' : '') +
+        '<button class="occasion-btn-log" onclick="quickLog(' + JSON.stringify(r.name) + ',' + JSON.stringify(r.house || '') + ',null,null)">Log it</button>' +
+        '<button class="occasion-btn-explore" onclick="triggerSearch(' + JSON.stringify(r.name) + ')">Explore</button>' +
+      '</div>' +
+    '</div>';
 }
 
 function renderNoseCta() {
@@ -4660,6 +4784,7 @@ function renderProfile() {
   renderProfilePosterShelves();
   renderProfileShareSnapshot();
   renderProfileTasteDashboard();
+  renderProfileSamplePlan();
 
   // Recent reviews — last 3 with notes
   const recentReviews = diary.filter(e => e.notes).slice(0, 3);
@@ -6385,6 +6510,7 @@ async function submitNoseQuery() {
 
 let _sampleVibe = 'personal';
 let _sampleBudget = '35';
+const SAMPLE_PLAN_KEY = 'sh_sample_plan';
 
 const SAMPLE_SET_POOLS = {
   signature: [
@@ -6475,6 +6601,147 @@ function mergeSamplePlans(...plans) {
     merged.push(item);
   });
   return merged.slice(0, 5);
+}
+
+function cleanSamplePlan(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const items = Array.isArray(raw.items) ? raw.items.filter(item => item && item.name).slice(0, 5) : [];
+  if (!items.length) return null;
+  return {
+    id: raw.id || ('sp' + Date.now()),
+    created_at: raw.created_at || new Date().toISOString(),
+    vibe: raw.vibe || 'personal',
+    budget: raw.budget || _sampleBudget,
+    title: raw.title || '5-sample path',
+    subtitle: raw.subtitle || '',
+    items
+  };
+}
+
+function getSavedSamplePlan() {
+  let local = null;
+  try { local = cleanSamplePlan(JSON.parse(localStorage.getItem(SAMPLE_PLAN_KEY) || 'null')); } catch (e) {}
+  const remote = cleanSamplePlan(user?.user_metadata?.sample_plan || null);
+  if (!local) return remote;
+  if (!remote) return local;
+  return new Date(remote.created_at || 0) > new Date(local.created_at || 0) ? remote : local;
+}
+
+function saveSamplePlan(plan) {
+  const clean = cleanSamplePlan(plan);
+  if (!clean) return;
+  try { localStorage.setItem(SAMPLE_PLAN_KEY, JSON.stringify(clean)); } catch (e) {}
+  if (user) {
+    user.user_metadata = { ...(user.user_metadata || {}), sample_plan: clean };
+    sb.auth.updateUser({ data: { sample_plan: clean } }).catch(() => {});
+  }
+  if (curScreen === 'profile') renderProfileSamplePlan();
+}
+
+function clearSamplePlan() {
+  try { localStorage.removeItem(SAMPLE_PLAN_KEY); } catch (e) {}
+  if (user) {
+    user.user_metadata = { ...(user.user_metadata || {}), sample_plan: null };
+    sb.auth.updateUser({ data: { sample_plan: null } }).catch(() => {});
+  }
+  renderProfileSamplePlan();
+  toast('Sample plan cleared');
+}
+
+function registerSamplePlanCards(root) {
+  if (!root) return;
+  root.querySelectorAll('.sample-set-card').forEach(card => {
+    card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
+  });
+}
+
+function samplePlanItemsHtml(items) {
+  return (items || []).map((item, i) => {
+    const key = item._key || ('sample_plan_' + i + '_' + normalizeText(item.name || '').replace(/\s+/g, '_'));
+    fragStore[key] = item.fragrance || item;
+    return `
+      <div class="sample-set-card" data-key="${escapeAttr(key)}">
+        <div class="sample-set-num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="sample-set-body">
+          ${item.tag ? `<div class="sample-set-tag">${escapeHtml(item.tag)}</div>` : ''}
+          <div class="sample-set-name">${escapeHtml(item.name || '')}</div>
+          <div class="sample-set-house">${escapeHtml(item.house || '')}</div>
+          <div class="sample-set-reason">${escapeHtml(item.reason || '')}</div>
+        </div>
+        <button class="sample-set-open">Open</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function samplePlanResultsHtml(plan, options = {}) {
+  const insight = options.insight
+    ? '<div class="sample-builder-insight">This is a preview of the Pro value: fewer wrong bottles, more intentional sampling.</div>'
+    : '';
+  const savedAt = options.savedAt ? '<div class="sample-plan-saved">Saved to profile</div>' : '';
+  return (
+    '<div class="sample-builder-summary">' +
+      '<strong>' + escapeHtml(plan.title || '5-sample path') + '</strong><span>' + escapeHtml(plan.subtitle || '') + '</span>' +
+    '</div>' +
+    insight +
+    savedAt +
+    samplePlanItemsHtml(plan.items || [])
+  );
+}
+
+function openSavedSamplePlan() {
+  const plan = getSavedSamplePlan();
+  if (!plan) {
+    openSampleBuilder('personal');
+    return;
+  }
+  openSampleBuilder(plan.vibe || 'personal');
+  const el = document.getElementById('sample-builder-results');
+  if (!el) return;
+  el.innerHTML = samplePlanResultsHtml(plan, { savedAt: true }) +
+    '<button class="sample-builder-pro" onclick="openUpgrade()">Unlock blind-buy risk and shop links</button>';
+  registerSamplePlanCards(el);
+}
+
+function renderProfileSamplePlan() {
+  const el = document.getElementById('profile-sample-plan');
+  const section = document.getElementById('sample-plan-section');
+  if (!el) return;
+  const plan = getSavedSamplePlan();
+  if (section) section.style.display = '';
+  if (!plan) {
+    el.innerHTML =
+      '<div class="sample-plan-empty">' +
+        '<div class="sample-plan-empty-title">No sample path yet.</div>' +
+        '<div class="sample-plan-empty-copy">Build one from your taste dashboard and ScentHive will keep it here.</div>' +
+        '<button onclick="openSampleBuilder(\'personal\')">Build personal plan</button>' +
+      '</div>';
+    return;
+  }
+
+  const date = new Date(plan.created_at);
+  const dateLabel = Number.isNaN(date.getTime()) ? 'Saved plan' : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  el.innerHTML =
+    '<div class="sample-plan-card">' +
+      '<div class="sample-plan-head">' +
+        '<div>' +
+          '<div class="sample-plan-kicker">' + escapeHtml(dateLabel) + ' · ' + escapeHtml(sampleVibeLabel(plan.vibe || 'personal')) + '</div>' +
+          '<div class="sample-plan-title">' + escapeHtml(plan.title || '5-sample path') + '</div>' +
+          '<div class="sample-plan-sub">' + escapeHtml(plan.subtitle || 'Your current sample path.') + '</div>' +
+        '</div>' +
+        '<button onclick="openSavedSamplePlan()">Open</button>' +
+      '</div>' +
+      '<div class="sample-plan-mini">' +
+        plan.items.slice(0, 5).map((item, i) =>
+          '<button onclick="openSavedSamplePlan()"><span>' + String(i + 1).padStart(2, '0') + '</span>' +
+          '<strong>' + escapeHtml(item.name || '') + '</strong><em>' + escapeHtml(item.house || '') + '</em></button>'
+        ).join('') +
+      '</div>' +
+      '<div class="sample-plan-actions">' +
+        '<button onclick="openSampleBuilder(\'personal\')">Rebuild</button>' +
+        '<button onclick="clearSamplePlan()">Clear</button>' +
+      '</div>' +
+    '</div>';
 }
 
 function firstSampleQueryForSignal(signal, used) {
@@ -6577,27 +6844,47 @@ async function buildSampleSet() {
   }
 
   el.innerHTML =
-    '<div class="sample-builder-summary">' +
-      '<strong>' + escapeHtml(planTitle) + '</strong><span>' + escapeHtml(planSub) + '</span>' +
-    '</div>' +
-    (isPersonal ? '<div class="sample-builder-insight">This is a preview of the Pro value: fewer wrong bottles, more intentional sampling.</div>' : '') +
-    cards.map(({ key, f, reason, tag }, i) => `
-      <div class="sample-set-card" data-key="${key}">
-        <div class="sample-set-num">${String(i + 1).padStart(2, '0')}</div>
-        <div class="sample-set-body">
-          ${tag ? `<div class="sample-set-tag">${escapeHtml(tag)}</div>` : ''}
-          <div class="sample-set-name">${escapeHtml(f.name || '')}</div>
-          <div class="sample-set-house">${escapeHtml(f.house || '')}</div>
-          <div class="sample-set-reason">${escapeHtml(reason)}</div>
-        </div>
-        <button class="sample-set-open">Open</button>
-      </div>
-    `).join('') +
+    samplePlanResultsHtml({
+      title: planTitle,
+      subtitle: planSub,
+      items: cards.map(({ key, f, reason, tag }) => ({
+        _key: key,
+        name: f.name || '',
+        house: f.house || '',
+        image_url: f.image_url || '',
+        fragella_id: f.fragella_id || '',
+        year: f.year || '',
+        accords: f.accords || [],
+        notes: f.notes || [],
+        reason,
+        tag,
+        fragrance: f
+      }))
+    }, { insight: isPersonal, savedAt: true }) +
     '<button class="sample-builder-pro" onclick="openUpgrade()">Unlock full Pro set with blind-buy risk and shop links</button>';
 
-  el.querySelectorAll('.sample-set-card').forEach(card => {
-    card.addEventListener('click', () => openFrag(card.getAttribute('data-key')));
-  });
+  const savedPlan = {
+    id: 'sp' + Date.now(),
+    created_at: new Date().toISOString(),
+    vibe: _sampleVibe,
+    budget: _sampleBudget,
+    title: planTitle,
+    subtitle: planSub,
+    items: cards.map(({ f, reason, tag }) => ({
+      name: f.name || '',
+      house: f.house || '',
+      image_url: f.image_url || '',
+      fragella_id: f.fragella_id || '',
+      year: f.year || '',
+      accords: f.accords || [],
+      notes: f.notes || [],
+      reason,
+      tag,
+      fragrance: f
+    }))
+  };
+  saveSamplePlan(savedPlan);
+  registerSamplePlanCards(el);
 }
 
 function openTasteTest() {
@@ -7274,8 +7561,8 @@ function renderWishlist() {
   }
   grid.innerHTML = wishlist.map((w,i) => {
     const img = w.image_url
-      ? `<img class="wl-cell-img" src="${escapeAttr(w.image_url)}" alt="${escapeHtml(w.name)}" onerror="this.outerHTML='<div class=&quot;wl-cell-empty&quot;>🏺</div>'">`
-      : `<div class="wl-cell-empty">🏺</div>`;
+      ? makeImg(w.image_url, w.name, 'wl-cell-img', 'width:100%;height:100%;object-fit:cover')
+      : buildFragVisual(w.name || '', w.house || '', '', []);
     return `<div class="wl-cell" data-wl-idx="${i}">
       ${img}
       <div class="wl-cell-overlay">
