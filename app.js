@@ -2496,10 +2496,18 @@ function buildFragVisual(name, house, family, accords) {
   '</div>';
 }
 
+// Called by onerror on any fragrance image — swaps broken img for CSS art
+window._imgFail = function(img, name, house) {
+  var p = img.parentNode;
+  if (p) p.innerHTML = buildFragVisual(name || '', house || '', '', []);
+};
+
 function makeImg(url, alt, cls, style, house) {
   if (!url) return buildFragVisual(alt || '', house || '', '', []);
-  var s = style || 'max-width:80%;max-height:80%;object-fit:contain;mix-blend-mode:luminosity;filter:brightness(1.3)';
-  return '<img src="' + escapeAttr(url) + '" alt="' + escapeHtml(alt||'') + '" class="' + (cls||'') + '" style="' + s + '" loading="lazy" onerror="this.style.display=\'none\'">';
+  var s = style || 'max-width:80%;max-height:80%;object-fit:contain';
+  var n = JSON.stringify(alt || '');
+  var h = JSON.stringify(house || '');
+  return '<img src="' + escapeAttr(url) + '" alt="' + escapeHtml(alt||'') + '" class="' + (cls||'') + '" style="' + s + '" loading="lazy" onerror="_imgFail(this,' + n + ',' + h + ')">';
 }
 
 function escapeHtml(s) {
