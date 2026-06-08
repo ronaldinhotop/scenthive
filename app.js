@@ -1493,6 +1493,13 @@ function getTasteSignals() {
     addFragranceTasteSignals(scores, sources, item, 0.9, 'hive');
   });
 
+  const samplePlan = getSavedSamplePlan();
+  (samplePlan?.items || []).forEach(item => {
+    const weight = item.status === 'love' ? 4 : item.status === 'tested' ? 1.2 : item.status === 'pass' ? -1.5 : 0;
+    if (!weight) return;
+    addFragranceTasteSignals(scores, sources, item.fragrance || item, weight, 'samples');
+  });
+
   const profile = getTasteProfile();
   (profile?.queries || []).forEach(query => {
     const hit = staticSearch(query)?.[0];
@@ -1511,8 +1518,8 @@ function getTasteSignals() {
 
   const topHouse = Object.entries(preferredHouses)
     .sort((a, b) => b[1] - a[1])[0]?.[0] || '';
-  const sourceLabel = sources.duels >= 1 ? 'duels' : sources.diary >= 1 ? 'diary' : sources.hive >= 1 ? 'Hive' : profile ? 'taste test' : '';
-  const confidence = Math.round((sources.duels || 0) + (sources.diary || 0) + Math.min(6, sources.hive || 0) + (sources['taste test'] || 0));
+  const sourceLabel = sources.duels >= 1 ? 'duels' : sources.diary >= 1 ? 'diary' : sources.samples >= 1 ? 'sample plan' : sources.hive >= 1 ? 'Hive' : profile ? 'taste test' : '';
+  const confidence = Math.round((sources.duels || 0) + (sources.diary || 0) + (sources.samples || 0) + Math.min(6, sources.hive || 0) + (sources['taste test'] || 0));
 
   return {
     top,
@@ -6614,7 +6621,11 @@ function cleanSamplePlan(raw) {
     budget: raw.budget || _sampleBudget,
     title: raw.title || '5-sample path',
     subtitle: raw.subtitle || '',
-    items
+    items: items.map(item => ({
+      ...item,
+      status: ['tested', 'love', 'pass'].includes(item.status) ? item.status : '',
+      tested_at: item.tested_at || ''
+    }))
   };
 }
 
@@ -6648,6 +6659,33 @@ function clearSamplePlan() {
   toast('Sample plan cleared');
 }
 
+function samplePlanStatusLabel(status) {
+  return {
+    tested: 'Tested',
+    love: 'Love',
+    pass: 'Pass'
+  }[status] || 'To test';
+}
+
+function setSamplePlanItemStatus(index, status) {
+  const plan = getSavedSamplePlan();
+  if (!plan || !plan.items?.[index]) return;
+  const nextStatus = plan.items[index].status === status ? '' : status;
+  plan.items[index] = {
+    ...plan.items[index],
+    status: nextStatus,
+    tested_at: nextStatus ? new Date().toISOString() : ''
+  };
+  saveSamplePlan(plan);
+  const modalResults = document.getElementById('sample-builder-results');
+  if (modalResults && document.getElementById('modal-sample-builder')?.classList.contains('open')) {
+    modalResults.innerHTML = samplePlanResultsHtml(plan, { savedAt: true }) +
+      '<button class="sample-builder-pro" onclick="openUpgrade()">Unlock blind-buy risk and shop links</button>';
+    registerSamplePlanCards(modalResults);
+  }
+  toast(nextStatus ? 'Sample marked: ' + samplePlanStatusLabel(nextStatus) : 'Sample status cleared');
+}
+
 function registerSamplePlanCards(root) {
   if (!root) return;
   root.querySelectorAll('.sample-set-card').forEach(card => {
@@ -6667,6 +6705,11 @@ function samplePlanItemsHtml(items) {
           <div class="sample-set-name">${escapeHtml(item.name || '')}</div>
           <div class="sample-set-house">${escapeHtml(item.house || '')}</div>
           <div class="sample-set-reason">${escapeHtml(item.reason || '')}</div>
+          <div class="sample-set-status">
+            ${['tested', 'love', 'pass'].map(status =>
+              `<button class="${item.status === status ? 'active' : ''}" onclick="event.stopPropagation();setSamplePlanItemStatus(${i},'${status}')">${escapeHtml(samplePlanStatusLabel(status))}</button>`
+            ).join('')}
+          </div>
         </div>
         <button class="sample-set-open">Open</button>
       </div>
@@ -6721,6 +6764,10 @@ function renderProfileSamplePlan() {
 
   const date = new Date(plan.created_at);
   const dateLabel = Number.isNaN(date.getTime()) ? 'Saved plan' : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const testedCount = plan.items.filter(item => item.status).length;
+  const loveCount = plan.items.filter(item => item.status === 'love').length;
+  const passCount = plan.items.filter(item => item.status === 'pass').length;
+  const progress = Math.round((testedCount / Math.max(1, plan.items.length)) * 100);
   el.innerHTML =
     '<div class="sample-plan-card">' +
       '<div class="sample-plan-head">' +
@@ -6731,10 +6778,17 @@ function renderProfileSamplePlan() {
         '</div>' +
         '<button onclick="openSavedSamplePlan()">Open</button>' +
       '</div>' +
+      '<div class="sample-plan-progress">' +
+        '<div><span>Progress</span><strong>' + testedCount + '/' + plan.items.length + ' tried</strong></div>' +
+        '<div><span>Loved</span><strong>' + loveCount + '</strong></div>' +
+        '<div><span>Passed</span><strong>' + passCount + '</strong></div>' +
+      '</div>' +
+      '<div class="sample-plan-meter"><i style="width:' + progress + '%"></i></div>' +
       '<div class="sample-plan-mini">' +
         plan.items.slice(0, 5).map((item, i) =>
           '<button onclick="openSavedSamplePlan()"><span>' + String(i + 1).padStart(2, '0') + '</span>' +
-          '<strong>' + escapeHtml(item.name || '') + '</strong><em>' + escapeHtml(item.house || '') + '</em></button>'
+          '<strong>' + escapeHtml(item.name || '') + '</strong><em>' + escapeHtml(item.house || '') + '</em>' +
+          '<small>' + escapeHtml(samplePlanStatusLabel(item.status)) + '</small></button>'
         ).join('') +
       '</div>' +
       '<div class="sample-plan-actions">' +

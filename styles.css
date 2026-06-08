@@ -1443,8 +1443,33 @@ select.auth-input option,select.modal-input option{background:var(--bg2);color:v
 .sample-set-name{font-family:'Playfair Display',serif;font-size:17px;font-style:italic;line-height:1.15;color:var(--white)}
 .sample-set-house{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px}
 .sample-set-reason{font-size:11px;color:var(--grey);line-height:1.45;margin-top:5px}
+.sample-set-status{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.sample-set-status button{font-family:'DM Mono',monospace;font-size:7.5px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);border-radius:999px;padding:4px 7px;cursor:pointer;background:rgba(255,255,255,0.02)}
+.sample-set-status button.active{color:var(--bg);background:var(--gold);border-color:var(--gold)}
 .sample-set-open{font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);border-radius:20px;padding:6px 10px;cursor:pointer}
 .sample-builder-pro{width:100%;margin-top:16px;padding:12px 14px;border:1px solid var(--gold-dim);border-radius:4px;background:var(--gold-pale);color:var(--gold);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;line-height:1.45}
+.sample-plan-empty,.sample-plan-card{margin:0 20px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px}
+.sample-plan-empty-title{font-family:'Playfair Display',serif;font-size:20px;font-style:italic;color:var(--white);margin-bottom:6px}
+.sample-plan-empty-copy{font-size:12px;color:var(--grey);line-height:1.55;margin-bottom:14px}
+.sample-plan-empty button,.sample-plan-head button,.sample-plan-actions button{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);border-radius:999px;padding:8px 12px;cursor:pointer}
+.sample-plan-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
+.sample-plan-kicker{font-family:'DM Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px}
+.sample-plan-title{font-family:'Playfair Display',serif;font-size:22px;font-style:italic;color:var(--white);line-height:1.15}
+.sample-plan-sub{font-family:'DM Mono',monospace;font-size:8px;color:var(--grey);letter-spacing:0.06em;text-transform:uppercase;line-height:1.45;margin-top:7px}
+.sample-plan-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border2);border:1px solid var(--border2);border-radius:6px;overflow:hidden;margin-bottom:9px}
+.sample-plan-progress div{background:rgba(8,8,16,0.62);padding:10px}
+.sample-plan-progress span{display:block;font-family:'DM Mono',monospace;font-size:7.5px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px}
+.sample-plan-progress strong{display:block;font-size:12px;color:var(--white2);font-weight:500}
+.sample-plan-meter{height:4px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden;margin-bottom:12px}
+.sample-plan-meter i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:999px}
+.sample-plan-mini{display:grid;gap:6px}
+.sample-plan-mini button{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;text-align:left;padding:9px 0;border:none;border-bottom:1px solid var(--border2);cursor:pointer}
+.sample-plan-mini span{font-family:'DM Mono',monospace;font-size:8px;color:var(--gold-dim)}
+.sample-plan-mini strong{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:var(--white);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sample-plan-mini em{display:none}
+.sample-plan-mini small{font-family:'DM Mono',monospace;font-size:7.5px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase}
+.sample-plan-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.sample-plan-saved{margin:-2px 0 8px;font-family:'DM Mono',monospace;font-size:8px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase}
 
 /* ═══ BUY SECTION ═══ */
 .buy-section-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;margin:14px 0 8px;padding:0}
