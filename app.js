@@ -3189,6 +3189,12 @@ function getShareUsername() {
   return '@' + String(raw).toLowerCase().replace(/[^a-z0-9_.]+/g, '').slice(0, 22);
 }
 
+function getPublicBaseUrl() {
+  const origin = window.location?.origin || '';
+  if (origin && origin !== 'null' && !origin.startsWith('file:')) return origin;
+  return 'https://scenthive-ten.vercel.app';
+}
+
 function formatWearScore(rating) {
   const n = Number(rating) || 0;
   if (!n) return '';
@@ -3227,6 +3233,7 @@ async function shareWearCard() {
       if (e?.name === 'AbortError') return;
     }
   }
+  downloadWearCard();
   if (navigator.share) {
     navigator.share({ title: 'My ScentHive wear', text }).catch(() => {});
     return;
@@ -7664,7 +7671,7 @@ function switchColTab(tab) {
 function openShareProfile() {
   if (!user) { toast('Sign in to share your profile'); return; }
   const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Scenthead';
-  const url = `https://scenthive.app/?u=${encodeURIComponent(user.id)}`;
+  const url = `${getPublicBaseUrl()}/?u=${encodeURIComponent(user.id)}`;
   const s = buildProfileSnapshot();
   const statsStr = `${s.logged} logged · ${s.collection} in hive · ${s.taste}`;
   const shareText = [
@@ -7709,6 +7716,7 @@ async function shareProfileCard() {
       if (e?.name === 'AbortError') return;
     }
   }
+  downloadProfileCard();
   copyShareUrl();
 }
 
