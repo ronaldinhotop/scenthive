@@ -2496,18 +2496,76 @@ function buildFragVisual(name, house, family, accords) {
   '</div>';
 }
 
-// Called by onerror on any fragrance image — swaps broken img for CSS art
+// ─── Fragrance image with CSS-art timeout fallback ───────────────────────────
+// Problem: CDN images can hang (no onerror, just pending) for 30+ seconds.
+// Fix: a MutationObserver watches every img[data-fv] and fires a 3.5s timeout.
+// If the image hasn't loaded by then → swap it for CSS art immediately.
+// _imgFail uses replaceChild so sibling elements (overlays, delete buttons)
+// are preserved — it does NOT overwrite parent.innerHTML.
+
 window._imgFail = function(img, name, house) {
-  var p = img.parentNode;
-  if (p) p.innerHTML = buildFragVisual(name || '', house || '', '', []);
+  if (!img || !img.parentNode || img._fvDone) return;
+  img._fvDone = true;
+  clearTimeout(img._fvTimer);
+  var tmp = document.createElement('div');
+  tmp.innerHTML = buildFragVisual(name || '', house || '', '', []);
+  var vis = tmp.firstChild;
+  if (vis) img.parentNode.replaceChild(vis, img);
 };
+
+(function _startImgObserver() {
+  function armImg(img) {
+    if (!img || img._fvDone || !img.hasAttribute('data-fv-name')) return;
+    if (img.complete && img.naturalWidth > 0) return; // already loaded fine
+    img._fvTimer = setTimeout(function() {
+      if (!img.complete || img.naturalWidth === 0) {
+        window._imgFail(img,
+          img.getAttribute('data-fv-name') || '',
+          img.getAttribute('data-fv-house') || '');
+      }
+    }, 3500);
+    img.addEventListener('load', function() {
+      img._fvDone = true;
+      clearTimeout(img._fvTimer);
+    }, { once: true });
+  }
+  var obs = new MutationObserver(function(muts) {
+    muts.forEach(function(m) {
+      m.addedNodes.forEach(function(node) {
+        if (node.nodeType !== 1) return;
+        if (node.tagName === 'IMG') {
+          armImg(node);
+        } else if (node.querySelectorAll) {
+          node.querySelectorAll('img[data-fv-name]').forEach(armImg);
+        }
+      });
+    });
+  });
+  if (document.body) {
+    obs.observe(document.body, { childList: true, subtree: true });
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      obs.observe(document.body, { childList: true, subtree: true });
+    });
+  }
+})();
 
 function makeImg(url, alt, cls, style, house) {
   if (!url) return buildFragVisual(alt || '', house || '', '', []);
   var s = style || 'max-width:80%;max-height:80%;object-fit:contain';
   var n = JSON.stringify(alt || '');
   var h = JSON.stringify(house || '');
-  return '<img src="' + escapeAttr(url) + '" alt="' + escapeHtml(alt||'') + '" class="' + (cls||'') + '" style="' + s + '" loading="lazy" onerror="_imgFail(this,' + n + ',' + h + ')">';
+  // data-fv-name / data-fv-house picked up by MutationObserver for timeout
+  var nAttr = escapeAttr(alt || '');
+  var hAttr = escapeAttr(house || '');
+  return '<img src="' + escapeAttr(url) + '"' +
+    ' alt="' + escapeHtml(alt||'') + '"' +
+    ' class="' + (cls||'') + '"' +
+    ' style="' + s + '"' +
+    ' data-fv-name="' + nAttr + '"' +
+    ' data-fv-house="' + hAttr + '"' +
+    ' loading="eager"' +
+    ' onerror="_imgFail(this,' + n + ',' + h + ')">';
 }
 
 function escapeHtml(s) {
