@@ -3177,7 +3177,7 @@ function openWearShare(entry) {
   setText('wear-share-date', `${date} · now`);
   setText('wear-share-name', name);
   setText('wear-share-house', house ? `${house} · Fragrance` : 'Fragrance');
-  setText('wear-share-rating', rating || 'Logged');
+  setText('wear-share-rating', rating || '★');
   setText('wear-share-note', entry.notes ? `"${entry.notes}"` : (entry.occasion ? entry.occasion : 'Saved in my fragrance diary.'));
   renderWearShareTags(entry);
   setText('wear-share-caption', buildWearShareCaption(entry));
@@ -3192,7 +3192,7 @@ function getShareUsername() {
 function getPublicBaseUrl() {
   const origin = window.location?.origin || '';
   if (origin && origin !== 'null' && !origin.startsWith('file:')) return origin;
-  return 'https://scenthive-ten.vercel.app';
+  return 'https://scenthive.app';
 }
 
 function formatWearScore(rating) {
@@ -3233,7 +3233,7 @@ async function shareWearCard() {
       if (e?.name === 'AbortError') return;
     }
   }
-  downloadWearCard();
+  await downloadWearCard();
   if (navigator.share) {
     navigator.share({ title: 'My ScentHive wear', text }).catch(() => {});
     return;
@@ -3243,6 +3243,7 @@ async function shareWearCard() {
 
 async function createWearCardFile() {
   if (!_shareWearEntry) return null;
+  await document.fonts.ready;
   const canvas = renderWearCardCanvas(_shareWearEntry);
   const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
   if (!blob) return null;
@@ -3332,7 +3333,7 @@ function renderWearCardCanvas(entry) {
   wrapCanvasText(ctx, entry.fragrance_name || 'Today\'s scent', cardX + 214, cardY + 188, 430, 52, 2);
   ctx.fillStyle = '#555555';
   ctx.font = '500 30px Inter, sans-serif';
-  wrapCanvasText(ctx, `${entry.house || 'Fragrance'} · Fragrance`, cardX + 214, cardY + 302, 410, 36, 1);
+  wrapCanvasText(ctx, entry.house || 'Fragrance', cardX + 214, cardY + 302, 410, 36, 1);
 
   ctx.strokeStyle = '#22c55e';
   ctx.lineWidth = 12;
@@ -3342,7 +3343,7 @@ function renderWearCardCanvas(entry) {
   ctx.fillStyle = '#22c55e';
   ctx.font = '800 48px Inter, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(formatWearScore(entry.rating) || 'Log', cardX + cardW - 112, cardY + 244);
+  ctx.fillText(formatWearScore(entry.rating) || '★', cardX + cardW - 112, cardY + 244);
   ctx.textAlign = 'left';
 
   let tagX = cardX + 34;
@@ -3368,13 +3369,31 @@ function renderWearCardCanvas(entry) {
   return canvas;
 }
 
+function _isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+function _triggerDownload(dataUrl, filename) {
+  if (_isIOS()) {
+    // iOS Safari ignores <a download> — open in new tab and instruct the user
+    const w = window.open();
+    if (w) { w.document.write(`<img src="${dataUrl}" style="max-width:100%">`); }
+    toast('Long-press the image → Save to Photos');
+    return;
+  }
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = dataUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 async function downloadWearCard() {
   if (!_shareWearEntry) return;
+  await document.fonts.ready;
   const canvas = renderWearCardCanvas(_shareWearEntry);
-  const link = document.createElement('a');
-  link.download = `scenthive-${slugify(_shareWearEntry.fragrance_name || 'wear')}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
+  _triggerDownload(canvas.toDataURL('image/png'), `scenthive-${slugify(_shareWearEntry.fragrance_name || 'wear')}.png`);
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -7716,7 +7735,7 @@ async function shareProfileCard() {
       if (e?.name === 'AbortError') return;
     }
   }
-  downloadProfileCard();
+  await downloadProfileCard();
   copyShareUrl();
 }
 
@@ -7737,19 +7756,18 @@ function copyShareUrl() {
 
 async function createProfileCardFile() {
   if (!user) return null;
+  await document.fonts.ready;
   const canvas = renderProfileCardCanvas();
   const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
   if (!blob) return null;
   return new File([blob], `scenthive-profile-${slugify(user.user_metadata?.name || user.email || 'profile')}.png`, { type: 'image/png' });
 }
 
-function downloadProfileCard() {
+async function downloadProfileCard() {
   if (!user) return;
+  await document.fonts.ready;
   const canvas = renderProfileCardCanvas();
-  const link = document.createElement('a');
-  link.download = `scenthive-profile-${slugify(user.user_metadata?.name || user.email || 'profile')}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
+  _triggerDownload(canvas.toDataURL('image/png'), `scenthive-profile-${slugify(user.user_metadata?.name || user.email || 'profile')}.png`);
 }
 
 function renderProfileCardCanvas() {
